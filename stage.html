@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>精算室の画作り</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Shippori+Mincho+B1:wght@400;600;800&display=swap">
+<style>
+:root{ --accent:#6E7673; --fg:#D9DEDA; --fg-dim:#828F8B; --edge:#26312F; }
+@media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition-duration:.001s !important; } }
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; height:100%; }
+body{
+  background:#05080A; color:var(--fg); overflow:hidden;
+  font-family:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  -webkit-font-smoothing:antialiased;
+}
+#stage{ position:fixed; inset:0; display:block; width:100%; height:100%; }
+
+.grain{
+  position:fixed; inset:-50%; pointer-events:none; z-index:2; opacity:.05;
+  background-image:var(--noise); background-size:180px 180px;
+  animation:grainMove 700ms steps(1) infinite;
+}
+@keyframes grainMove{
+  0%{ transform:translate(0,0); } 25%{ transform:translate(-3%,2%); }
+  50%{ transform:translate(2%,-3%); } 75%{ transform:translate(-2%,-2%); }
+}
+.vignette{
+  position:fixed; inset:0; pointer-events:none; z-index:3;
+  background:radial-gradient(120% 90% at 50% 45%, transparent 38%, rgba(0,0,0,.72) 100%);
+}
+.bars{ position:fixed; left:0; right:0; height:5vh; background:#05080A; z-index:4; pointer-events:none; }
+.bars.top{ top:0; } .bars.bot{ bottom:0; }
+
+/* 文章 */
+.script{
+  position:fixed; left:0; right:0; bottom:5vh; z-index:6;
+  padding:0 clamp(20px,6vw,90px) clamp(28px,5vh,54px);
+  display:flex; justify-content:center; pointer-events:none;
+}
+.script-inner{ width:min(50em,100%); }
+.who{
+  font-family:"IBM Plex Mono",monospace; font-size:.66rem; letter-spacing:.24em;
+  color:var(--accent); margin-bottom:.65em; transition:color .6s ease;
+}
+.line{
+  font-size:clamp(1rem,1.35vw + .7rem,1.35rem); line-height:2.15;
+  text-shadow:0 2px 22px rgba(0,0,0,.95), 0 0 44px rgba(0,0,0,.7);
+  margin:0; min-height:4.4em;
+}
+.line .swap{ transition:opacity .5s ease; }
+
+/* 検証用の操作盤 */
+.panel{
+  position:fixed; top:0; left:0; right:0; z-index:8;
+  display:flex; align-items:center; gap:clamp(10px,2vw,22px); flex-wrap:wrap;
+  padding:11px clamp(14px,3vw,26px); background:rgba(5,8,10,.82);
+  border-bottom:1px solid var(--edge); backdrop-filter:blur(10px);
+}
+.panel-tag{
+  font-family:"IBM Plex Mono",monospace; font-size:.6rem; letter-spacing:.22em;
+  text-transform:uppercase; color:#4C5956; white-space:nowrap;
+}
+.amt{
+  font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
+  font-size:1.05rem; color:var(--accent); min-width:6.4em; transition:color .6s ease;
+}
+input[type=range]{
+  flex:1 1 200px; min-width:140px; height:22px; cursor:pointer;
+  -webkit-appearance:none; appearance:none; background:transparent;
+}
+input[type=range]::-webkit-slider-runnable-track{
+  height:1px; background:var(--edge);
+}
+input[type=range]::-moz-range-track{ height:1px; background:var(--edge); }
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:11px; height:11px; margin-top:-5px;
+  background:var(--accent); border:none; border-radius:50%;
+  transition:background .6s ease;
+}
+input[type=range]::-moz-range-thumb{
+  width:11px; height:11px; background:var(--accent); border:none; border-radius:50%;
+}
+input[type=range]:focus-visible{ outline:1px solid var(--accent); outline-offset:6px; }
+.layers{ display:flex; gap:5px; flex-wrap:wrap; }
+.chip{
+  font-family:"IBM Plex Mono",monospace; font-size:.6rem; letter-spacing:.13em;
+  padding:4px 9px; border:1px solid var(--edge); color:#4C5956;
+  transition:color .5s ease, border-color .5s ease;
+}
+.chip.on{ color:var(--accent); border-color:var(--accent); }
+@media (max-width:640px){
+  .panel{ gap:9px; padding:9px 12px; }
+  .amt{ font-size:.92rem; min-width:5.6em; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="stage"></canvas>
+<div class="grain" id="grain"></div>
+<div class="vignette"></div>
+<div class="bars top"></div>
+<div class="bars bot"></div>
+
+<div class="panel">
+  <span class="panel-tag">検証用 — 動かすと文章と絵が同時に解像します</span>
+  <span class="amt" id="amt">¥0</span>
+  <input type="range" id="slider" min="0" max="37" value="0" step="1" aria-label="支払額">
+  <div class="layers" id="layers"></div>
+</div>
+
+<div class="script">
+  <div class="script-inner">
+    <div class="who">クロハ</div>
+    <p class="line" id="line"></p>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STEPS = [];
+  for (var a=0;a<1000;a+=100) STEPS.push(a);
+  for (var b=1000;b<10000;b+=1000) STEPS.push(b);
+  for (var c=10000;c<100000;c+=10000) STEPS.push(c);
+  for (var d=100000;d<1000000;d+=100000) STEPS.push(d);
+  STEPS.push(1000000);
+
+  // 帯ごとの本文。起きた出来事は同じで、解釈だけが変わる。
+  var TEXT = [
+    { min:0,       t:"男は、わたしを憐れんでいるようだった。<br>名前も思い出せない女に、そんな顔をしてくれる人がいる。" },
+    { min:1000,    t:"男は、わたしを憐れんでいるようだった。<br>——そのわりに、視線がわたしの手元から離れなかった。" },
+    { min:10000,   t:"男は、わたしを憐れんでいるようだった。<br>視線は、ずっとわたしの手元にあった。何かを数えるように。" },
+    { min:100000,  t:"憐れみだと思った。<br>だが彼が見ていたのはわたしではなく、わたしの持っているものだった。" },
+    { min:1000000, t:"男はわたしを値踏みしていた。<br>憐れみだと思ったのは、わたしがそう思いたかったからだ。" }
+  ];
+
+  var LAYERS = ["影","輪郭","陰影","色","細部"];
+  var BAND_MIN = [0,1000,10000,100000,1000000];
+
+  var cv = document.getElementById("stage");
+  var ctx = cv.getContext("2d");
+  var elAmt = document.getElementById("amt");
+  var elLine = document.getElementById("line");
+  var elLayers = document.getElementById("layers");
+  var slider = document.getElementById("slider");
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  LAYERS.forEach(function(n){
+    var s = document.createElement("span");
+    s.className = "chip"; s.textContent = n;
+    elLayers.appendChild(s);
+  });
+
+  // ---- 色 ----
+  function mix(c1, c2, t){
+    return [ c1[0]+(c2[0]-c1[0])*t, c1[1]+(c2[1]-c1[1])*t, c1[2]+(c2[2]-c1[2])*t ];
+  }
+  function rgba(c, a){
+    return "rgba(" + (c[0]|0) + "," + (c[1]|0) + "," + (c[2]|0) + "," + a + ")";
+  }
+  function desat(c, keep){
+    var g = c[0]*0.299 + c[1]*0.587 + c[2]*0.114;
+    return mix([g,g,g], c, keep);
+  }
+
+  var W=0, H=0, DPR=1;
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = W*DPR; cv.height = H*DPR;
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    seedRain();
+  }
+
+  // ---- 雨 ----
+  var rain = [];
+  function seedRain(){
+    rain = [];
+    var n = Math.round(W*H/5200);
+    for (var i=0;i<n;i++){
+      rain.push({
+        x:Math.random()*W, y:Math.random()*H,
+        len:6+Math.random()*22, sp:2.6+Math.random()*5.4,
+        w:Math.random()<.18 ? 1.4 : .7, o:.06+Math.random()*.3
+      });
+    }
+  }
+
+  // ---- 霧 ----
+  var fog = [];
+  for (var i=0;i<7;i++){
+    fog.push({ x:Math.random(), y:.42+Math.random()*.5, r:.24+Math.random()*.36,
+               sp:(Math.random()-.5)*.00013, o:.05+Math.random()*.09 });
+  }
+
+  // ---- 粒子ノイズ ----
+  (function noise(){
+    var n = document.createElement("canvas"); n.width = n.height = 180;
+    var nx = n.getContext("2d");
+    var img = nx.createImageData(180,180), d = img.data;
+    for (var i=0;i<d.length;i+=4){
+      var v = 118 + Math.random()*82;
+      d[i]=d[i+1]=d[i+2]=v; d[i+3]=255;
+    }
+    nx.putImageData(img,0,0);
+    document.getElementById("grain").style.setProperty("--noise","url("+n.toDataURL()+")");
+  })();
+
+  var state = { paid:0, band:0, sat:0, det:0 };
+  var target = { sat:0, det:0 };
+  var t0 = performance.now();
+
+  function bandOf(v){
+    var b = 0;
+    BAND_MIN.forEach(function(m,i){ if (v >= m) b = i; });
+    return b;
+  }
+
+  function apply(idx){
+    var v = STEPS[idx];
+    state.paid = v;
+    state.band = bandOf(v);
+    // 帯の中でも、刻みの位置で連続的に少しだけ動かす
+    var lo = BAND_MIN[state.band];
+    var hi = state.band < 4 ? BAND_MIN[state.band+1] : lo*1.0001;
+    var within = state.band < 4 ? Math.min((v-lo)/(hi-lo), 1) : 1;
+    target.sat = Math.min((state.band + within*0.8) / 4, 1);
+    target.det = state.band / 4;
+
+    elAmt.textContent = "¥" + v.toLocaleString("ja-JP");
+
+    var txt = TEXT[0];
+    TEXT.forEach(function(x){ if (v >= x.min) txt = x; });
+    if (elLine.dataset.cur !== txt.t){
+      elLine.dataset.cur = txt.t;
+      elLine.style.opacity = 0;
+      setTimeout(function(){ elLine.innerHTML = txt.t; elLine.style.opacity = 1; }, reduce?0:220);
+    }
+
+    Array.prototype.forEach.call(elLayers.children, function(el,i){
+      el.classList.toggle("on", i <= state.band);
+    });
+
+    var acc = desat(mix([110,118,115],[239,186,38], target.sat), .25 + target.sat*.75);
+    document.documentElement.style.setProperty("--accent", rgba(acc,1));
+  }
+
+  function draw(now){
+    var t = (now - t0) / 1000;
+    var sat = state.sat += (target.sat - state.sat) * (reduce?1:0.045);
+    var det = state.det += (target.det - state.det) * (reduce?1:0.045);
+
+    // --- 背景（霧の壁） ---
+    var deep = desat(mix([13,18,21],[20,22,26], sat), .3 + sat*.7);
+    var high = desat(mix([31,40,44],[62,54,44], sat), .3 + sat*.7);
+    var g = ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0, rgba(mix(deep,high,.55),1));
+    g.addColorStop(.52, rgba(high,1));
+    g.addColorStop(1, rgba(deep,1));
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+
+    // --- 窓（奥の光） ---
+    var wx = W*0.5, wy = H*0.40;
+    var wr = Math.max(W,H) * (0.30 + sat*0.13);
+    var lamp = desat(mix([120,132,136],[236,190,116], sat), .22 + sat*.78);
+    var wg = ctx.createRadialGradient(wx,wy,0,wx,wy,wr);
+    wg.addColorStop(0, rgba(lamp, .30 + sat*.30));
+    wg.addColorStop(.42, rgba(lamp, .10 + sat*.13));
+    wg.addColorStop(1, rgba(lamp,0));
+    ctx.fillStyle = wg; ctx.fillRect(0,0,W,H);
+
+    // --- 窓枠 ---
+    var fw = Math.min(W*0.42, 430), fh = fw*1.16;
+    ctx.save();
+    ctx.globalAlpha = .16 + sat*.20;
+    ctx.strokeStyle = rgba(desat([196,204,206], .2+sat*.8), 1);
+    ctx.lineWidth = 1.4;
+    ctx.strokeRect(wx-fw/2, wy-fh/2, fw, fh);
+    ctx.beginPath();
+    ctx.moveTo(wx, wy-fh/2); ctx.lineTo(wx, wy+fh/2);
+    ctx.moveTo(wx-fw/2, wy); ctx.lineTo(wx+fw/2, wy);
+    ctx.stroke();
+    ctx.restore();
+
+    // --- 雨 ---
+    var rainC = desat(mix([170,182,186],[224,204,168], sat), .25+sat*.75);
+    ctx.strokeStyle = rgba(rainC, 1);
+    ctx.lineCap = "round";
+    for (var i=0;i<rain.length;i++){
+      var p = rain[i];
+      if (!reduce){ p.y += p.sp; p.x += p.sp*0.12; }
+      if (p.y > H+30){ p.y = -30; p.x = Math.random()*W; }
+      if (p.x > W+30) p.x = -20;
+      ctx.globalAlpha = p.o * (.5 + sat*.5);
+      ctx.lineWidth = p.w;
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x - p.len*0.12, p.y + p.len);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    // --- 人物 ---
+    drawFigure(t, sat, det, lamp);
+
+    // --- 霧（手前） ---
+    for (var f=0; f<fog.length; f++){
+      var o = fog[f];
+      if (!reduce) o.x += o.sp;
+      if (o.x > 1.3) o.x = -.3;
+      if (o.x < -.3) o.x = 1.3;
+      var fx = o.x*W, fy = o.y*H, fr = o.r*Math.max(W,H);
+      var fgd = ctx.createRadialGradient(fx,fy,0,fx,fy,fr);
+      var fc = desat(mix([150,166,170],[196,182,158], sat), .2+sat*.8);
+      // 霧は低額ほど濃い。払うほど視界が晴れる。
+      var thick = o.o * (1.9 - sat*1.15);
+      fgd.addColorStop(0, rgba(fc, thick));
+      fgd.addColorStop(1, rgba(fc, 0));
+      ctx.fillStyle = fgd;
+      ctx.fillRect(fx-fr, fy-fr, fr*2, fr*2);
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  function drawFigure(t, sat, det, lamp){
+    var cx = W*0.5;
+    var deskY = H*0.775;
+    var base = deskY + H*0.30;
+    var s = Math.min(W,H) * 0.0019;
+    var sway = reduce ? 0 : Math.sin(t*0.45)*1.4;
+
+    var shadow  = desat(mix([7,10,12],[15,13,13], sat), .4);
+    var contour = desat(mix([148,160,162],[228,198,142], sat), .2+sat*.8);
+
+    ctx.save();
+    ctx.translate(cx + sway, base);
+
+    // 影（全帯）— 肩の落ちた、椅子に座った男
+    ctx.beginPath();
+    ctx.moveTo(-146*s, 0);
+    ctx.lineTo(-138*s, -228*s);
+    ctx.bezierCurveTo(-132*s,-268*s, -100*s,-290*s, -70*s,-300*s);
+    ctx.bezierCurveTo(-60*s,-304*s, -54*s,-310*s, -52*s,-320*s);
+    ctx.bezierCurveTo(-80*s,-334*s, -80*s,-392*s, -42*s,-410*s);
+    ctx.bezierCurveTo(-6*s,-427*s, 40*s,-412*s, 46*s,-372*s);
+    ctx.bezierCurveTo(50*s,-346*s, 40*s,-330*s, 28*s,-320*s);
+    ctx.bezierCurveTo(30*s,-310*s, 36*s,-304*s, 46*s,-300*s);
+    ctx.bezierCurveTo(76*s,-290*s, 108*s,-268*s, 114*s,-228*s);
+    ctx.lineTo(122*s, 0);
+    ctx.closePath();
+    ctx.fillStyle = rgba(shadow, .98);
+    ctx.fill();
+
+    // 陰影（帯3〜）
+    if (det >= 0.45){
+      var al = Math.min((det-0.45)/0.3, 1);
+      var sg = ctx.createLinearGradient(-120*s,-410*s, 130*s,-60*s);
+      sg.addColorStop(0, rgba(desat(mix([62,70,74],[136,106,66], sat), .2+sat*.8), .44*al));
+      sg.addColorStop(.6, rgba(shadow, 0));
+      ctx.save(); ctx.clip(); ctx.fillStyle = sg;
+      ctx.fillRect(-200*s,-440*s, 400*s, 450*s); ctx.restore();
+    }
+
+    // 輪郭（帯2〜）
+    if (det >= 0.2){
+      ctx.globalAlpha = Math.min((det-0.2)/0.28, 1) * (.32 + sat*.40);
+      ctx.strokeStyle = rgba(contour,1);
+      ctx.lineWidth = 1.1;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    // 細部（帯5のみ）— 顔
+    if (det > 0.9){
+      var f = Math.min((det-0.9)/0.1, 1);
+      ctx.globalAlpha = f;
+      var skin = desat(mix([150,150,150],[212,184,148], sat), .15+sat*.85);
+      var hg = ctx.createRadialGradient(-22*s,-378*s, 3*s, -6*s,-366*s, 54*s);
+      hg.addColorStop(0, rgba(skin,.80));
+      hg.addColorStop(.62, rgba(skin,.22));
+      hg.addColorStop(1, rgba(skin,0));
+      ctx.fillStyle = hg;
+      ctx.beginPath(); ctx.ellipse(-4*s,-368*s, 46*s, 52*s, 0, 0, Math.PI*2); ctx.fill();
+
+      ctx.fillStyle = rgba([10,12,13], .9);
+      ctx.beginPath(); ctx.ellipse(-25*s,-374*s, 6*s, 2.3*s, -.07, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(9*s,-376*s, 6*s, 2.3*s, -.07, 0, Math.PI*2); ctx.fill();
+      var gl = desat(mix([200,210,212],[250,226,178], sat), .2+sat*.8);
+      ctx.fillStyle = rgba(gl, .8);
+      ctx.beginPath(); ctx.arc(-23.5*s,-375*s, 1.4*s, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(10.5*s,-377*s, 1.4*s, 0, Math.PI*2); ctx.fill();
+      // 口元の影
+      ctx.strokeStyle = rgba([10,12,13], .34); ctx.lineWidth = 1.6*s;
+      ctx.beginPath(); ctx.moveTo(-12*s,-344*s); ctx.lineTo(2*s,-345*s); ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+
+    // 机（人物を腰から下で隠す）
+    var dg = ctx.createLinearGradient(0, deskY, 0, H);
+    dg.addColorStop(0, rgba(desat(mix([16,21,24],[32,26,22], sat), .35+sat*.65), 1));
+    dg.addColorStop(1, rgba(desat(mix([6,9,11],[13,11,10], sat), .35), 1));
+    ctx.fillStyle = dg;
+    ctx.fillRect(0, deskY, W, H-deskY);
+    ctx.globalAlpha = .26 + sat*.40;
+    ctx.strokeStyle = rgba(contour,1); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0,deskY+.5); ctx.lineTo(W,deskY+.5); ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // 机上の一枚（領収書）— 帯4以降でだけ紙の色になる
+    ctx.save();
+    ctx.translate(W*0.80, deskY + Math.min(H*0.055, 46));
+    ctx.rotate(-0.05);
+    var paper = desat(mix([42,48,50],[228,222,206], Math.max(0,(sat-0.45)/0.55)), .25+sat*.75);
+    ctx.fillStyle = rgba(paper, .92);
+    ctx.fillRect(-48,-15, 96, 31);
+    ctx.globalAlpha = .35; ctx.strokeStyle = rgba(contour,1); ctx.lineWidth = .8;
+    ctx.strokeRect(-48,-15, 96, 31); ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  slider.addEventListener("input", function(){ apply(parseInt(slider.value,10)); });
+  window.addEventListener("resize", resize);
+  resize(); apply(0); requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>
