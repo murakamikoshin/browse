@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>帳場</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho+B1:wght@400;600;800&display=swap">
+<style>
+:root{
+  --ink:#080C0E; --ink2:#0E1417; --edge:#1C2527;
+  --fg:#DCE1DD; --fg-dim:#7E8A86; --fg-faint:#485351;
+  --accent:#6E7673; --soft:rgba(110,118,115,.12); --glow:0;
+  --ember:#C2603A; --paper:#E3E0D5; --short:#B3543F;
+}
+@media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition-duration:.001s !important; } }
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; min-height:100%; }
+body{
+  background:var(--ink); color:var(--fg);
+  font-family:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  font-size:16px; line-height:2.25; -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:radial-gradient(100% 62% at 50% 0%, var(--soft), transparent 64%);
+  opacity:calc(.4 + var(--glow)*.6); transition:opacity 1.4s ease;
+}
+.mono{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums; }
+.wrap{ position:relative; z-index:1; max-width:40em; margin:0 auto; padding:0 clamp(16px,4vw,26px) 110px; }
+.scene{ display:none; } .scene.on{ display:block; }
+
+/* 支払い */
+#pay.on{ min-height:100vh; display:flex; align-items:center; }
+#pay .inner{ width:100%; padding:70px 0; }
+.kicker{ font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.3em;
+         text-transform:uppercase; color:var(--fg-faint); }
+h1.t{ font-size:2.4rem; font-weight:800; letter-spacing:.3em; margin:16px 0 6px; }
+.sub{ color:var(--fg-dim); font-size:.86rem; line-height:1.95; margin:0 0 46px; }
+.terms{ border-top:1px solid var(--edge); border-bottom:1px solid var(--edge);
+        padding:20px 0; margin:0 0 44px; display:flex; flex-direction:column; gap:9px; }
+.terms div{ font-size:.85rem; color:var(--fg-dim); display:flex; gap:12px; }
+.terms span{ font-family:"IBM Plex Mono",monospace; font-size:.62rem; color:var(--fg-faint);
+             letter-spacing:.1em; min-width:2.4em; padding-top:.35em; }
+.amtrow{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; margin-bottom:14px; }
+.amt{ font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
+      font-size:3rem; font-weight:500; color:var(--accent); line-height:1.1; transition:color .8s ease; }
+.pm{ display:flex; gap:8px; }
+.pm button{ width:48px; height:48px; background:transparent; border:1px solid var(--edge);
+  color:var(--fg-dim); font-size:1.2rem; cursor:pointer; font-family:"IBM Plex Mono",monospace;
+  transition:border-color .2s,color .2s; }
+.pm button:hover:not(:disabled){ border-color:var(--accent); color:var(--fg); }
+.pm button:disabled{ opacity:.25; cursor:not-allowed; }
+.unit{ font-family:"IBM Plex Mono",monospace; font-size:.7rem; letter-spacing:.1em; color:var(--fg-faint); }
+.unit b{ color:var(--fg-dim); font-weight:500; }
+.ladder{ display:flex; gap:3px; height:5px; margin-bottom:40px; }
+.ladder i{ flex:1; background:#141B1D; transition:background .4s ease; }
+.ladder i.on{ background:var(--accent); }
+.ladder i.edge{ background:#2C3739; }
+button.go{ width:100%; padding:17px; background:transparent; border:1px solid var(--accent);
+  color:var(--accent); font-family:inherit; font-size:1rem; letter-spacing:.28em; cursor:pointer;
+  transition:background .3s; }
+button.go:hover{ background:var(--soft); }
+button.go:focus-visible, .pm button:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+.confirm{ margin-top:18px; padding:18px 20px; border:1px solid var(--edge); background:rgba(20,27,29,.5); }
+.confirm p{ margin:0 0 14px; font-size:.88rem; color:var(--fg-dim); }
+.confirm .row{ display:flex; gap:9px; flex-wrap:wrap; }
+.confirm button{ padding:9px 20px; background:transparent; border:1px solid var(--edge);
+  color:var(--fg-dim); font-family:inherit; font-size:.9rem; cursor:pointer; }
+.confirm button:hover{ border-color:var(--accent); color:var(--fg); }
+.note{ margin-top:34px; font-size:.72rem; line-height:1.9; color:var(--fg-faint); }
+
+/* 上部（線香） */
+.hud{ position:sticky; top:0; z-index:20; background:rgba(8,12,14,.94);
+      border-bottom:1px solid var(--edge); backdrop-filter:blur(9px); }
+.hud-in{ max-width:40em; margin:0 auto; padding:12px clamp(16px,4vw,26px);
+         display:flex; align-items:center; gap:15px; flex-wrap:wrap; }
+.hud-lab{ font-family:"IBM Plex Mono",monospace; font-size:.58rem; letter-spacing:.24em;
+          text-transform:uppercase; color:var(--fg-faint); }
+.sticks{ display:flex; gap:8px; align-items:flex-end; height:28px; }
+.stick{ width:2px; height:26px; background:#333C3A; position:relative; transition:height .6s ease,background .6s ease; }
+.stick.lit{ background:linear-gradient(180deg,var(--ember) 0 3px,#8B7A5E 3px 100%); }
+.stick.lit::after{ content:""; position:absolute; top:-3px; left:-1.5px; width:5px; height:5px;
+  border-radius:50%; background:var(--ember); filter:blur(2px); animation:gl 2.4s ease-in-out infinite; }
+@keyframes gl{ 0%,100%{opacity:.5} 50%{opacity:1} }
+.stick.spent{ height:4px; background:#333C3A; } .stick.spent::after{ display:none; }
+.place{ margin-left:auto; font-family:"IBM Plex Mono",monospace; font-size:.62rem;
+        letter-spacing:.18em; color:var(--fg-dim); }
+
+/* 本文 */
+.chap{ font-family:"IBM Plex Mono",monospace; font-size:.6rem; letter-spacing:.3em;
+       color:var(--fg-faint); padding:44px 0 6px; }
+h2.ct{ font-size:1.4rem; font-weight:800; letter-spacing:.16em; margin:0 0 38px; }
+p.l{ margin:0 0 1.3em; animation:fu .5s ease-out; }
+@keyframes fu{ from{opacity:0;transform:translateY(3px)} to{opacity:1;transform:none} }
+.more{ margin:18px 0 40px; }
+.more button{ background:none; border:none; color:var(--fg-faint); font-family:"IBM Plex Mono",monospace;
+  font-size:.68rem; letter-spacing:.2em; cursor:pointer; padding:10px 0; }
+.more button:hover{ color:var(--fg-dim); }
+.ask{ cursor:inherit; }
+.reveal .ask{ box-shadow:inset 0 -1px 0 rgba(185,146,69,.5); }
+.ask.used{ color:var(--fg-dim); }
+.nothing{ animation:no .5s ease-out; }
+@keyframes no{ 0%{background:rgba(120,132,128,.09)} 100%{background:transparent} }
+
+/* 帳場さん */
+.cb{ margin:26px 0; border-left:2px solid var(--accent); padding:15px 0 15px 18px; animation:fu .45s ease-out; }
+.cb .who{ font-family:"IBM Plex Mono",monospace; font-size:.6rem; letter-spacing:.2em;
+          color:var(--accent); margin-bottom:.5em; }
+.cb p{ margin:0 0 13px; }
+.acts{ display:flex; gap:9px; flex-wrap:wrap; }
+.acts button{ padding:9px 17px; background:transparent; border:1px solid var(--edge);
+  color:var(--fg-dim); font-family:inherit; font-size:.88rem; cursor:pointer;
+  transition:border-color .2s,color .2s; }
+.acts button:hover:not(:disabled){ border-color:var(--accent); color:var(--fg); }
+.acts button:disabled{ opacity:.3; cursor:not-allowed; }
+.stub{ margin:20px 0; animation:fu .6s ease-out; }
+.stub-in{ display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:.66rem;
+  line-height:1.85; background:var(--paper); color:#20201C; padding:10px 14px; letter-spacing:.05em;
+  box-shadow:0 9px 24px rgba(0,0,0,.5); }
+.stub-in .amt2{ letter-spacing:.4em; color:#6A6558; }
+
+/* 地図 */
+.map{ margin:34px 0 0; padding-top:26px; border-top:1px solid var(--edge); }
+.map-l{ font-family:"IBM Plex Mono",monospace; font-size:.6rem; letter-spacing:.24em;
+        text-transform:uppercase; color:var(--fg-faint); margin-bottom:14px; }
+.map .acts button.here{ border-color:var(--accent); color:var(--accent); }
+
+/* 扉 */
+.seal{ display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:15px;
+       padding:15px 0; border-bottom:1px solid var(--edge); opacity:0; }
+.seal.in{ animation:fu .55s ease-out forwards; }
+.seal-n{ font-size:.96rem; } .seal-n small{ display:block; font-size:.7rem; color:var(--fg-faint); margin-top:2px; }
+.seal-p{ font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:.84rem; color:var(--fg-dim); }
+.seal-s{ font-family:"IBM Plex Mono",monospace; font-size:.7rem; letter-spacing:.18em;
+         padding:4px 10px; border:1px solid var(--edge); white-space:nowrap; }
+.seal.open .seal-s{ color:var(--accent); border-color:var(--accent); }
+.seal.shut .seal-s{ color:var(--short); border-color:#582A22; }
+.seal.shut .seal-n,.seal.shut .seal-p{ color:var(--fg-faint); }
+.sf{ margin-top:20px; padding:15px 17px; border:1px solid #582A22; background:rgba(179,84,63,.06);
+     display:flex; justify-content:space-between; align-items:baseline; gap:14px; opacity:0;
+     animation:fu .6s ease-out .3s forwards; }
+.sf span{ font-size:.85rem; color:#D28C79; }
+.sf b{ font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
+       font-size:1.45rem; color:var(--short); font-weight:500; }
+.slip{ margin:32px 0; opacity:0; animation:fu .7s ease-out .6s forwards; }
+.slip-in{ display:inline-block; min-width:min(320px,100%); background:var(--paper); color:#1C1A16;
+  font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:.74rem;
+  line-height:1.85; padding:22px 20px 27px; box-shadow:0 18px 44px rgba(0,0,0,.6);
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 7px),92% 100%,84% calc(100% - 7px),76% 100%,68% calc(100% - 7px),60% 100%,52% calc(100% - 7px),44% 100%,36% calc(100% - 7px),28% 100%,20% calc(100% - 7px),12% 100%,4% calc(100% - 7px),0 100%); }
+.slip-h{ text-align:center; letter-spacing:.2em; font-size:.64rem; padding-bottom:11px; border-bottom:1px dashed #98918255; }
+.slip-r{ display:flex; justify-content:space-between; gap:14px; }
+.slip-rule{ border-top:1px dashed #98918255; margin:11px 0; }
+.slip-s{ color:#8C1F1F; }
+.slip-ed{ text-align:center; padding-top:5px; }
+.slip-ed .no{ font-size:.64rem; letter-spacing:.24em; color:#6B6558; }
+.slip-ed .nm{ font-family:"Shippori Mincho B1",serif; font-size:1.05rem; font-weight:600;
+              letter-spacing:.09em; margin-top:5px; }
+.dawn{ padding:30px 0; font-size:1.05rem; animation:fu 1.1s ease-out; }
+.dawn b{ display:block; font-size:.6rem; font-family:"IBM Plex Mono",monospace; letter-spacing:.24em;
+         color:var(--fg-faint); font-weight:400; margin-bottom:12px; }
+.dev{ margin-top:44px; padding-top:20px; border-top:1px solid var(--edge);
+      font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.1em; color:var(--fg-faint);
+      display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
+.dev label{ display:flex; gap:6px; align-items:center; cursor:pointer; }
+.dev input{ accent-color:var(--accent); }
+.dev button{ background:none; border:none; color:var(--fg-faint); font-family:inherit;
+             font-size:.62rem; letter-spacing:.14em; cursor:pointer; padding:0; }
+.dev button:hover{ color:var(--fg-dim); }
+</style>
+</head>
+<body>
+
+<div class="hud" id="hud" hidden>
+  <div class="hud-in">
+    <span class="hud-lab">線香</span>
+    <div class="sticks" id="sticks"></div>
+    <span class="place" id="place"></span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <section class="scene on" id="pay">
+    <div class="inner">
+      <p class="kicker">Choba</p>
+      <h1 class="t">帳場</h1>
+      <p class="sub">兄の通夜に、三年ぶりに帰る。<br>あなたが包む額が、この物語の読み方を決めます。</p>
+      <div class="terms">
+        <div><span>一</span>上限は ¥1,000,000 です。</div>
+        <div><span>二</span>返金はありません。</div>
+        <div><span>三</span>始まったあと、足すことはできません。</div>
+      </div>
+      <div class="amtrow">
+        <div class="amt mono" id="pamt">¥0</div>
+        <div class="pm">
+          <button type="button" id="minus" aria-label="下げる">−</button>
+          <button type="button" id="plus" aria-label="上げる">＋</button>
+        </div>
+        <div class="unit">いまの刻み <b id="unit">¥100</b></div>
+      </div>
+      <div class="ladder" id="ladder"></div>
+      <button class="go" type="button" id="decide">この額で包む</button>
+      <div id="confirmSlot"></div>
+      <p class="note">これは制作中の試作です。実際の決済は行われません。第一章のみ本文が入っており、それ以外の場所は仮置きです。</p>
+    </div>
+  </section>
+
+  <section class="scene" id="game">
+    <div id="story"></div>
+    <div id="slot"></div>
+    <div id="nav"></div>
+    <div class="dev" id="dev" hidden>
+      <label><input type="checkbox" id="mk"> 検証用：指せる語句を光らせる</label>
+      <button type="button" id="again">最初から</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+var CH1 = {"order": ["L001", "L002", "L003", "L004", "L005", "L006", "L007", "L008", "L009", "L010", "L011", "L012", "L013", "L014", "L015", "L016", "L017", "L018", "L019", "L020", "L021", "L022", "L023", "L024", "L025", "L026", "L027", "L028", "L029", "L030", "L031", "L032", "L033", "L034", "L035", "L036", "L037", "L038", "L039", "L040", "L041", "L042", "L043", "L044", "L045", "L046", "L047", "L048", "L049", "L050", "L051", "L052", "L053", "L054", "L055", "L056"], "base": {"L001": {"paid": "最終の電車を降りたら、潮のにおいがした。三年ぶりなのに、体のほうが先に思い出した。", "zero": "最終の電車を降りたら、潮のにおいがした。三年ぶりなのに、体のほうが先に思い出した。"}, "L002": {"paid": "駅前には何もない。それも三年前と同じだった。街灯が一本、自販機が一台、あとは暗い海。", "zero": "駅前には何もない。それも三年前と同じだった。街灯が一本、自販機が一台、あとは暗い海。"}, "L003": {"paid": "兄の家までは歩いて二十分。タクシーは呼ばなかった。歩きたかった。", "zero": "兄の家までは歩いて二十分。タクシーは呼ばなかった。歩きたかった。"}, "L004": {"paid": "この坂を、子供の頃は兄の自転車の後ろで上った。荷台が固くて、いつも文句を言った。兄は笑って、もっと飛ばした。", "zero": "この坂を、子供の頃は兄の自転車の後ろで上った。荷台が固くて、いつも文句を言った。兄は笑って、もっと飛ばした。"}, "L005": {"paid": "坂を下りきったところで、声をかけられた。", "zero": "坂を下りきったところで、声をかけられた。"}, "L006": {"paid": "「汐里ちゃんかい。遠くからよく来たね」", "zero": "「汐里ちゃんかい。遠くからよく来たね」"}, "L007": {"paid": "魚屋の奥さんだった。名前が出てこない。頭を下げると、奥さんも深く下げて、それきり何も言わずに行ってしまった。", "zero": "魚屋の奥さんだった。名前が出てこない。頭を下げると、奥さんも深く下げて、それきり何も言わずに行ってしまった。"}, "L008": {"paid": "夜だし、通夜の帰りなのだろう。みんな疲れている。", "zero": "夜だし、通夜の帰りなのだろう。みんな疲れている。"}, "L009": {"paid": "港のほうから風が来る。しおり丸はまだあそこにいるのだろうか。明日、見に行こう。", "zero": "港のほうから風が来る。しおり丸はまだあそこにいるのだろうか。明日、見に行こう。"}, "L010": {"paid": "兄の家は、船具屋の角を曲がった先にある。玄関の灯りが道まで伸びていた。", "zero": "兄の家は、船具屋の角を曲がった先にある。玄関の灯りが道まで伸びていた。"}, "L011": {"paid": "「遠くからよく来たね」", "zero": "「遠くからよく来たね」"}, "L012": {"paid": "今度は隣のおじさんだった。同じ言葉。この町の人は、みんな同じ挨拶をする。子供の頃からそうだった。", "zero": "今度は隣のおじさんだった。同じ言葉。この町の人は、みんな同じ挨拶をする。子供の頃からそうだった。"}, "L013": {"paid": "わたしはもう一度頭を下げた。おじさんは灯りの中に戻っていった。", "zero": "わたしはもう一度頭を下げた。おじさんは灯りの中に戻っていった。"}, "L014": {"paid": "玄関を入ると、線香のにおいが細い線になって奥から流れてきた。", "zero": "玄関を入ると、線香のにおいが細い線になって奥から流れてきた。"}, "L015": {"paid": "靴を脱ぐ前に、廊下の脇に机が出ているのが見えた。白い布がかかっている。", "zero": "靴を脱ぐ前に、廊下の脇に机が出ているのが見えた。白い布がかかっている。"}, "L016": {"paid": "帳場だ。", "zero": "帳場だ。"}, "L017": {"paid": "机の向こうに、老人が座っていた。", "zero": "机の向こうに、老人が座っていた。"}, "L018": {"paid": "「汐里さんですね」", "zero": "「汐里さんですね」"}, "L019": {"paid": "帳場さんだった。父の葬式のときも、この人がこの机にいた。あのとき、わたしは十七だった。", "zero": "帳場さんだった。父の葬式のときも、この人がこの机にいた。あのとき、わたしは十七だった。"}, "L020": {"paid": "「はい。遅くなりました」", "zero": "「はい。遅くなりました」"}, "L021": {"paid": "「いえ。遠いところを」", "zero": "「いえ。遠いところを」"}, "L022": {"paid": "帳場さんは芳名帳を開いた。ずいぶん埋まっている。町の人は、みんな来てくれたのだ。", "zero": "帳場さんは芳名帳を開いた。ずいぶん埋まっている。町の人は、みんな来てくれたのだ。"}, "L023": {"paid": "「おいくらお持ちで」", "zero": "「おいくらお持ちで」"}, "L024": {"paid": "その言い方も、父のときと同じだった。この町では、帳場は最初にそう聞く。", "zero": "その言い方も、父のときと同じだった。この町では、帳場は最初にそう聞く。"}, "L025": {"paid": "わたしが答える前に、廊下の奥から凪さんが出てきた。", "zero": "わたしが答える前に、廊下の奥から凪さんが出てきた。"}, "L026": {"paid": "「汐里ちゃん」", "zero": "「汐里ちゃん」"}, "L027": {"paid": "黒い着物だった。三年ぶりに見る凪さんは、前より少し痩せて、前よりずっと綺麗に見えた。", "zero": "黒い着物だった。三年ぶりに見る凪さんは、前より少し痩せて、前よりずっと綺麗に見えた。"}, "L028": {"paid": "「来てくれて、ありがとう」", "zero": "「来てくれて、ありがとう」"}, "L029": {"paid": "「遅くなってごめんなさい」", "zero": "「遅くなってごめんなさい」"}, "L030": {"paid": "凪さんは首を振って、それから帳場さんの机に目をやった。", "zero": "凪さんは首を振って、それから帳場さんの机に目をやった。"}, "L031": {"paid": "「帳場さん、汐里ちゃんはいいんです。身内は香典いらないから」", "zero": "「帳場さん、汐里ちゃんはいいんです。身内は香典いらないから」"}, "L032": {"paid": "わたしは鞄に手を入れかけていた。凪さんはそれを見て、もう一度言った。", "zero": "わたしは鞄に手を入れかけていた。凪さんはそれを見て、もう一度言った。"}, "L033": {"paid": "「いらないの。気にしないで」", "zero": "「いらないの。気にしないで」"}, "L034": {"paid": "気を遣ってくれている。三年帰らなかった妹に。", "zero": "気を遣ってくれている。三年帰らなかった妹に。"}, "L035": {"paid": "帳場さんは、少しだけ間を置いた。言いにくかったのだろう。", "zero": "帳場さんは、少しだけ間を置いた。言いにくかったのだろう。"}, "L036": {"paid": "「奥さんはそう仰いますが、帳は帳ですので」", "zero": "「奥さんはそう仰いますが、帳は帳ですので」"}, "L037": {"paid": "穏やかな声だった。凪さんは、それ以上は言わなかった。町の決まりには、凪さんも逆らわない。", "zero": "穏やかな声だった。凪さんは、それ以上は言わなかった。町の決まりには、凪さんも逆らわない。"}, "L038": {"paid": "そうだった。この町では、帳は帳なのだ。", "zero": "そうだった。この町では、帳は帳なのだ。"}, "L039": {"paid": "父のときのことを思い出した。出棺の朝、この人が芳名帳を開いて、集まった全員の前で名前と額を読み上げた。一人ずつ、全部。兄はわたしの隣で、その声を聞きながら泣いていた。", "zero": "父のときのことを思い出した。出棺の朝、この人が芳名帳を開いて、集まった全員の前で名前と額を読み上げた。一人ずつ、全部。兄はわたしの隣で、その声を聞きながら泣いていた。"}, "L040": {"paid": "東京で一度、この話をしたことがある。相手は、ぎょっとした顔をした。でも、わたしはあれが好きだった。父がどれだけの人に惜しまれたか、朝の空気の中で、数えられていくのが。", "zero": "東京で一度、この話をしたことがある。相手は、ぎょっとした顔をした。でも、わたしはあれが好きだった。父がどれだけの人に惜しまれたか、朝の空気の中で、数えられていくのが。"}, "L041": {"paid": "兄も明日、そうやって数えられる。", "zero": "兄も明日、そうやって数えられる。"}, "L042": {"paid": "鞄から袋を出した。表書きは電車の中で書いた。字が少し曲がっている。身内はいらないと言われたけれど、気持ちだけ。", "zero": "鞄から手を出した。袋は、ない。身内は出さないと言われていたし、自分でもそう思っていた。"}, "L043": {"paid": "帳場さんはそれを両手で受け取って、机の下に置いた。", "zero": "帳場さんは頷いて、何も言わなかった。"}, "L044": {"paid": "「お名前を」", "zero": "「お名前を」"}, "L045": {"paid": "帳場さんが芳名帳を回してくれた。筆ペンを渡される。", "zero": "帳場さんが芳名帳を回してくれた。筆ペンを渡される。"}, "L046": {"paid": "名前を書こうとして、気づいた。", "zero": "名前を書こうとして、気づいた。"}, "L047": {"paid": "最後のページ、一番下の行が空いている。ほかの行は全部埋まっているのに、そこだけ、最初から空けてあったみたいに。", "zero": "最後のページ、一番下の行が空いている。ほかの行は全部埋まっているのに、そこだけ、最初から空けてあったみたいに。"}, "L048": {"paid": "「ここでよろしいですか」", "zero": "「ここでよろしいですか」"}, "L049": {"paid": "「ええ。そこに」", "zero": "「ええ。そこに」"}, "L050": {"paid": "待っていてくれたのだと思った。町の人が、兄が、この最後の一行を。", "zero": "待っていてくれたのだと思った。町の人が、兄が、この最後の一行を。"}, "L051": {"paid": "汐里、と書いた。字が震えた。", "zero": "汐里、と書いた。字が震えた。"}, "L052": {"paid": "帳場さんは帳を戻して、静かに閉じた。", "zero": "帳場さんは帳を戻して、静かに閉じた。"}, "L053": {"paid": "「奥で、お兄さんがお待ちです」", "zero": "「奥で、お兄さんがお待ちです」"}, "L054": {"paid": "凪さんが先に立って歩いた。廊下は寒かった。線香のにおいが、一歩ごとに濃くなった。", "zero": "凪さんが先に立って歩いた。廊下は寒かった。線香のにおいが、一歩ごとに濃くなった。"}, "L055": {"paid": "凪さんの背中は、まっすぐだった。三年前より、まっすぐに見えた。", "zero": "凪さんの背中は、まっすぐだった。三年前より、まっすぐに見えた。"}, "L056": {"paid": "帰ってきた。そう思った。", "zero": "帰ってきた。そう思った。"}}, "ov": {"L003": {"4": "兄の家までは歩いて二十分。タクシーは呼ばなかった。歩きたかった。鞄が重かった。", "5": "兄の家までは歩いて二十分。タクシーは呼ばなかった。代金が惜しかった。鞄には百万が入っている。"}, "L007": {"3": "魚屋の奥さんだった。名前が出てこない。頭を下げると、奥さんも深く下げて、それきり何も言わずに行ってしまった。目は、合わなかった。"}, "L024": {"2": "その言い方も、父のときと同じだった。この町では、帳場は最初にそう聞く。ただ、父のときは、わたしは聞かれなかった。", "5": "その言い方も、父のときと同じだった。父のときは、聞かれなかった。今夜は聞かれる。わたしは今夜、身内ではない。"}, "L034": {"2": "気を遣ってくれている。三年帰らなかった妹に。帳場さんは、まだ帳を閉じていなかった。", "4": "気を遣ってくれているのだと思った。三年帰らなかった妹に。凪さんの目は、わたしの鞄を見ていた。", "5": "気遣いではない。凪さんは、わたしが今さら袋で済ませるのを、見たくなかったのだ。"}, "L037": {"3": "穏やかな声だった。凪さんは、それ以上は言わなかった。言わなかった、というより、言えなかったように見えた。何に負けたのかは、分からなかった。", "5": "穏やかな声だった。凪さんは、それ以上は言わなかった。帳場さんが正しかったからだ。帳は帳で、わたしの名前は、帳に載らなければならなかった。"}, "L039": {"3": "父のときのことを思い出した。出棺の朝、この人が芳名帳を開いて、集まった全員の前で名前と額を読み上げた。一人ずつ、全部。兄はわたしの隣で、その声を聞きながら泣いていた。あのとき兄が何を聞いていたのか、いまになって、分からなくなった。", "5": "父のときのことを思い出した。出棺の朝、この人が芳名帳を開いて、集まった全員の前で名前と額を読み上げた。一人ずつ、全部。兄はわたしの隣で、その声を聞きながら泣いていた。兄は、父がいくらだったかを聞いていた。この町で育った人間は、みんな、そこを聞く。"}, "L040": {"4": "東京で一度、この話をしたことがある。相手は、ぎょっとした顔をした。わたしは笑った。でも、わたしはあれが好きだった。父がどれだけの人に惜しまれたか、朝の空気の中で、数えられていくのが。", "5": "東京で一度、この話をしたことがある。飲みの席で、笑い話として。相手は、ぎょっとした顔をした。わたしはもっと笑った。あれが好きだったのは本当だ。数えられていたのが、わたしではなかったから。"}, "L042": {"2": "鞄から袋を出した。表書きは電車の中で書いた。字が少し曲がっている。父のときは、出さなかった。", "4": "鞄から袋を出した。表書きは電車の中で書いた。字が少し曲がっている。三年ぶりに帰る妹が、袋一つで済むとは思っていない。それでも、袋しかなかった。", "5": "鞄から袋を出した。表書きは電車の中で書いた。何度も書き直して、それでも曲がった。三年前に引き出しから抜いた額と、同じ厚さの袋。"}, "L043": {"5": "帳場さんはそれを両手で受け取って、机の下に置いた。重さを、手が覚えたのが分かった。"}, "L047": {"3": "最後のページ、一番下の行が空いている。ほかの行は全部埋まっているのに、そこだけ、空けてあったのだ。誰が、何のために空けたのかは、分からなかった。", "5": "最後のページ、一番下の行が空いている。ほかの行は全部埋まっているのに、そこだけ、最初から空けてあった。読み上げは、書いた順に行われる。最後の行は、最後に読まれる。"}, "L050": {"2": "待っていてくれたのだと思った。町の人が、兄が、この最後の一行を。そう思うと、少し楽になった。", "4": "待っていてくれたのだ、と思おうとした。町の人が、兄が、この最後の一行を。空けておいたのは帳場さんだ。帳場さんは、待つ人ではない。", "5": "待っていたのは、わたしではない。この行だ。明日の朝、一番最後に読まれるための行。町の全員が聞き終わったあとに、わたしの額だけが残るように。"}, "L055": {"4": "凪さんの背中は、まっすぐだった。三年前より、まっすぐに見えた。振り向かないのだと、分かった。", "5": "凪さんの背中は、まっすぐだった。三年前より、まっすぐだった。振り向かなかった。振り向く必要がない。凪さんはもう、わたしの顔を見終わっている。"}, "L056": {"2": "帰ってきた。そう思った。思いたかった。", "3": "帰ってきた。そう思った。そのあとで、なぜか、まだ着いていない気がした。", "5": "帰ってきてしまった。"}}};
+
+(function(){
+"use strict";
+
+var STEPS=[];
+for(var a=0;a<1000;a+=100) STEPS.push(a);
+for(var b=1000;b<10000;b+=1000) STEPS.push(b);
+for(var c=10000;c<100000;c+=10000) STEPS.push(c);
+for(var d=100000;d<1000000;d+=100000) STEPS.push(d);
+STEPS.push(1000000);
+
+var BANDS=[0,1000,10000,100000,1000000];
+var ACC=[["#6E7673","rgba(110,118,115,.12)",0],["#8E8564","rgba(142,133,100,.14)",.24],
+         ["#A79058","rgba(167,144,88,.16)",.46],["#D4A63A","rgba(212,166,58,.18)",.74],
+         ["#EFBA26","rgba(239,186,38,.21)",1]];
+var SEALS=[{n:"第一封",t:"凪の真実",p:1000},{n:"第二封",t:"この町の真実",p:10000},
+           {n:"第三封",t:"兄の真実",p:100000},{n:"第四封",t:"あなたの真実",p:1000000}];
+var RATE={ yasui:3, chu:8, takai:20, saikou:45 };
+var SAY={ yasui:"「端金です」", chu:"「相応のお値段はいただきます」",
+          takai:"「……お勧めしません」", saikou:"" };
+
+/* 指せる語句と、売る事実。解釈は売らない。 */
+var ASKS={
+  koe:{ line:"L006", phrase:"遠くからよく来たね", tier:"yasui",
+        fact:"この町の挨拶は昔から一つきりだと、帳場さんは言った。よそから来た人にだけ、そう言う。" },
+  ikura:{ line:"L023", phrase:"おいくらお持ちで", tier:"chu",
+        fact:"帳場が最初にそれを聞くのは、書く欄の幅を決めるためだと聞かされた。" },
+  aki:{ line:"L047", phrase:"最後のページ、一番下の行", tier:"takai",
+        fact:"空けたのは帳場さんだった。通夜の前に、そうしたという。" }
+};
+
+var PLACES=[
+  { k:"genkan", name:"玄関・帳場", ch:"第一章　帰郷", real:true },
+  { k:"butsu",  name:"仏間", ch:"第二章　仏間", stub:[
+      "（仮置き）兄の顔を見た。よく眠っている人の顔だった。",
+      "（仮置き）凪さんが、最後の電話のことを話した。" ], asks:[] },
+  { k:"minato", name:"港", ch:"第三章　港", stub:[
+      "（仮置き）しおり丸は桟橋の三番目にいた。船名が塗り直されている。",
+      "（仮置き）甲板に、救命胴衣が置かれていた。" ], asks:[] },
+  { k:"cha",    name:"帳場の奥", ch:"第四章　帳場", stub:[
+      "帳場さんが茶を出してくれた。湯呑みは温かった。" ], opens:true }
+];
+
+var TALK=[
+  { k:"nagi", place:"butsu", label:"凪さんに訊く",
+    text:"凪さんは湯呑みを両手で持ったまま少し笑った。「あの人ね、船の名前だけは絶対に変えなかったの」" },
+  { k:"town", place:"minato", label:"堤防の先の人影に声をかける",
+    text:"漁協の人だった。わたしの顔を見て、それから海のほうを見た。「遠くからよう来たね」。目は合わなかった。" },
+  { k:"old",  place:"cha", label:"帳場さんと世間話をする",
+    text:"帳場さんは湯呑みを置いて、少しだけ笑った。「お父さんのときも、こうしてお茶をお出ししました」" }
+];
+
+var S = { idx:0, paid:0, band:0, spent:0, incense:6, place:"genkan",
+          opened:false, bought:{}, talked:{}, shown:0, done:false };
+
+var $=function(i){ return document.getElementById(i); };
+var yen=function(n){ return "¥"+n.toLocaleString("ja-JP"); };
+var bandOf=function(v){ var b=0; BANDS.forEach(function(m,i){ if(v>=m) b=i; }); return b; };
+var priceOf=function(t){ return (S.paid/100)*RATE[t]; };
+var balance=function(){ return S.paid - S.spent; };
+
+function unitFor(v){ return v<1000?100 : v<10000?1000 : v<100000?10000 : 100000; }
+
+function paint(){
+  var a=ACC[bandOf(S.paid)], r=document.documentElement.style;
+  r.setProperty("--accent",a[0]); r.setProperty("--soft",a[1]); r.setProperty("--glow",String(a[2]));
+}
+
+/* ---------- 支払い ---------- */
+STEPS.forEach(function(v){
+  var i=document.createElement("i");
+  if(v===1000||v===10000||v===100000||v===1000000) i.classList.add("edge");
+  $("ladder").appendChild(i);
+});
+function drawPay(){
+  S.paid=STEPS[S.idx];
+  $("pamt").textContent=yen(S.paid);
+  $("unit").textContent=yen(unitFor(S.paid===1000000?999999:S.paid));
+  $("plus").disabled=S.idx>=STEPS.length-1;
+  $("minus").disabled=S.idx<=0;
+  Array.prototype.forEach.call($("ladder").children,function(el,i){ el.classList.toggle("on",i<=S.idx); });
+  $("confirmSlot").replaceChildren();
+  paint();
+}
+$("plus").addEventListener("click",function(){ if(S.idx<STEPS.length-1){S.idx++;drawPay();} });
+$("minus").addEventListener("click",function(){ if(S.idx>0){S.idx--;drawPay();} });
+$("decide").addEventListener("click",function(){
+  var c=document.createElement("div");
+  c.className="confirm";
+  c.innerHTML='<p>'+yen(S.paid)+' を包みます。この額は変えられません。足すこともできません。</p>'+
+              '<div class="row"><button type="button" data-y>包む</button>'+
+              '<button type="button" data-n>考え直す</button></div>';
+  $("confirmSlot").replaceChildren(c);
+  c.querySelector("[data-n]").addEventListener("click",function(){ $("confirmSlot").replaceChildren(); });
+  c.querySelector("[data-y]").addEventListener("click",start);
+});
+
+/* ---------- 開始 ---------- */
+function start(){
+  S.band=bandOf(S.paid);
+  $("pay").classList.remove("on");
+  $("game").classList.add("on");
+  $("hud").hidden=false;
+  $("dev").hidden=false;
+  drawSticks();
+  enter("genkan");
+  window.scrollTo({top:0});
+}
+
+function drawSticks(){
+  var el=$("sticks"); el.replaceChildren();
+  for(var i=0;i<6;i++){
+    var d=document.createElement("div");
+    d.className="stick "+(i<S.incense?"lit":"spent");
+    el.appendChild(d);
+  }
+}
+function burn(){ S.incense--; drawSticks(); if(S.incense<=0) dawn(); }
+
+/* ---------- 本文 ---------- */
+function ch1Text(id){
+  var t = S.paid===0 ? CH1.base[id].zero : CH1.base[id].paid;
+  var o = CH1.ov[id];
+  if(o){ for(var lv=2; lv<=S.band+1; lv++){ if(o[String(lv)]!==undefined) t=o[String(lv)]; } }
+  return t;
+}
+function markAsks(id,text){
+  if(!S.opened) return text;
+  var out=text;
+  Object.keys(ASKS).forEach(function(k){
+    var A=ASKS[k];
+    if(A.line!==id) return;
+    if(out.indexOf(A.phrase)<0) return;
+    var cls="ask"+(S.bought[k]?" used":"");
+    out=out.replace(A.phrase,'<span class="'+cls+'" data-k="'+k+'">'+A.phrase+'</span>');
+  });
+  return out;
+}
+
+function enter(k){
+  S.place=k; S.shown=0;
+  var P=PLACES.filter(function(p){return p.k===k;})[0];
+  $("place").textContent=P.name;
+  var st=$("story"); st.replaceChildren();
+  var h=document.createElement("div");
+  h.innerHTML='<div class="chap">'+P.ch+'</div>';
+  st.appendChild(h);
+  $("slot").replaceChildren();
+  if(P.real){ showCh1(12); } else { P.stub.forEach(addLine); if(P.opens) disclose(); }
+  drawNav();
+}
+
+function addLine(text,id){
+  var p=document.createElement("p");
+  p.className="l";
+  p.innerHTML=id?markAsks(id,text):text;
+  $("story").appendChild(p);
+}
+
+function showCh1(n){
+  var end=Math.min(S.shown+n, CH1.order.length);
+  for(var i=S.shown;i<end;i++){ var id=CH1.order[i]; addLine(ch1Text(id),id); }
+  S.shown=end;
+  var m=$("story").querySelector(".more"); if(m) m.remove();
+  if(S.shown<CH1.order.length){
+    var d=document.createElement("div");
+    d.className="more";
+    d.innerHTML='<button type="button">つづきを読む</button>';
+    d.querySelector("button").addEventListener("click",function(){ showCh1(12); });
+    $("story").appendChild(d);
+  }
+}
+
+function disclose(){
+  if(S.opened) return;
+  S.opened=true;
+  var d=document.createElement("div");
+  d.className="cb";
+  d.innerHTML='<div class="who">帳場さん</div><p>「何か、気になるものはございましたか」</p>'+
+              '<p style="color:var(--fg-faint);font-size:.8rem">'+
+              '——本文の中で引っかかった言葉を指せば、訊けます。どこが指せるかは、教えてもらえません。</p>';
+  $("story").appendChild(d);
+}
+
+/* ---------- 訊く ---------- */
+$("story").addEventListener("click",function(e){
+  if(S.done||S.incense<=0) return;
+  var el=e.target.closest(".ask");
+  if(!el){
+    var p=e.target.closest("p.l");
+    if(p&&S.opened){ p.classList.remove("nothing"); void p.offsetWidth; p.classList.add("nothing"); }
+    return;
+  }
+  if(el.classList.contains("used")) return;
+  offer(el.dataset.k);
+});
+
+function offer(k){
+  var A=ASKS[k], price=priceOf(A.tier);
+  var box=document.createElement("div");
+  box.className="cb";
+  var say = A.tier==="saikou"
+    ? '<p style="color:var(--fg-faint)">帳場さんは、何も言わなかった。値も言わなかった。</p>'
+    : '<p>'+SAY[A.tier]+'</p>';
+  var afford = S.paid>0 && balance()>=price;
+  box.innerHTML='<div class="who">帳場さん</div>'+say+
+    '<div class="acts"><button type="button" data-y '+(afford?"":"disabled")+'>訊く</button>'+
+    '<button type="button" data-n>やめておく</button></div>'+
+    (S.paid===0?'<p style="color:var(--fg-faint);font-size:.82rem;margin-top:12px">「お持ちでないようで」</p>':'');
+  $("slot").replaceChildren(box);
+  box.scrollIntoView({behavior:"smooth",block:"nearest"});
+  box.querySelector("[data-n]").addEventListener("click",function(){ $("slot").replaceChildren(); });
+  var y=box.querySelector("[data-y]");
+  if(afford) y.addEventListener("click",function(){
+    S.bought[k]=true; S.spent+=price;
+    var w=document.createElement("div");
+    w.className="stub";
+    w.innerHTML='<div class="stub-in">芳名帳　内引<br>'+A.phrase+'　一件<br>'+
+                '<span class="amt2">金 ■■■ 円</span></div>';
+    var p=document.createElement("p"); p.className="l"; p.textContent=A.fact;
+    $("slot").replaceChildren(w,p);
+    document.querySelectorAll('.ask[data-k="'+k+'"]').forEach(function(e2){ e2.classList.add("used"); });
+    burn();
+  });
+}
+
+/* ---------- 移動と会話 ---------- */
+function drawNav(){
+  if(S.done){ $("nav").replaceChildren(); return; }
+  var n=$("nav"); n.replaceChildren();
+  var talks=TALK.filter(function(t){ return t.place===S.place && !S.talked[t.k]; });
+  if(talks.length){
+    var d=document.createElement("div");
+    d.className="map";
+    d.innerHTML='<div class="map-l">線香を一本使って</div><div class="acts"></div>';
+    talks.forEach(function(t){
+      var b=document.createElement("button");
+      b.type="button"; b.textContent=t.label;
+      b.addEventListener("click",function(){
+        S.talked[t.k]=true; addLine(t.text); burn(); drawNav();
+      });
+      d.querySelector(".acts").appendChild(b);
+    });
+    n.appendChild(d);
+  }
+  var m=document.createElement("div");
+  m.className="map";
+  m.innerHTML='<div class="map-l">歩く（線香は減りません）</div><div class="acts"></div>';
+  PLACES.forEach(function(p){
+    var b=document.createElement("button");
+    b.type="button"; b.textContent=p.name;
+    if(p.k===S.place) b.className="here";
+    b.addEventListener("click",function(){ enter(p.k); window.scrollTo({top:0,behavior:"smooth"}); });
+    m.querySelector(".acts").appendChild(b);
+  });
+  n.appendChild(m);
+}
+
+/* ---------- 夜明けと扉 ---------- */
+function dawn(){
+  S.done=true;
+  $("nav").replaceChildren();
+  $("slot").replaceChildren();
+  var d=document.createElement("div");
+  d.className="dawn";
+  d.innerHTML="<b>線香が尽きた</b>東の空が白んできた。廊下の奥に、四重の封がかかった襖がある。"+
+              "<br>凪さんが言った。「残った分だけ、開けていいって帳場さんが」";
+  $("story").appendChild(d);
+  var go=document.createElement("div");
+  go.className="acts"; go.style.marginBottom="30px";
+  var b=document.createElement("button");
+  b.type="button"; b.textContent="襖の前に立つ";
+  b.addEventListener("click",function(){ go.remove(); door(); });
+  go.appendChild(b);
+  $("story").appendChild(go);
+  b.scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+function maxSeals(v){ var n=0; SEALS.forEach(function(s){ if(v>=s.p) n++; }); return n; }
+function edNumber(i,op){ var n=0; for(var j=0;j<i;j++) n+=maxSeals(STEPS[j])+1; return n+op+1; }
+
+function door(){
+  var bal=balance(), opened=0, sf=null;
+  var host=$("slot"); host.replaceChildren();
+  SEALS.forEach(function(s,i){
+    var ok=bal>=s.p; if(ok) opened++; else if(sf===null) sf=s.p-bal;
+    var row=document.createElement("div");
+    row.className="seal "+(ok?"open":"shut");
+    row.innerHTML='<span class="seal-n">'+s.n+'<small>'+s.t+'</small></span>'+
+                  '<span class="seal-p">'+yen(s.p)+'</span>'+
+                  '<span class="seal-s">'+(ok?"開封":"残高不足")+'</span>';
+    host.appendChild(row);
+    setTimeout(function(){ row.classList.add("in"); }, 300*i);
+  });
+  setTimeout(function(){
+    if(sf!==null){
+      var e=document.createElement("div");
+      e.className="sf";
+      e.innerHTML='<span>次の封まで、あと</span><b>'+yen(sf)+'</b>';
+      host.appendChild(e);
+    }
+    var items=Object.keys(S.bought).map(function(k){
+      return { name:ASKS[k].phrase, price:priceOf(ASKS[k].tier) };
+    });
+    var culprit=null;
+    if(sf!==null) items.forEach(function(it){ if(it.price>=sf && (!culprit||it.price<culprit.price)) culprit=it; });
+
+    var rows=items.map(function(it){
+      return '<div class="slip-r"><span>'+it.name+'</span><span>−'+yen(it.price)+'</span></div>';
+    }).join("");
+    var sl=document.createElement("div");
+    sl.className="slip";
+    sl.innerHTML='<div class="slip-in">'+
+      '<div class="slip-h">芳名帳　精算</div><div style="height:11px"></div>'+
+      '<div class="slip-r"><span>ご持参</span><span>'+yen(S.paid)+'</span></div>'+
+      (rows?'<div class="slip-rule"></div>'+rows:'')+
+      '<div class="slip-rule"></div>'+
+      '<div class="slip-r"><span>読み上げ</span><span>'+yen(bal)+'</span></div>'+
+      (sf!==null?'<div class="slip-r slip-s"><span>不足</span><span>'+yen(sf)+'</span></div>':'')+
+      '<div class="slip-rule"></div>'+
+      '<div class="slip-ed"><div class="no">ED-'+String(edNumber(S.idx,opened)).padStart(2,"0")+
+      '</div><div class="nm">（最終行は未執筆）</div></div></div>';
+    host.appendChild(sl);
+
+    if(culprit){
+      var c=document.createElement("div");
+      c.className="cb";
+      c.innerHTML='<div class="who">帳場</div><p>この一件がなければ、'+SEALS[opened].n+'は開いていました。</p>'+
+                  '<p style="color:var(--fg-dim);font-size:.86rem">〈'+culprit.name+'〉　'+yen(culprit.price)+'</p>';
+      host.appendChild(c);
+    }
+    host.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }, 300*SEALS.length);
+}
+
+$("mk").addEventListener("change",function(){ $("story").classList.toggle("reveal",this.checked); });
+$("again").addEventListener("click",function(){ location.reload(); });
+
+drawPay();
+})();
+</script>
+</body>
+</html>
