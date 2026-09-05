@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>帳場 第一章</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Shippori+Mincho+B1:wght@400;600;800&display=swap">
+<style>
+:root{
+  --ink:#0A0E10; --edge:#1E2729; --fg:#DCE1DD; --fg-dim:#7E8A86; --fg-faint:#4A5552;
+  --accent:#6E7673; --accent-soft:rgba(110,118,115,.12); --glow:0;
+}
+@media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition-duration:.001s !important; } }
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; }
+body{
+  background:var(--ink); color:var(--fg);
+  font-family:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  font-size:16px; line-height:2.3; -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:radial-gradient(100% 60% at 50% 0%, var(--accent-soft), transparent 62%);
+  opacity:calc(.4 + var(--glow)*.6); transition:opacity 1s ease;
+}
+.bar{
+  position:sticky; top:0; z-index:10; background:rgba(10,14,16,.93);
+  border-bottom:1px solid var(--edge); backdrop-filter:blur(9px);
+}
+.bar-in{
+  max-width:40em; margin:0 auto; padding:12px clamp(16px,4vw,26px);
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+}
+.tag{ font-family:"IBM Plex Mono",monospace; font-size:.6rem; letter-spacing:.22em;
+      text-transform:uppercase; color:var(--fg-faint); white-space:nowrap; }
+.amt{ font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
+      font-size:1.15rem; color:var(--accent); min-width:5.6em; transition:color .7s ease; }
+.band{ font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.16em;
+       color:var(--fg-faint); border:1px solid var(--edge); padding:3px 9px; white-space:nowrap; }
+input[type=range]{ flex:1 1 170px; min-width:120px; height:20px; cursor:pointer;
+  -webkit-appearance:none; appearance:none; background:transparent; }
+input[type=range]::-webkit-slider-runnable-track{ height:1px; background:var(--edge); }
+input[type=range]::-moz-range-track{ height:1px; background:var(--edge); }
+input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:11px; height:11px;
+  margin-top:-5px; background:var(--accent); border:none; border-radius:50%; transition:background .7s ease; }
+input[type=range]::-moz-range-thumb{ width:11px; height:11px; background:var(--accent); border:none; border-radius:50%; }
+input[type=range]:focus-visible{ outline:1px solid var(--accent); outline-offset:5px; }
+.dev{ display:flex; align-items:center; gap:6px; font-family:"IBM Plex Mono",monospace;
+      font-size:.6rem; letter-spacing:.1em; color:var(--fg-faint); cursor:pointer; white-space:nowrap; }
+.dev input{ accent-color:var(--accent); }
+
+main{ position:relative; z-index:1; max-width:40em; margin:0 auto; padding:56px clamp(16px,4vw,26px) 120px; }
+.ch{ font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.3em;
+     color:var(--fg-faint); margin-bottom:8px; }
+h1{ font-size:1.5rem; font-weight:800; letter-spacing:.14em; margin:0 0 44px; }
+p.l{ margin:0 0 1.35em; transition:color .5s ease; }
+p.l.changed{ color:#E7EBE7; }
+.mark p.l.changed{ box-shadow:inset 2px 0 0 var(--accent); padding-left:14px; margin-left:-16px; }
+.swap{ animation:sw .55s ease-out; }
+@keyframes sw{ from{ opacity:0; filter:blur(3px); } to{ opacity:1; filter:none; } }
+.foot{ margin-top:70px; padding-top:24px; border-top:1px solid var(--edge);
+       font-size:.74rem; line-height:1.95; color:var(--fg-faint); }
+.foot p{ margin:0 0 .7em; } .foot b{ color:var(--fg-dim); font-weight:400; }
+.stat{ font-family:"IBM Plex Mono",monospace; font-size:.68rem; color:var(--fg-dim); letter-spacing:.06em; }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="bar-in">
+    <span class="tag">香典</span>
+    <span class="amt" id="amt">¥0</span>
+    <input type="range" id="sl" min="0" max="37" value="0" step="1" aria-label="香典の額">
+    <span class="band" id="band">帯1</span>
+    <label class="dev"><input type="checkbox" id="mk"> 帯1から変わった行を示す</label>
+  </div>
+</div>
+
+<main>
+  <div class="ch">Chapter One</div>
+  <h1>帰郷</h1>
+  <div id="body"></div>
+  <div class="foot">
+    <p class="stat" id="stat"></p>
+    <p><b>これは第一章の通読版です。</b> 上の額を動かすと、同じ56行が読み直されます。本編にこの操作盤はありません。プレイヤーは開始前に一度だけ額を決め、自分が払った一つの版だけを読みます。</p>
+    <p><b>¥0 と ¥100 の間に段差があります。</b> ¥0 は袋を持ってきていません。¥100 以上は持ってきています。どちらも帯1なので、それ以外の55行は同じです。</p>
+    <p><b>帯が変わる境目は ¥1,000 / ¥10,000 / ¥100,000 / ¥1,000,000 です。</b> 額を上げていくと、この四点で文章が書き換わります。</p>
+  </div>
+</main>
+
+<script>
+var DATA = {"order": ["L001", "L002", "L003", "L004", "L005", "L006", "L007", "L008", "L009", "L010", "L011", "L012", "L013", "L014", "L015", "L016", "L017", "L018", "L019", "L020", "L021", "L022", "L023", "L024", "L025", "L026", "L027", "L028", "L029", "L030", "L031", "L032", "L033", "L034", "L035", "L036", "L037", "L038", "L039", "L040", "L041", "L042", "L043", "L044", "L045", "L046", "L047", "L048", "L049", "L050", "L051", "L052", "L053", "L054", "L055", "L056"], "base": {"L001": {"paid": "最終の電車を降りたら、潮のにおいがした。三年ぶりなのに、体のほうが先に思い出した。", "zero": "最終の電車を降りたら、潮のにおいがした。三年ぶりなのに、体のほうが先に思い出した。"}, "L002": {"paid": "駅前には何もない。それも三年前と同じだった。街灯が一本、自販機が一台、あとは暗い海。", "zero": "駅前には何もない。それも三年前と同じだった。街灯が一本、自販機が一台、あとは暗い海。"}, "L003": {"paid": "兄の家までは歩いて二十分。タクシーは呼ばなかった。歩きたかった。", "zero": "兄の家までは歩いて二十分。タクシーは呼ばなかった。歩きたかった。"}, "L004": {"paid": "この坂を、子供の頃は兄の自転車の後ろで上った。荷台が固くて、いつも文句を言った。兄は笑って、もっと飛ばした。", "zero": "この坂を、子供の頃は兄の自転車の後ろで上った。荷台が固くて、いつも文句を言った。兄は笑って、もっと飛ばした。"}, "L005": {"paid": "坂を下りきったところで、声をかけられた。", "zero": "坂を下りきったところで、声をかけられた。"}, "L006": {"paid": "「汐里ちゃんかい。遠くからよく来たね」", "zero": "「汐里ちゃんかい。遠くからよく来たね」"}, "L007": {"paid": "魚屋の奥さんだった。名前が出てこない。頭を下げると、奥さんも深く下げて、それきり何も言わずに行ってしまった。", "zero": "魚屋の奥さんだった。名前が出てこない。頭を下げると、奥さんも深く下げて、それきり何も言わずに行ってしまった。"}, "L008": {"paid": "夜だし、通夜の帰りなのだろう。みんな疲れている。", "zero": "夜だし、通夜の帰りなのだろう。みんな疲れている。"}, "L009": {"paid": "港のほうから風が来る。しおり丸はまだあそこにいるのだろうか。明日、見に行こう。", "zero": "港のほうから風が来る。しおり丸はまだあそこにいるのだろうか。明日、見に行こう。"}, "L010": {"paid": "兄の家は、船具屋の角を曲がった先にある。玄関の灯りが道まで伸びていた。", "zero": "兄の家は、船具屋の角を曲がった先にある。玄関の灯りが道まで伸びていた。"}, "L011": {"paid": "「遠くからよく来たね」", "zero": "「遠くからよく来たね」"}, "L012": {"paid": "今度は隣のおじさんだった。同じ言葉。この町の人は、みんな同じ挨拶をする。子供の頃からそうだった。", "zero": "今度は隣のおじさんだった。同じ言葉。この町の人は、みんな同じ挨拶をする。子供の頃からそうだった。"}, "L013": {"paid": "わたしはもう一度頭を下げた。おじさんは灯りの中に戻っていった。", "zero": "わたしはもう一度頭を下げた。おじさんは灯りの中に戻っていった。"}, "L014": {"paid": "玄関を入ると、線香のにおいが細い線になって奥から流れてきた。", "zero": "玄関を入ると、線香のにおいが細い線になって奥から流れてきた。"}, "L015": {"paid": "靴を脱ぐ前に、廊下の脇に机が出ているのが見えた。白い布がかかっている。", "zero": "靴を脱ぐ前に、廊下の脇に机が出ているのが見えた。白い布がかかっている。"}, "L016": {"paid": "帳場だ。", "zero": "帳場だ。"}, "L017": {"paid": "机の向こうに、老人が座っていた。", "zero": "机の向こうに、老人が座っていた。"}, "L018": {"paid": "「汐里さんですね」", "zero": "「汐里さんですね」"}, "L019": {"paid": "帳場さんだった。父の葬式のときも、この人がこの机にいた。あのとき、わたしは十七だった。", "zero": "帳場さんだった。父の葬式のときも、この人がこの机にいた。あのとき、わたしは十七だった。"}, "L020": {"paid": "「はい。遅くなりました」", "zero": "「はい。遅くなりました」"}, "L021": {"paid": "「いえ。遠いところを」", "zero": "「いえ。遠いところを」"}, "L022": {"paid": "帳場さんは芳名帳を開いた。ずいぶん埋まっている。町の人は、みんな来てくれたのだ。", "zero": "帳場さんは芳名帳を開いた。ずいぶん埋まっている。町の人は、みんな来てくれたのだ。"}, "L023": {"paid": "「おいくらお持ちで」", "zero": "「おいくらお持ちで」"}, "L024": {"paid": "その言い方も、父のときと同じだった。この町では、帳場は最初にそう聞く。", "zero": "その言い方も、父のときと同じだった。この町では、帳場は最初にそう聞く。"}, "L025": {"paid": "わたしが答える前に、廊下の奥から凪さんが出てきた。", "zero": "わたしが答える前に、廊下の奥から凪さんが出てきた。"}, "L026": {"paid": "「汐里ちゃん」", "zero": "「汐里ちゃん」"}, "L027": {"paid": "黒い着物だった。三年ぶりに見る凪さんは、前より少し痩せて、前よりずっと綺麗に見えた。", "zero": "黒い着物だった。三年ぶりに見る凪さんは、前より少し痩せて、前よりずっと綺麗に見えた。"}, "L028": {"paid": "「来てくれて、ありがとう」", "zero": "「来てくれて、ありがとう」"}, "L029": {"paid": "「遅くなってごめんなさい」", "zero": "「遅くなってごめんなさい」"}, "L030": {"paid": "凪さんは首を振って、それから帳場さんの机に目をやった。", "zero": "凪さんは首を振って、それから帳場さんの机に目をやった。"}, "L031": {"paid": "「帳場さん、汐里ちゃんはいいんです。身内は香典いらないから」", "zero": "「帳場さん、汐里ちゃんはいいんです。身内は香典いらないから」"}, "L032": {"paid": "わたしは鞄に手を入れかけていた。凪さんはそれを見て、もう一度言った。", "zero": "わたしは鞄に手を入れかけていた。凪さんはそれを見て、もう一度言った。"}, "L033": {"paid": "「いらないの。気にしないで」", "zero": "「いらないの。気にしないで」"}, "L034": {"paid": "気を遣ってくれている。三年帰らなかった妹に。", "zero": "気を遣ってくれている。三年帰らなかった妹に。"}, "L035": {"paid": "帳場さんは、少しだけ間を置いた。言いにくかったのだろう。", "zero": "帳場さんは、少しだけ間を置いた。言いにくかったのだろう。"}, "L036": {"paid": "「奥さんはそう仰いますが、帳は帳ですので」", "zero": "「奥さんはそう仰いますが、帳は帳ですので」"}, "L037": {"paid": "穏やかな声だった。凪さんは、それ以上は言わなかった。町の決まりには、凪さんも逆らわない。", "zero": "穏やかな声だった。凪さんは、それ以上は言わなかった。町の決まりには、凪さんも逆らわない。"}, "L038": {"paid": "そうだった。この町では、帳は帳なのだ。", "zero": "そうだった。この町では、帳は帳なのだ。"}, "L039": {"paid": "父のときのことを思い出した。出棺の朝、この人が芳名帳を開いて、集まった全員の前で名前と額を読み上げた。一人ずつ、全部。兄はわたしの隣で、その声を聞きながら泣いていた。", "zero": "父のときのことを思い出した。出棺の朝、この人が芳名帳を開いて、集まった全員の前で名前と額を読み上げた。一人ずつ、全部。兄はわたしの隣で、その声を聞きながら泣いていた。"}, "L040": {"paid": "東京で一度、この話をしたことがある。相手は、ぎょっとした顔をした。でも、わたしはあれが好きだった。父がどれだけの人に惜しまれたか、朝の空気の中で、数えられていくのが。", "zero": "東京で一度、この話をしたことがある。相手は、ぎょっとした顔をした。でも、わたしはあれが好きだった。父がどれだけの人に惜しまれたか、朝の空気の中で、数えられていくのが。"}, "L041": {"paid": "兄も明日、そうやって数えられる。", "zero": "兄も明日、そうやって数えられる。"}, "L042": {"paid": "鞄から袋を出した。表書きは電車の中で書いた。字が少し曲がっている。身内はいらないと言われたけれど、気持ちだけ。", "zero": "鞄から手を出した。袋は、ない。身内は出さないと言われていたし、自分でもそう思っていた。"}, "L043": {"paid": "帳場さんはそれを両手で受け取って、机の下に置いた。", "zero": "帳場さんは頷いて、何も言わなかった。"}, "L044": {"paid": "「お名前を」", "zero": "「お名前を」"}, "L045": {"paid": "帳場さんが芳名帳を回してくれた。筆ペンを渡される。", "zero": "帳場さんが芳名帳を回してくれた。筆ペンを渡される。"}, "L046": {"paid": "名前を書こうとして、気づいた。", "zero": "名前を書こうとして、気づいた。"}, "L047": {"paid": "最後のページ、一番下の行が空いている。ほかの行は全部埋まっているのに、そこだけ、最初から空けてあったみたいに。", "zero": "最後のページ、一番下の行が空いている。ほかの行は全部埋まっているのに、そこだけ、最初から空けてあったみたいに。"}, "L048": {"paid": "「ここでよろしいですか」", "zero": "「ここでよろしいですか」"}, "L049": {"paid": "「ええ。そこに」", "zero": "「ええ。そこに」"}, "L050": {"paid": "待っていてくれたのだと思った。町の人が、兄が、この最後の一行を。", "zero": "待っていてくれたのだと思った。町の人が、兄が、この最後の一行を。"}, "L051": {"paid": "汐里、と書いた。字が震えた。", "zero": "汐里、と書いた。字が震えた。"}, "L052": {"paid": "帳場さんは帳を戻して、静かに閉じた。", "zero": "帳場さんは帳を戻して、静かに閉じた。"}, "L053": {"paid": "「奥で、お兄さんがお待ちです」", "zero": "「奥で、お兄さんがお待ちです」"}, "L054": {"paid": "凪さんが先に立って歩いた。廊下は寒かった。線香のにおいが、一歩ごとに濃くなった。", "zero": "凪さんが先に立って歩いた。廊下は寒かった。線香のにおいが、一歩ごとに濃くなった。"}, "L055": {"paid": "凪さんの背中は、まっすぐだった。三年前より、まっすぐに見えた。", "zero": "凪さんの背中は、まっすぐだった。三年前より、まっすぐに見えた。"}, "L056": {"paid": "帰ってきた。そう思った。", "zero": "帰ってきた。そう思った。"}}, "ov": {"L003": {"4": "兄の家までは歩いて二十分。タクシーは呼ばなかった。歩きたかった。鞄が重かった。", "5": "兄の家までは歩いて二十分。タクシーは呼ばなかった。代金が惜しかった。鞄には百万が入っている。"}, "L007": {"3": "魚屋の奥さんだった。名前が出てこない。頭を下げると、奥さんも深く下げて、それきり何も言わずに行ってしまった。目は、合わなかった。"}, "L024": {"2": "その言い方も、父のときと同じだった。この町では、帳場は最初にそう聞く。ただ、父のときは、わたしは聞かれなかった。", "5": "その言い方も、父のときと同じだった。父のときは、聞かれなかった。今夜は聞かれる。わたしは今夜、身内ではない。"}, "L034": {"2": "気を遣ってくれている。三年帰らなかった妹に。帳場さんは、まだ帳を閉じていなかった。", "4": "気を遣ってくれているのだと思った。三年帰らなかった妹に。凪さんの目は、わたしの鞄を見ていた。", "5": "気遣いではない。凪さんは、わたしが今さら袋で済ませるのを、見たくなかったのだ。"}, "L037": {"3": "穏やかな声だった。凪さんは、それ以上は言わなかった。言わなかった、というより、言えなかったように見えた。何に負けたのかは、分からなかった。", "5": "穏やかな声だった。凪さんは、それ以上は言わなかった。帳場さんが正しかったからだ。帳は帳で、わたしの名前は、帳に載らなければならなかった。"}, "L039": {"3": "父のときのことを思い出した。出棺の朝、この人が芳名帳を開いて、集まった全員の前で名前と額を読み上げた。一人ずつ、全部。兄はわたしの隣で、その声を聞きながら泣いていた。あのとき兄が何を聞いていたのか、いまになって、分からなくなった。", "5": "父のときのことを思い出した。出棺の朝、この人が芳名帳を開いて、集まった全員の前で名前と額を読み上げた。一人ずつ、全部。兄はわたしの隣で、その声を聞きながら泣いていた。兄は、父がいくらだったかを聞いていた。この町で育った人間は、みんな、そこを聞く。"}, "L040": {"4": "東京で一度、この話をしたことがある。相手は、ぎょっとした顔をした。わたしは笑った。でも、わたしはあれが好きだった。父がどれだけの人に惜しまれたか、朝の空気の中で、数えられていくのが。", "5": "東京で一度、この話をしたことがある。飲みの席で、笑い話として。相手は、ぎょっとした顔をした。わたしはもっと笑った。あれが好きだったのは本当だ。数えられていたのが、わたしではなかったから。"}, "L042": {"2": "鞄から袋を出した。表書きは電車の中で書いた。字が少し曲がっている。父のときは、出さなかった。", "4": "鞄から袋を出した。表書きは電車の中で書いた。字が少し曲がっている。三年ぶりに帰る妹が、袋一つで済むとは思っていない。それでも、袋しかなかった。", "5": "鞄から袋を出した。表書きは電車の中で書いた。何度も書き直して、それでも曲がった。三年前に引き出しから抜いた額と、同じ厚さの袋。"}, "L043": {"5": "帳場さんはそれを両手で受け取って、机の下に置いた。重さを、手が覚えたのが分かった。"}, "L047": {"3": "最後のページ、一番下の行が空いている。ほかの行は全部埋まっているのに、そこだけ、空けてあったのだ。誰が、何のために空けたのかは、分からなかった。", "5": "最後のページ、一番下の行が空いている。ほかの行は全部埋まっているのに、そこだけ、最初から空けてあった。読み上げは、書いた順に行われる。最後の行は、最後に読まれる。"}, "L050": {"2": "待っていてくれたのだと思った。町の人が、兄が、この最後の一行を。そう思うと、少し楽になった。", "4": "待っていてくれたのだ、と思おうとした。町の人が、兄が、この最後の一行を。空けておいたのは帳場さんだ。帳場さんは、待つ人ではない。", "5": "待っていたのは、わたしではない。この行だ。明日の朝、一番最後に読まれるための行。町の全員が聞き終わったあとに、わたしの額だけが残るように。"}, "L055": {"4": "凪さんの背中は、まっすぐだった。三年前より、まっすぐに見えた。振り向かないのだと、分かった。", "5": "凪さんの背中は、まっすぐだった。三年前より、まっすぐだった。振り向かなかった。振り向く必要がない。凪さんはもう、わたしの顔を見終わっている。"}, "L056": {"2": "帰ってきた。そう思った。思いたかった。", "3": "帰ってきた。そう思った。そのあとで、なぜか、まだ着いていない気がした。", "5": "帰ってきてしまった。"}}};
+
+(function(){
+  "use strict";
+  var STEPS=[];
+  for(var a=0;a<1000;a+=100) STEPS.push(a);
+  for(var b=1000;b<10000;b+=1000) STEPS.push(b);
+  for(var c=10000;c<100000;c+=10000) STEPS.push(c);
+  for(var d=100000;d<1000000;d+=100000) STEPS.push(d);
+  STEPS.push(1000000);
+
+  var BANDS=[0,1000,10000,100000,1000000];
+  var ACC=[["#6E7673","rgba(110,118,115,.12)",0],
+           ["#8E8564","rgba(142,133,100,.14)",.24],
+           ["#A79058","rgba(167,144,88,.16)",.46],
+           ["#D4A63A","rgba(212,166,58,.18)",.74],
+           ["#EFBA26","rgba(239,186,38,.21)",1]];
+
+  var elAmt=document.getElementById("amt"), elBand=document.getElementById("band"),
+      elBody=document.getElementById("body"), elSl=document.getElementById("sl"),
+      elMk=document.getElementById("mk"), elStat=document.getElementById("stat");
+  var prev={}, first=true;
+
+  function bandOf(v){ var b=0; BANDS.forEach(function(m,i){ if(v>=m) b=i; }); return b; }
+  function yen(n){ return "¥"+n.toLocaleString("ja-JP"); }
+
+  function textOf(id, amount, band){
+    var t = amount===0 ? DATA.base[id].zero : DATA.base[id].paid;
+    var o = DATA.ov[id];
+    if(o){ for(var lv=2; lv<=band+1; lv++){ if(o[String(lv)]!==undefined) t=o[String(lv)]; } }
+    return t;
+  }
+
+  function render(){
+    var amount=STEPS[+elSl.value], band=bandOf(amount);
+    elAmt.textContent=yen(amount);
+    elBand.textContent="帯"+(band+1);
+    var a=ACC[band], r=document.documentElement.style;
+    r.setProperty("--accent",a[0]); r.setProperty("--accent-soft",a[1]); r.setProperty("--glow",String(a[2]));
+
+    var frag=document.createDocumentFragment(), changed=0, chars=0;
+    DATA.order.forEach(function(id){
+      var t=textOf(id,amount,band);
+      chars+=t.length;
+      var b1 = DATA.base[id].paid;
+      var p=document.createElement("p");
+      p.className="l"+(t!==b1?" changed":"");
+      if(t!==b1) changed++;
+      p.textContent=t;
+      if(!first && prev[id]!==t) p.classList.add("swap");
+      prev[id]=t;
+      frag.appendChild(p);
+    });
+    elBody.replaceChildren(frag);
+    elStat.textContent="帯"+(band+1)+"　"+chars+"字　／　帯1から変わった行 "+changed+" / 56";
+    first=false;
+  }
+
+  elSl.addEventListener("input",render);
+  elMk.addEventListener("change",function(){ elBody.classList.toggle("mark",this.checked); });
+  render();
+})();
+</script>
+</body>
+</html>
