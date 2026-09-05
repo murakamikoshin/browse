@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>指して訊く</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Shippori+Mincho+B1:wght@400;600;800&display=swap">
+<style>
+:root{
+  --ink:#0A0F11; --ink-2:#0F1619; --edge:#1F2A2C;
+  --fg:#D5DBD7; --fg-dim:#7A8783; --fg-faint:#495451;
+  --ember:#C2603A; --ash:#3A4340; --accent:#B99245;
+}
+@media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition-duration:.001s !important; } }
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; }
+body{
+  background:var(--ink); color:var(--fg); min-height:100vh;
+  font-family:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  font-size:16px; line-height:2.15; -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:radial-gradient(90% 60% at 50% 0%, rgba(120,96,60,.07), transparent 65%);
+}
+.mono{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums; }
+
+/* 線香 */
+.incense{
+  position:sticky; top:0; z-index:10; background:rgba(10,15,17,.94);
+  border-bottom:1px solid var(--edge); backdrop-filter:blur(8px);
+}
+.incense-in{
+  max-width:42em; margin:0 auto; padding:13px clamp(16px,4vw,28px);
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+}
+.inc-label{
+  font-family:"IBM Plex Mono",monospace; font-size:.6rem; letter-spacing:.24em;
+  text-transform:uppercase; color:var(--fg-faint); white-space:nowrap;
+}
+.sticks{ display:flex; gap:9px; align-items:flex-end; height:30px; }
+.stick{ width:2px; height:28px; background:var(--ash); position:relative; transition:height .7s ease, background .7s ease; }
+.stick.lit{ background:linear-gradient(180deg, var(--ember) 0 3px, #8B7A5E 3px 100%); }
+.stick.lit::after{
+  content:""; position:absolute; top:-3px; left:-1.5px; width:5px; height:5px;
+  border-radius:50%; background:var(--ember); filter:blur(2px); animation:glow 2.4s ease-in-out infinite;
+}
+@keyframes glow{ 0%,100%{ opacity:.55; } 50%{ opacity:1; } }
+.stick.spent{ height:4px; background:var(--ash); }
+.stick.spent::after{ display:none; }
+.dev{ margin-left:auto; display:flex; align-items:center; gap:7px; font-family:"IBM Plex Mono",monospace; font-size:.6rem; letter-spacing:.1em; color:var(--fg-faint); cursor:pointer; }
+.dev input{ accent-color:var(--accent); }
+
+main{ position:relative; z-index:1; max-width:42em; margin:0 auto; padding:40px clamp(16px,4vw,28px) 90px; }
+.ch{ font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.28em; color:var(--fg-faint); margin-bottom:28px; }
+.prose p{ margin:0 0 1.5em; }
+.prose .add{ animation:fadeUp .7s ease-out; color:#C3CBC6; }
+@keyframes fadeUp{ from{ opacity:0; transform:translateY(4px); } to{ opacity:1; transform:none; } }
+.ask{ cursor:inherit; }
+.reveal .ask{ box-shadow:inset 0 -1px 0 rgba(185,146,69,.55); }
+.ask.used{ box-shadow:inset 0 -1px 0 rgba(120,132,128,.4); color:var(--fg-dim); }
+.tap{ animation:tap .45s ease-out; }
+@keyframes tap{ 0%{ background:rgba(185,146,69,.22); } 100%{ background:transparent; } }
+.nothing{ animation:noth .5s ease-out; }
+@keyframes noth{ 0%{ background:rgba(120,132,128,.10); } 100%{ background:transparent; } }
+
+/* 帳場さん */
+.chouba{
+  margin:26px 0; border-left:2px solid var(--accent); padding:16px 0 16px 18px;
+  animation:fadeUp .45s ease-out;
+}
+.chouba .who{ font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.2em; color:var(--accent); margin-bottom:.5em; }
+.chouba .say{ margin:0 0 14px; }
+.acts{ display:flex; gap:9px; flex-wrap:wrap; }
+.acts button{
+  padding:9px 18px; background:transparent; border:1px solid var(--edge); color:var(--fg-dim);
+  font-family:inherit; font-size:.9rem; cursor:pointer; border-radius:1px;
+  transition:border-color .2s, color .2s;
+}
+.acts button:hover{ border-color:var(--accent); color:var(--fg); }
+.acts button:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+.acts button.warn:hover{ border-color:var(--ember); }
+
+/* 内引の控え */
+.stub{
+  margin:22px 0; display:flex; justify-content:flex-start;
+  animation:fadeUp .6s ease-out;
+}
+.stub-in{
+  font-family:"IBM Plex Mono",monospace; font-size:.68rem; line-height:1.9;
+  background:#E2DFD4; color:#20201C; padding:11px 15px; letter-spacing:.05em;
+  box-shadow:0 10px 26px rgba(0,0,0,.5);
+}
+.stub-in b{ font-weight:500; }
+.stub-in .amt{ letter-spacing:.4em; color:#6A6558; }
+
+/* 自由行動 */
+.free{ margin-top:38px; padding-top:24px; border-top:1px solid var(--edge); }
+.free-label{ font-family:"IBM Plex Mono",monospace; font-size:.6rem; letter-spacing:.24em; text-transform:uppercase; color:var(--fg-faint); margin-bottom:13px; }
+.dawn{ margin-top:40px; padding:26px 0; border-top:1px solid var(--edge); font-size:1.05rem; animation:fadeUp 1.2s ease-out; }
+.dawn b{ display:block; font-size:.62rem; font-family:"IBM Plex Mono",monospace; letter-spacing:.24em; color:var(--fg-faint); font-weight:400; margin-bottom:12px; }
+.note{ margin-top:52px; padding-top:22px; border-top:1px solid var(--edge); font-size:.74rem; line-height:1.9; color:var(--fg-faint); }
+.note p{ margin:0 0 .7em; } .note b{ color:var(--fg-dim); font-weight:400; }
+.replay{ margin-top:18px; background:none; border:none; color:var(--fg-faint); font-family:"IBM Plex Mono",monospace; font-size:.68rem; letter-spacing:.14em; cursor:pointer; padding:6px 0; }
+.replay:hover{ color:var(--fg-dim); }
+</style>
+</head>
+<body>
+
+<div class="incense">
+  <div class="incense-in">
+    <span class="inc-label">線香</span>
+    <div class="sticks" id="sticks"></div>
+    <label class="dev"><input type="checkbox" id="devtoggle"> 検証用：指せる語句を光らせる</label>
+  </div>
+</div>
+
+<main>
+  <div class="ch">第三章　港</div>
+  <div class="prose" id="prose"></div>
+  <div id="slot"></div>
+  <div class="free" id="free">
+    <div class="free-label">線香を一本使って</div>
+    <div class="acts" id="freeacts"></div>
+  </div>
+  <div id="end"></div>
+
+  <div class="note">
+    <p><b>指せる語句は光りません。</b> 下線もカーソルの変化も出しません。気づいた人だけが訊けます。上のチェックを入れると、検証用に光らせられます。</p>
+    <p><b>金額はどこにも出ません。</b> 残高も価格も表示されず、帳場さんの言葉だけが手がかりです。買うと「内引」の控えが出ますが、額は伏せてあります。数字を見るのは封の前が初めてです。</p>
+    <p><b>人と話すのは無料で、線香だけ減ります。</b> 訊くほうは線香と香典の両方が減ります。無課金のプレイヤーは線香を全部会話に使うことになります。</p>
+  </div>
+  <button class="replay" id="replay">もう一度、夜のはじめから</button>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  var TOTAL = 6;
+  var left = TOTAL;
+
+  // 本文（帯1）。ask で括った語句だけが反応する。
+  var BODY = [
+    '家を出ると、風が思ったより冷たかった。坂を下れば港で、この時間は誰もいない。',
+    'しおり丸は、桟橋の三番目に繋がれていた。船名が<span class="ask" data-k="nuri">塗り直されている</span>。白い文字が、夜目にもはっきりしていた。兄はこの船に、わたしの名前をつけたままにしていた。',
+    '甲板に、<span class="ask" data-k="vest">救命胴衣</span>が置かれていた。あの日だけ忘れたのだ、と凪さんは言っていた。何十年も海に出ていた人が、その日に限って。',
+    'あの日は、この時期には珍しく<span class="ask" data-k="nagi">凪いでいた</span>そうだ。波の音が、いまもほとんどしない。',
+    '小学生のとき、わたしはこの堤防から落ちたことがある。兄が飛び込んで、引き上げてくれた。兄は<span class="ask" data-k="swim">泳ぎがうまかった</span>。'
+  ];
+
+  // 売るのは事実だけ。解釈は売らない。
+  var ASKS = {
+    nuri:  { say:"「船名ですか。……端金です」",
+             fact:"塗り直したのは先月だと、帳場さんは言った。ひと月前に。" },
+    vest:  { say:"「それは。……相応のお値段はいただきます」",
+             fact:"甲板にあったとき、それは畳んであったそうだ。" },
+    nagi:  { say:"「あの日の海のことでしたら。端金です」",
+             fact:"三日続いた凪の、二日目だったという。" },
+    swim:  { say:"「兄上さんの泳ぎですか。……お勧めしません」",
+             fact:"町内の大会で、三年続けて名前が残っている。" }
+  };
+
+  var FREE = [
+    { k:"nagi_talk", label:"凪さんに訊く",
+      text:"凪さんは、湯呑みを両手で持ったまま少し笑った。「あの人ね、船の名前だけは絶対に変えなかったの」。それから、湯呑みを置いた。「あなたが東京に行ってからも」" },
+    { k:"town", label:"堤防の先の人影に声をかける",
+      text:"漁協の人だった。わたしの顔を見て、それから海のほうを見た。「遠くからよう来たね」。目は合わなかった。" },
+    { k:"look", label:"しおり丸の中を覗く",
+      text:"船内は片付いていた。片付きすぎている、と思った。工具の一本まで、あるべき場所にあった。" }
+  ];
+
+  var $ = function(i){ return document.getElementById(i); };
+  var elSticks=$("sticks"), elProse=$("prose"), elSlot=$("slot"),
+      elFree=$("free"), elActs=$("freeacts"), elEnd=$("end");
+
+  function renderSticks(){
+    elSticks.replaceChildren();
+    for (var i=0;i<TOTAL;i++){
+      var s = document.createElement("div");
+      s.className = "stick " + (i < left ? "lit" : "spent");
+      elSticks.appendChild(s);
+    }
+  }
+
+  function burn(){
+    left--;
+    renderSticks();
+    if (left <= 0) dawn();
+  }
+
+  function dawn(){
+    elFree.style.display = "none";
+    elSlot.replaceChildren();
+    var d = document.createElement("div");
+    d.className = "dawn";
+    d.innerHTML = "<b>線香が尽きた</b>東の空が白んできた。港のほうから、誰かが歩いてくる音がする。<br>——出棺の支度が始まる。";
+    elEnd.replaceChildren(d);
+  }
+
+  function render(){
+    elProse.replaceChildren();
+    BODY.forEach(function(html){
+      var p = document.createElement("p");
+      p.innerHTML = html;
+      elProse.appendChild(p);
+    });
+    elActs.replaceChildren();
+    FREE.forEach(function(f){
+      var b = document.createElement("button");
+      b.type="button"; b.textContent = f.label;
+      b.addEventListener("click", function(){
+        if (left<=0) return;
+        b.disabled = true; b.style.opacity = .35;
+        var p = document.createElement("p");
+        p.className = "add"; p.innerHTML = f.text;
+        elProse.appendChild(p);
+        burn();
+      });
+      elActs.appendChild(b);
+    });
+  }
+
+  elProse.addEventListener("click", function(e){
+    if (left <= 0) return;
+    var el = e.target.closest(".ask");
+    if (!el){
+      // 意味のない語句。何も起きない。
+      var t = e.target.closest("p");
+      if (t){ t.classList.remove("nothing"); void t.offsetWidth; t.classList.add("nothing"); }
+      return;
+    }
+    if (el.classList.contains("used")) return;
+    el.classList.remove("tap"); void el.offsetWidth; el.classList.add("tap");
+    offer(el);
+  });
+
+  function offer(el){
+    var k = el.dataset.k, a = ASKS[k];
+    var box = document.createElement("div");
+    box.className = "chouba";
+    box.innerHTML = '<div class="who">帳場さん</div><p class="say">' + a.say + '</p>' +
+                    '<div class="acts"><button type="button" data-yes>訊く</button>' +
+                    '<button type="button" data-no>やめておく</button></div>';
+    elSlot.replaceChildren(box);
+    box.scrollIntoView({ behavior:"smooth", block:"nearest" });
+
+    box.querySelector("[data-no]").addEventListener("click", function(){
+      elSlot.replaceChildren();
+    });
+    box.querySelector("[data-yes]").addEventListener("click", function(){
+      el.classList.add("used");
+      var wrap = document.createElement("div");
+      wrap.innerHTML =
+        '<div class="stub"><div class="stub-in">' +
+          '芳名帳　内引<br>' +
+          '<b>' + el.textContent + '</b><br>' +
+          '<span class="amt">金 ■■■ 円</span>' +
+        '</div></div>';
+      var p = document.createElement("p");
+      p.className = "add"; p.textContent = a.fact;
+      elSlot.replaceChildren(wrap.firstChild, p);
+      burn();
+    });
+  }
+
+  $("devtoggle").addEventListener("change", function(){
+    elProse.classList.toggle("reveal", this.checked);
+  });
+  $("replay").addEventListener("click", function(){
+    left = TOTAL; elSlot.replaceChildren(); elEnd.replaceChildren();
+    elFree.style.display = ""; renderSticks(); render();
+    window.scrollTo({ top:0, behavior:"smooth" });
+  });
+
+  renderSticks(); render();
+})();
+</script>
+</body>
+</html>
