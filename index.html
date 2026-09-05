@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>レテ精算所</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho+B1:wght@400;600;800&display=swap">
+<style>
+:root{
+  --ink:#0B1012;
+  --ink-2:#111A1D;
+  --ink-3:#172226;
+  --edge:#222F33;
+  --paper:#E4E1D6;
+  --fg:#D6DCD8;
+  --fg-dim:#7C8A86;
+  --fg-faint:#4E5A57;
+  --accent:#6B7370;
+  --accent-soft:rgba(107,115,112,.14);
+  --glow:0;
+  --measure:34em;
+  --step:0.28s;
+}
+@media (prefers-reduced-motion: reduce){
+  :root{ --step:0s; }
+  *,*::before,*::after{ animation-duration:.001s !important; transition-duration:.001s !important; }
+}
+
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; }
+body{
+  background:var(--ink);
+  color:var(--fg);
+  font-family:"Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  font-size:16px;
+  line-height:1.95;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+  position:relative;
+  overflow-x:hidden;
+}
+body::before{
+  content:"";
+  position:fixed; inset:0;
+  background:radial-gradient(120% 80% at 50% -10%, var(--accent-soft), transparent 62%);
+  opacity:calc(.35 + var(--glow) * .65);
+  transition:opacity 1.2s ease;
+  pointer-events:none;
+  z-index:0;
+}
+.mono{ font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric:tabular-nums; }
+
+/* ---------- 券売機 ---------- */
+.machine{
+  position:sticky; top:0; z-index:20;
+  background:linear-gradient(180deg, var(--ink) 68%, rgba(11,16,18,.86) 100%);
+  border-bottom:1px solid var(--edge);
+  backdrop-filter:blur(8px);
+}
+.machine-inner{
+  max-width:74em; margin:0 auto; padding:14px 20px 16px;
+  display:flex; flex-direction:column; gap:11px;
+}
+.machine-head{
+  display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap;
+}
+.brand{ display:flex; align-items:baseline; gap:11px; }
+.brand-name{ font-size:1.05rem; font-weight:800; letter-spacing:.14em; color:var(--fg); }
+.brand-en{
+  font-family:"IBM Plex Mono", monospace; font-size:.62rem; letter-spacing:.24em;
+  text-transform:uppercase; color:var(--fg-faint);
+}
+.machine-hint{
+  font-family:"IBM Plex Mono", monospace; font-size:.68rem; letter-spacing:.06em; color:var(--fg-dim);
+}
+.tiers{
+  display:flex; gap:6px; overflow-x:auto; padding-bottom:3px;
+  scrollbar-width:thin; scrollbar-color:var(--edge) transparent;
+}
+.tiers::-webkit-scrollbar{ height:4px; }
+.tiers::-webkit-scrollbar-thumb{ background:var(--edge); }
+.tier{
+  flex:1 1 0; min-width:92px;
+  display:flex; flex-direction:column; align-items:flex-start; gap:2px;
+  padding:9px 11px 8px;
+  background:transparent;
+  border:1px solid var(--edge);
+  border-radius:1px;
+  color:var(--fg-dim);
+  cursor:pointer;
+  transition:border-color var(--step) ease, color var(--step) ease, background var(--step) ease;
+  text-align:left;
+}
+.tier:hover{ border-color:var(--fg-faint); color:var(--fg); }
+.tier:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+.tier-amount{ font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; font-size:.9rem; font-weight:500; letter-spacing:.01em; }
+.tier-name{ font-size:.68rem; letter-spacing:.16em; opacity:.72; }
+.tier[aria-pressed="true"]{
+  background:var(--accent-soft);
+  border-color:var(--accent);
+  color:var(--fg);
+}
+.tier[aria-pressed="true"] .tier-amount{ color:var(--accent); font-weight:600; }
+
+/* ---------- 本文 ---------- */
+main{ position:relative; z-index:1; max-width:74em; margin:0 auto; padding:0 20px 96px; }
+.stage{ max-width:var(--measure); margin:0 auto; }
+
+.scene-head{ padding:52px 0 34px; border-bottom:1px solid var(--edge); margin-bottom:38px; }
+.scene-no{
+  font-family:"IBM Plex Mono", monospace; font-size:.66rem; letter-spacing:.28em;
+  text-transform:uppercase; color:var(--accent); display:block; margin-bottom:12px;
+  transition:color var(--step) ease;
+}
+.scene-title{ font-size:1.9rem; font-weight:800; letter-spacing:.06em; margin:0 0 14px; text-wrap:balance; }
+.scene-lede{ font-size:.87rem; line-height:1.9; color:var(--fg-dim); margin:0; }
+
+.line{ margin:0 0 1.55em; position:relative; }
+.line-body{ display:block; }
+.who{
+  display:block;
+  font-family:"IBM Plex Mono", monospace;
+  font-size:.66rem; letter-spacing:.2em; color:var(--accent);
+  margin-bottom:.35em;
+  transition:color var(--step) ease;
+}
+.speech{ color:var(--fg); }
+.narr{ color:#B9C2BE; }
+
+.updated{ animation:bleed .5s ease-out; }
+@keyframes bleed{
+  0%{ opacity:0; filter:blur(5px); transform:translateY(3px); }
+  100%{ opacity:1; filter:blur(0); transform:none; }
+}
+
+
+/* 伏せ字 */
+.locked{ margin:0 0 1.55em; }
+.bars{ display:block; line-height:1.75; word-break:break-all; color:#1E2A2E; user-select:none; }
+.bars span{ background:#1B2529; color:transparent; }
+.lock-tag{
+  display:inline-flex; align-items:center; gap:.5em; margin-top:.5em;
+  font-family:"IBM Plex Mono", monospace; font-size:.66rem; letter-spacing:.1em;
+  color:var(--fg-faint); border:1px solid var(--edge); padding:3px 9px; border-radius:1px;
+}
+.lock-tag b{ color:var(--fg-dim); font-weight:500; }
+.revealed{ animation:reveal .6s ease-out; }
+@keyframes reveal{
+  0%{ opacity:0; letter-spacing:.4em; filter:blur(6px); }
+  100%{ opacity:1; letter-spacing:normal; filter:blur(0); }
+}
+.note{
+  border-left:2px solid var(--accent);
+  padding-left:1.1em; margin:0 0 1.55em;
+  color:var(--fg-dim); font-size:.92rem;
+  transition:border-color var(--step) ease;
+}
+
+/* 領収書 */
+.receipt-wrap{ margin:2.4em 0; display:flex; justify-content:center; }
+.receipt{
+  width:min(300px, 100%);
+  background:var(--paper);
+  color:#1C1A16;
+  font-family:"IBM Plex Mono", monospace;
+  font-size:.74rem; line-height:1.75;
+  padding:22px 20px 26px;
+  box-shadow:0 18px 44px rgba(0,0,0,.55), 0 0 0 1px rgba(0,0,0,.4);
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 7px),92% 100%,84% calc(100% - 7px),76% 100%,68% calc(100% - 7px),60% 100%,52% calc(100% - 7px),44% 100%,36% calc(100% - 7px),28% 100%,20% calc(100% - 7px),12% 100%,4% calc(100% - 7px),0 100%);
+}
+.r-head{ text-align:center; letter-spacing:.22em; font-size:.66rem; padding-bottom:12px; border-bottom:1px dashed #98918250; }
+.r-row{ display:flex; justify-content:space-between; gap:12px; }
+.r-rule{ border-top:1px dashed #98918250; margin:11px 0; }
+.r-total{ display:flex; justify-content:space-between; align-items:baseline; font-size:1.02rem; font-weight:600; }
+.r-note{ margin-top:14px; font-size:.62rem; line-height:1.65; color:#5C564A; }
+.r-stamp{
+  margin-top:16px; text-align:center; font-size:.62rem; letter-spacing:.2em;
+  color:#8C1F1F; border:1px solid #8C1F1F80; padding:5px; opacity:.9;
+}
+
+/* フッター集計 */
+.tally{
+  margin-top:56px; padding-top:26px; border-top:1px solid var(--edge);
+  display:flex; flex-direction:column; gap:18px;
+}
+.meter-row{ display:flex; align-items:baseline; justify-content:space-between; gap:14px; }
+.meter-label{ font-family:"IBM Plex Mono", monospace; font-size:.68rem; letter-spacing:.2em; color:var(--fg-dim); text-transform:uppercase; }
+.meter-val{ font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; font-size:1.5rem; color:var(--accent); transition:color var(--step) ease; }
+.meter{ height:3px; background:var(--ink-3); position:relative; overflow:hidden; }
+.meter i{ position:absolute; inset:0 auto 0 0; background:var(--accent); transition:width .55s cubic-bezier(.2,.7,.3,1), background var(--step) ease; }
+.tally-text{ font-size:.85rem; line-height:1.85; color:var(--fg-dim); margin:0; }
+.tally-text b{ color:var(--accent); font-family:"IBM Plex Mono", monospace; font-weight:500; }
+
+.footnote{
+  max-width:var(--measure); margin:64px auto 0; padding-top:22px;
+  border-top:1px solid var(--edge);
+  font-size:.74rem; line-height:1.9; color:var(--fg-faint);
+}
+.footnote p{ margin:0 0 .7em; }
+.footnote b{ color:var(--fg-dim); font-weight:400; }
+
+@media (max-width:620px){
+  body{ font-size:15px; }
+  .scene-title{ font-size:1.5rem; }
+  .tier{ min-width:84px; padding:8px 9px; }
+  .machine-inner{ padding:12px 14px 14px; }
+  main{ padding:0 16px 72px; }
+}
+</style>
+</head>
+<body>
+
+<div class="machine">
+  <div class="machine-inner">
+    <div class="machine-head">
+      <div class="brand">
+        <span class="brand-name">レテ精算所</span>
+        <span class="brand-en">Lethe Settlement Office</span>
+      </div>
+      <span class="machine-hint">検証用の比較画面 — 本編にこの切り替えはありません</span>
+    </div>
+    <div class="tiers" id="tiers" role="group" aria-label="支払額を選ぶ"></div>
+  </div>
+</div>
+
+<main>
+  <div class="stage">
+    <div class="scene-head">
+      <span class="scene-no" id="scene-no">序章 — 精算室</span>
+      <h1 class="scene-title">よく眠れましたか</h1>
+      <p class="scene-lede">
+        これは冒頭の一場面です。文章は一つしかありません。変わるのは、あなたが支払った額だけです。<br>
+        本編では、支払いは開始前の一度きり。金額を選び直すことも、あとから足すこともできません。
+      </p>
+    </div>
+    <div id="scene"></div>
+
+    <div class="tally">
+      <div>
+        <div class="meter-row">
+          <span class="meter-label">読めた行</span>
+          <span class="meter-val" id="res-val">0</span>
+        </div>
+        <div class="meter"><i id="res-bar" style="width:0%"></i></div>
+      </div>
+      <p class="tally-text" id="tally-text"></p>
+    </div>
+  </div>
+
+  <div class="footnote">
+    <p><b>読めない行には、値段が書かれていません。</b> あといくら払えば読めたのかは、最後まで明かされません。足りているのかどうかが分からないまま進むことが、この作品の体験です。</p>
+    <p><b>支払いは開始前の一度きりです。</b> 支払った額はそのまま主人公の所持金になり、途中で「記憶」を買うと減ります。買値は、買ったあとに領収書で分かります。追加の支払いはできません。</p>
+    <p><b>この画面は制作側の比較用です。</b> プレイヤーは自分が払った一つの金額しか見ることができません。</p>
+  </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  var TIERS = [
+    { amount:0,       name:"無銭",   accent:"#6E7673", soft:"rgba(110,118,115,.13)", glow:0.00 },
+    { amount:500,     name:"端数",   accent:"#7E8069", soft:"rgba(126,128,105,.13)", glow:0.10 },
+    { amount:3000,    name:"常連",   accent:"#928A62", soft:"rgba(146,138,98,.14)",  glow:0.22 },
+    { amount:10000,   name:"堅実",   accent:"#A79058", soft:"rgba(167,144,88,.15)", glow:0.38 },
+    { amount:50000,   name:"深追い", accent:"#BE9A4A", soft:"rgba(190,154,74,.16)",  glow:0.56 },
+    { amount:200000,  name:"執着",   accent:"#D4A63A", soft:"rgba(212,166,58,.18)",  glow:0.78 },
+    { amount:1000000, name:"上限",   accent:"#EFBA26", soft:"rgba(239,186,38,.20)",  glow:1.00 }
+  ];
+
+  // v: 支払額の閾値ごとの本文（その額以上で、最も高い層が採用される）
+  // lock: その額に達するまで伏せ字
+  var LINES = [
+    { who:"クロハ", v:{ 0:"「おはようございます。よく眠れましたか」" } },
+
+    { v:{
+      0:"声のほうを見る。黒い服の男が、机の向こうに座っている。知らない顔だ。",
+      3000:"声のほうを見る。黒い服の男が、机の向こうに座っている。知らない顔だ。なのに、声の高さだけが、耳の奥で一致する。",
+      50000:"声のほうを見る。黒い服の男。知らない顔だ。なのに、声の高さだけが耳の奥で一致する。——初めてではない。この部屋も、この挨拶も。",
+      1000000:"声のほうを見る。黒い服の男。四度目だ。彼はいつも「よく眠れましたか」から始める。わたしが一度も眠っていないことを、彼だけが知っている。"
+    }},
+
+    { who:"クロハ", v:{
+      0:"「本日のご用件は、記憶の精算でよろしかったでしょうか」",
+      200000:"「本日のご用件は、記憶の精算でよろしかったでしょうか」——「本日も」と言いかけて、彼は言い直した。"
+    }},
+
+    { v:{
+      0:"自分の名前を思い出そうとして、失敗する。",
+      10000:"自分の名前を思い出そうとして、失敗する。失敗した、という感覚だけが、妙に手慣れている。",
+      200000:"名前の代わりに、数字が浮かぶ。¥1,000,000。意味はわからない。ただ、それが「高すぎる」ことだけが、わたしにはわかる。",
+      1000000:"名前の代わりに数字が浮かぶ。¥1,000,000。上限額。——この数字を書いたのは、わたしだ。査定欄に、わたしの字で。"
+    }},
+
+    { who:"クロハ", v:{ 0:"「ご安心ください。お名前を忘れているのは、当所では正常な状態です」" } },
+
+    { who:"クロハ", v:{ 0:"「むしろ、覚えたまま来られる方のほうが、困る」" } },
+
+    { lock:50000, note:true, t:"困る、と彼は言った。悲しい、ではなく、困る。それは客に向ける言葉ではない。帳簿に向ける言葉だ。" },
+
+    { v:{
+      0:"男が、机に一枚の紙を滑らせた。",
+      500:"男が、机に一枚の紙を滑らせた。感熱紙だ。指の熱で、端がわずかに黒ずむ。"
+    }},
+
+    { receipt:true, reaction:{
+      0:"「……残高、¥0」長い沈黙のあと、彼は言った。「ええ。たまに、いらっしゃいます」",
+      500:"「¥500。……失礼ですが、お間違いでは?」",
+      3000:"「¥3,000。ええ、よくある額です」",
+      10000:"「¥10,000。堅実な額です。多くの方が、ここで止まります」",
+      50000:"「¥50,000。……ずいぶん、思い切られましたね」",
+      200000:"「¥200,000」彼はそこで初めて、わたしの顔を見た。",
+      1000000:"「¥1,000,000。上限額ですね」彼の指が、一瞬だけ止まった。「久しぶりです、この数字は」"
+    }},
+
+    { v:{
+      0:"窓の外で、雨が降っている。",
+      500:"窓の外で、雨が降っている。紙の匂いがした。",
+      3000:"窓の外で、雨が降っている。紙の匂いがした。濡れた領収書の匂いだ。",
+      200000:"窓の外で、雨。この街では、雨のことを「精算」と呼ぶ人がいる。降るたびに、誰かの記憶が一枚ずつ流れていくから。"
+    }},
+
+    { lock:200000, t:"ミナ。その名前が、意味もなく浮かんで、すぐに沈んだ。" },
+
+    { lock:1000000, t:"彼女を売ったのは、わたしだ。" },
+
+    { who:"クロハ", v:{ 0:"「それでは、始めましょう」" } },
+
+    { who:"クロハ", v:{
+      0:"「お支払いいただいた分だけ、世界は見えます」",
+      1000000:"「お支払いいただいた分だけ、世界は見えます」——「そして、見えた分だけ、返せなくなる」"
+    }}
+  ];
+
+  var yen = function(n){ return "¥" + n.toLocaleString("ja-JP"); };
+  var current = 0;
+  var prevText = {};
+
+  var elTiers  = document.getElementById("tiers");
+  var elScene  = document.getElementById("scene");
+  var elResVal = document.getElementById("res-val");
+  var elResBar = document.getElementById("res-bar");
+  var elTally  = document.getElementById("tally-text");
+
+  TIERS.forEach(function(t, i){
+    var b = document.createElement("button");
+    b.className = "tier";
+    b.type = "button";
+    b.setAttribute("aria-pressed", i === 0 ? "true" : "false");
+    b.innerHTML = '<span class="tier-amount">' + yen(t.amount) + '</span><span class="tier-name">' + t.name + '</span>';
+    b.addEventListener("click", function(){ select(i); });
+    elTiers.appendChild(b);
+  });
+
+  function pick(map, amount){
+    var best = null;
+    Object.keys(map).forEach(function(k){
+      var n = Number(k);
+      if (n <= amount && (best === null || n > best)) best = n;
+    });
+    return best === null ? null : map[best];
+  }
+
+  function bars(text){
+    var out = "";
+    for (var i = 0; i < text.length; i++){
+      out += (text[i] === "。" || text[i] === "、") ? "<span>█</span>" : "<span>█</span>";
+    }
+    return out;
+  }
+
+  function render(amount, animate){
+    var tier = TIERS.find(function(t){ return t.amount === amount; });
+    var frag = document.createDocumentFragment();
+    var readLayers = 0, totalLayers = 0, lockedCount = 0;
+
+    LINES.forEach(function(line, idx){
+      if (line.receipt){
+        totalLayers += Object.keys(line.reaction).length;
+        readLayers  += Object.keys(line.reaction).filter(function(k){ return Number(k) <= amount; }).length;
+
+        var wrap = document.createElement("div");
+        wrap.className = "receipt-wrap";
+        wrap.innerHTML =
+          '<div class="receipt">' +
+            '<div class="r-head">レテ精算所 / 預り証</div>' +
+            '<div style="height:12px"></div>' +
+            '<div class="r-row"><span>観測者番号</span><span>07</span></div>' +
+            '<div class="r-row"><span>氏名</span><span>—————</span></div>' +
+            '<div class="r-row"><span>受付</span><span>05:41</span></div>' +
+            '<div class="r-rule"></div>' +
+            '<div class="r-total"><span>残高</span><span>' + yen(amount) + '</span></div>' +
+            '<div class="r-rule"></div>' +
+            '<div class="r-note">上記の金額は当所にてお預かりしております。精算にはご本人の同意を要します。返金はいたしかねます。</div>' +
+            (amount >= 1000000 ? '<div class="r-stamp">上 限 額</div>' : '') +
+          '</div>';
+        frag.appendChild(wrap);
+
+        var react = document.createElement("p");
+        react.className = "line";
+        var rtext = line.reaction[amount] || line.reaction[0];
+        react.innerHTML = '<span class="who">クロハ</span><span class="line-body speech">' + rtext + '</span>';
+        if (animate && prevText["r"] !== rtext) react.classList.add("updated");
+        prevText["r"] = rtext;
+        frag.appendChild(react);
+        return;
+      }
+
+      if (line.lock !== undefined){
+        totalLayers += 1;
+        if (amount >= line.lock){
+          readLayers += 1;
+          var p = document.createElement("p");
+          p.className = line.note ? "note" : "line";
+          p.innerHTML = '<span class="line-body narr">' + line.t + '</span>';
+          if (animate && prevText[idx] !== line.t) p.classList.add("revealed");
+          prevText[idx] = line.t;
+          frag.appendChild(p);
+        } else {
+          lockedCount += 1;
+          var d = document.createElement("div");
+          d.className = "locked";
+          d.innerHTML = '<span class="bars" aria-hidden="true">' + bars(line.t) + '</span>' +
+                        '<span class="lock-tag">読めない</span>';
+          d.setAttribute("aria-label", "読めない行。ここには何かが書かれている。");
+          prevText[idx] = null;
+          frag.appendChild(d);
+        }
+        return;
+      }
+
+      totalLayers += Object.keys(line.v).length;
+      readLayers  += Object.keys(line.v).filter(function(k){ return Number(k) <= amount; }).length;
+
+      var text = pick(line.v, amount);
+      var el = document.createElement("p");
+      el.className = "line";
+      var html = "";
+      if (line.who) html += '<span class="who">' + line.who + '</span>';
+      html += '<span class="line-body ' + (line.who ? "speech" : "narr") + '">' + text;
+      html += '</span>';
+      el.innerHTML = html;
+      if (animate && prevText[idx] !== text) el.classList.add("updated");
+      prevText[idx] = text;
+      frag.appendChild(el);
+    });
+
+    elScene.replaceChildren(frag);
+
+    elResVal.textContent = String(readLayers);
+    elResBar.style.width = Math.round(readLayers / totalLayers * 100) + "%";
+
+    var msg;
+    if (amount === 0){
+      msg = "読めた行 <b>" + readLayers + "</b>。塗り潰された行 <b>" + lockedCount + "</b>。" +
+            "この金額でも物語は最後まで進みます。ただし、いま読んでいるものが何だったのかは、最後までわかりません。";
+    } else if (amount >= 1000000){
+      msg = "読めた行 <b>" + readLayers + "</b>。塗り潰された行 <b>" + lockedCount + "</b>。" +
+            "同じ場面が別の話になっていることを確かめてください。¥0 に戻すと、彼はもう一度、初対面の男になります。";
+    } else {
+      msg = "読めた行 <b>" + readLayers + "</b>。塗り潰された行 <b>" + lockedCount + "</b>。" +
+            "この先が読めるようになる金額は、どこにも書かれていません。";
+    }
+    elTally.innerHTML = msg;
+
+    document.documentElement.style.setProperty("--accent", tier.accent);
+    document.documentElement.style.setProperty("--accent-soft", tier.soft);
+    document.documentElement.style.setProperty("--glow", String(tier.glow));
+  }
+
+  function select(i){
+    current = i;
+    Array.prototype.forEach.call(elTiers.children, function(b, j){
+      b.setAttribute("aria-pressed", i === j ? "true" : "false");
+    });
+    render(TIERS[i].amount, true);
+  }
+
+  render(TIERS[0].amount, false);
+})();
+</script>
+</body>
+</html>
