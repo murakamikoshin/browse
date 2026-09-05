@@ -19,7 +19,11 @@ def load(n):
     for k in base:
         base[k].setdefault("paid", base[k].get("zero", ""))
     ov, cur = {}, None
-    for l in io.open("scenario/step2_ch%d_bands.md" % n, encoding="utf-8").read().split("\n"):
+    try:
+        b2 = io.open("scenario/step2_ch%d_bands.md" % n, encoding="utf-8").read()
+    except FileNotFoundError:
+        return base, ov          # 帯2〜5が未執筆の章は帯1のみで検査する
+    for l in b2.split("\n"):
         m = re.match(r'^\[(L\d+)', l)
         if m: cur = m.group(1); continue
         m2 = re.match(r'^帯(\d):\s*(.*)$', l)
