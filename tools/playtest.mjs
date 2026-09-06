@@ -80,28 +80,31 @@ for (const idx of AMOUNTS) {
         }
         if (way.buy) {
           const yy = document.querySelector('#card .cb [data-y]:not([disabled])');
-          if (yy) { yy.click(); out.bought++; continue; }               // 帳場さんに訊く
+          if (yy) { yy.click(); out.bought = (out.bought||0)+1; continue; }        // 帳場さんに訊く
           const nn = document.querySelector('#card .cb [data-y][disabled]');
-          if (nn) { document.querySelector('#card .cb [data-n]').click(); continue; }   // 買えない
-          if (s.place === 'cha') { const a = has(/のこと$/); if (a.length) { D.nav(a[0]); continue; } }
-          const route = ['仏間', '港', '玄関の外', '帳場の奥'];   // 指せる語句のある章を順に回る
-          out.seen = out.seen || [];
-          if (!out.seen.includes(s.place)) out.seen.push(s.place);
-          const next = route.find(r => has(new RegExp('^' + r + '$')).length && !out.went?.includes(r));
-          if (next) { out.went = (out.went || []).concat(next); D.nav(next); continue; }
-          if (has(/^帳場の奥$/).length && s.noted.length > s.bought.length) { D.nav('帳場の奥'); continue; }
+          if (nn) { document.querySelector('#card .cb [data-n]').click(); continue; }
+          if (s.place === 'cha') { const a2 = has(/のこと$/); if (a2.length) { D.nav(a2[0]); continue; } }
         }
         if (way.talk) {
-          const skip = /^(玄関|仏間|港|帳場|閉じる|夜を終える|横になる|読み進める|いいえ|はい|最初から)/;
+          const skip = /^(玄関|仏間|港|帳場|閉じる|やめる|ほかの場所へ|もう一度読む|夜を終える|横になる|読み進める|いいえ|はい|最初から)/;
           const tk = nav.filter(b => !skip.test(b.t) && !/のこと$/.test(b.t)).map(b => b.t);
           if (tk.length) { D.nav(tk[0]); out.talked++; continue; }
         }
-        /* 話す相手が尽きたら歩く。四箇所を回ってから夜を終える */
-        const walk = has(/^(玄関・帳場|仏間|港|帳場の奥|玄関の外)$/);
-        if (walk.length && n % 3 !== 2) { D.nav(walk[n % walk.length]); continue; }
         const go = has(/読み進める/); if (go.length) { D.nav(go[0]); continue; }
-        const y = has(/^はい/); if (y.length) { D.nav(y[0]); continue; }
-        const end = has(/夜を終える|横になる/); if (end.length) { D.nav(end[0]); continue; }
+        const yes = has(/^はい/); if (yes.length) { D.nav(yes[0]); continue; }
+
+        /* 行き先の札が開いていれば、そこから歩く */
+        const walk = has(/^(玄関・帳場|仏間|港|帳場の奥|玄関の外)$/);
+        if (walk.length) {
+          const to = walk[out.steps % walk.length];
+          out.went = (out.went || []); if (!out.went.includes(to)) out.went.push(to);
+          D.nav(to); continue;
+        }
+        /* 四箇所まわったら夜を終える。まだなら行き先を開く */
+        const end = has(/夜を終える|横になる/);
+        if (end.length && (out.went || []).length >= 4) { D.nav(end[0]); continue; }
+        const open = has(/^ほかの場所へ$/); if (open.length) { D.nav(open[0]); continue; }
+        if (end.length) { D.nav(end[0]); continue; }
         D.nav(nav[0].t);
       }
       W('4000手で終わらなかった');
@@ -132,16 +135,27 @@ await page.goto(URL);
 await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });   // 覚えている設定を消してから
 await page.reload();
 await page.evaluate(() => { window.__dev.begin(20); document.getElementById('nav').replaceChildren(); });
-const ui = async (name, fn) => { const r = await fn(); console.log('    ' + (r ? '○' : '×') + ' ' + name); if (!r) note('操作: ' + name); };
+const reset = () => page.evaluate(() => { document.getElementById('nav').replaceChildren(); });
+const ui = async (name, fn) => { await reset(); const r = await fn(); console.log('    ' + (r ? '○' : '×') + ' ' + name); if (!r) note('操作: ' + name); await reset(); };
 
 await ui('「どうする」で選択肢が出る', async () => { await page.click('#bnav'); return await page.locator('#nav .menu').count() === 1; });
-await ui('もう一度押すと閉じる', async () => { await page.click('#bnav'); return await page.locator('#nav .menu').count() === 0; });
+await ui('もう一度押すと閉じる', async () => { await page.click('#bnav'); await page.click('#bnav'); return await page.locator('#nav .menu').count() === 0; });
 await ui('Escape でも閉じる', async () => { await page.click('#bnav'); await page.keyboard.press('Escape'); return await page.locator('#nav .menu').count() === 0; });
 await ui('「閉じる」で閉じる', async () => { await page.click('#bnav'); await page.locator('#nav button', { hasText: '閉じる' }).click(); return await page.locator('#nav .menu').count() === 0; });
+await ui('行き先は一段奥にある', async () => { await page.click('#bnav');
+  const a = await page.locator('#nav button', { hasText: 'ほかの場所へ' }).count();
+  await page.locator('#nav button', { hasText: 'ほかの場所へ' }).click();
+  const b = await page.locator('#nav button', { hasText: '仏間' }).count();
+  const here = await page.locator('#nav button', { hasText: '玄関・帳場' }).count();
+  await page.locator('#nav button', { hasText: 'やめる' }).click();
+  return a === 1 && b === 1 && here === 0; });
+await ui('線香の本数が用意した数と合っている', async () =>
+  await page.locator('#sticks .stick').count() === await page.evaluate(() => window.__dev.state().incense));
 await ui('段が三つに分かれている', async () => { await page.click('#bnav');
   const c = await page.locator('#nav .row').evaluateAll(r => r.map(x => x.className));
   return c.some(x => x === 'row') && c.some(x => /sub/.test(x)) && c.some(x => /faint/.test(x)); });
 await ui('「夜を終える」は確認してから', async () => {
+  await page.click('#bnav');
   await page.locator('#nav button', { hasText: /夜を終える|横になる/ }).click();
   const w = await page.locator('.menu-h.warn').count();
   const yes = await page.locator('#nav button', { hasText: '^はい' }).count();
@@ -168,9 +182,14 @@ await ui('「音」で入り切りできる', async () => { const a = await page
   await page.click('#bau'); const c = await page.locator('#bau.off').count();
   return a !== b && a === c; });
 await ui('章の札は同じ章で二度出ない', async () => {
-  const a = await page.evaluate(() => { window.__dev.nav('仏間'); window.__dev.flush(); return window.__dev.state().chapSeen.length; });
-  const b = await page.evaluate(() => { window.__dev.nav('玄関・帳場'); window.__dev.flush();
-    window.__dev.nav('仏間'); return window.__dev.state().chapcard; });
+  const openNav = () => page.evaluate(() => { if (!document.getElementById('nav').firstChild) document.getElementById('bnav').click(); });
+  const go = async (to) => { await openNav(); await page.evaluate((to) => { window.__dev.nav('ほかの場所へ'); window.__dev.nav(to); window.__dev.flush(); }, to); };
+  await go('仏間');
+  const a = await page.evaluate(() => window.__dev.state().chapSeen.length);
+  await go('玄関・帳場');
+  await openNav();
+  await page.evaluate(() => { window.__dev.nav('ほかの場所へ'); window.__dev.nav('仏間'); });
+  const b = await page.evaluate(() => window.__dev.state().chapcard);
   return a >= 2 && b === false; });
 
 if (perr.length) note('画面のエラー: ' + perr[0]);
