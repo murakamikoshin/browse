@@ -6,7 +6,7 @@
 <title>帳場</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho+B1:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@400;600&family=Zen+Old+Mincho:wght@400;500;700;900&display=swap">
 <style>
 :root{
   --ink:#080C0E; --ink2:#0E1417; --edge:#1C2527;
@@ -19,7 +19,8 @@
 html,body{ margin:0; padding:0; min-height:100%; }
 body{
   background:var(--ink); color:var(--fg);
-  font-family:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  font-family:"Zen Old Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  font-weight:500;
   font-size:16px; line-height:2.25; -webkit-font-smoothing:antialiased;
 }
 body::before{
@@ -36,7 +37,7 @@ body::before{
 #pay .inner{ width:100%; padding:70px 0; }
 .kicker{ font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.3em;
          text-transform:uppercase; color:var(--fg-faint); }
-h1.t{ font-size:2.4rem; font-weight:800; letter-spacing:.3em; margin:16px 0 6px; }
+h1.t{ font-size:2.4rem; font-weight:900; letter-spacing:.3em; margin:16px 0 6px; }
 .sub{ color:var(--fg-dim); font-size:.86rem; line-height:1.95; margin:0 0 46px; }
 .terms{ border-top:1px solid var(--edge); border-bottom:1px solid var(--edge);
         padding:20px 0; margin:0 0 44px; display:flex; flex-direction:column; gap:9px; }
@@ -76,7 +77,7 @@ button.go:focus-visible, .pm button:focus-visible{ outline:2px solid var(--accen
       border-bottom:1px solid var(--edge); backdrop-filter:blur(9px); }
 .hud-in{ max-width:40em; margin:0 auto; padding:12px clamp(16px,4vw,26px);
          display:flex; align-items:center; gap:15px; flex-wrap:wrap; }
-.hud-lab{ font-family:"IBM Plex Mono",monospace; font-size:.58rem; letter-spacing:.24em;
+.hud-lab{ font-family:"Zen Old Mincho",serif; font-size:.58rem; letter-spacing:.24em;
           text-transform:uppercase; color:var(--fg-faint); }
 .sticks{ display:flex; gap:8px; align-items:flex-end; height:28px; }
 .stick{ width:2px; height:26px; background:#333C3A; position:relative; transition:height .6s ease,background .6s ease; }
@@ -85,17 +86,17 @@ button.go:focus-visible, .pm button:focus-visible{ outline:2px solid var(--accen
   border-radius:50%; background:var(--ember); filter:blur(2px); animation:gl 2.4s ease-in-out infinite; }
 @keyframes gl{ 0%,100%{opacity:.5} 50%{opacity:1} }
 .stick.spent{ height:4px; background:#333C3A; } .stick.spent::after{ display:none; }
-.place{ margin-left:auto; margin-right:4px; font-family:"IBM Plex Mono",monospace; font-size:.62rem;
+.place{ margin-left:auto; margin-right:4px; font-family:"Zen Old Mincho",serif; font-size:.62rem;
         letter-spacing:.18em; color:var(--fg-dim); }
 
 /* 本文 */
-.chap{ font-family:"IBM Plex Mono",monospace; font-size:.6rem; letter-spacing:.3em;
+.chap{ font-family:"Zen Old Mincho",serif; font-size:.7rem; letter-spacing:.5em;
        color:var(--fg-faint); padding:44px 0 6px; }
 h2.ct{ font-size:1.4rem; font-weight:800; letter-spacing:.16em; margin:0 0 38px; }
 p.l{ margin:0 0 1.3em; animation:fu .5s ease-out; }
 @keyframes fu{ from{opacity:0;transform:translateY(3px)} to{opacity:1;transform:none} }
 .more{ margin:18px 0 40px; }
-.more button{ background:none; border:none; color:var(--fg-faint); font-family:"IBM Plex Mono",monospace;
+.more button{ background:none; border:none; color:var(--fg-faint); font-family:"Zen Old Mincho",serif;
   font-size:.68rem; letter-spacing:.2em; cursor:pointer; padding:10px 0; }
 .more button:hover{ color:var(--fg-dim); }
 .ask{ cursor:inherit; }
@@ -107,7 +108,7 @@ p.l{ margin:0 0 1.3em; animation:fu .5s ease-out; }
 
 /* 帳場さん */
 .cb{ margin:26px 0; border-left:2px solid var(--accent); padding:15px 0 15px 18px; animation:fu .45s ease-out; }
-.cb .who{ font-family:"IBM Plex Mono",monospace; font-size:.6rem; letter-spacing:.2em;
+.cb .who{ font-family:"Zen Old Mincho",serif; font-size:.6rem; letter-spacing:.2em;
           color:var(--accent); margin-bottom:.5em; }
 .cb p{ margin:0 0 13px; }
 .acts{ display:flex; gap:9px; flex-wrap:wrap; }
@@ -124,7 +125,7 @@ p.l{ margin:0 0 1.3em; animation:fu .5s ease-out; }
 
 /* 地図 */
 .map{ margin:34px 0 0; padding-top:26px; border-top:1px solid var(--edge); }
-.map-l{ font-family:"IBM Plex Mono",monospace; font-size:.6rem; letter-spacing:.24em;
+.map-l{ font-family:"Zen Old Mincho",serif; font-size:.6rem; letter-spacing:.24em;
         text-transform:uppercase; color:var(--fg-faint); margin-bottom:14px; }
 .map .acts button.here{ border-color:var(--accent); color:var(--accent); }
 
@@ -147,7 +148,7 @@ p.l{ margin:0 0 1.3em; animation:fu .5s ease-out; }
        font-size:1.45rem; color:var(--short); font-weight:500; }
 .slip{ margin:32px 0; opacity:0; animation:fu .7s ease-out .6s forwards; }
 .slip-in{ display:inline-block; min-width:min(320px,100%); background:var(--paper); color:#1C1A16;
-  font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:.74rem;
+  font-family:"Shippori Mincho","Hiragino Mincho ProN",serif; font-variant-numeric:tabular-nums; font-size:.74rem;
   line-height:1.85; padding:22px 20px 27px; box-shadow:0 18px 44px rgba(0,0,0,.6);
   clip-path:polygon(0 0,100% 0,100% calc(100% - 7px),92% 100%,84% calc(100% - 7px),76% 100%,68% calc(100% - 7px),60% 100%,52% calc(100% - 7px),44% 100%,36% calc(100% - 7px),28% 100%,20% calc(100% - 7px),12% 100%,4% calc(100% - 7px),0 100%); }
 .slip-h{ text-align:center; letter-spacing:.2em; font-size:.64rem; padding-bottom:11px; border-bottom:1px dashed #98918255; }
@@ -156,7 +157,7 @@ p.l{ margin:0 0 1.3em; animation:fu .5s ease-out; }
 .slip-s{ color:#8C1F1F; }
 .slip-ed{ text-align:center; padding-top:5px; }
 .slip-ed .no{ font-size:.64rem; letter-spacing:.24em; color:#6B6558; }
-.slip-ed .nm{ font-family:"Shippori Mincho B1",serif; font-size:1.05rem; font-weight:600;
+.slip-ed .nm{ font-family:"Shippori Mincho",serif; font-size:1.05rem; font-weight:600;
               letter-spacing:.09em; margin-top:5px; }
 .slip-i{ color:#6B6558; font-size:.78rem; padding-left:2.2em; }
 .slip-n{ color:#6B6558; font-size:.8rem; margin-top:9px; }
@@ -240,14 +241,19 @@ p.l.fin{ margin-top:2.4em; }
       display:flex; align-items:flex-end; }
 .win.on{ visibility:visible; }
 .win-in{ position:relative; width:min(46em,100%); margin:0 auto; padding-bottom:14px; }
-.win-who{ font-family:"IBM Plex Mono",monospace; font-size:.6rem; letter-spacing:.2em;
+.win-who{ font-family:"Zen Old Mincho",serif; font-size:.72rem; letter-spacing:.22em;
           color:var(--accent); margin-bottom:.6em; text-shadow:0 1px 10px rgba(0,0,0,.9); }
-.win-t{ margin:0; font-size:1.04rem; line-height:2; min-height:4em;
+.win-t{ margin:0; font-size:1.12rem; line-height:2.45; letter-spacing:.02em; min-height:4em;
         text-shadow:0 1px 14px rgba(0,0,0,.95), 0 0 34px rgba(0,0,0,.7); }
 .win-t i.c{ font-style:normal; }
+ruby{ ruby-align:center; }
+rt{ font-size:.46em; font-weight:400; line-height:1; letter-spacing:.01em;
+    color:rgba(220,225,221,.66); transform:translateY(.16em); }
+.win-t.fin rt,.win-t.seal-t rt{ color:rgba(220,225,221,.5); }
+.slip-in rt{ color:rgba(28,26,22,.55); }
 .win-t.fin{ color:var(--accent); }
 .win-t.seal-t{ color:#D5DAD4; }
-.win-t.aside{ color:var(--fg-dim); font-size:.95rem; }
+.win-t.aside{ color:var(--fg-dim); font-size:1.02rem; }
 .win-tri{ position:absolute; right:0; bottom:0; width:0; height:0; opacity:0;
   border-left:5px solid transparent; border-right:5px solid transparent;
   border-top:7px solid rgba(220,225,221,.55); }
@@ -297,6 +303,8 @@ p.l.fin{ margin-top:2.4em; }
 .dev:hover{ opacity:1 }
 .hbar{ display:flex; gap:5px; }
 .hud button.on{ color:var(--accent); border-color:var(--accent); }
+.hud button.off{ opacity:.42; }
+#bruby,#bau{ font-family:"Zen Old Mincho",serif; letter-spacing:.08em; }
 </style>
 </head>
 <body>
@@ -310,6 +318,8 @@ p.l.fin{ margin-top:2.4em; }
       <button type="button" id="bauto">AUTO</button>
       <button type="button" id="bskip">SKIP</button>
       <button type="button" id="blog">LOG</button>
+      <button type="button" id="bau">音</button>
+      <button type="button" id="bruby">ふりがな</button>
       <button type="button" id="bnav">行き先</button>
     </span>
   </div>
@@ -398,6 +408,10 @@ var SEALS=[{n:"第一封",t:"凪の真実",p:1000},{n:"第二封",t:"世界の�
            {n:"第三封",t:"兄の真実",p:100000},{n:"第四封",t:"あなたの真実",p:1000000}];
 var RATE={ yasui:3, chu:8, takai:20, saikou:45 };
 
+/* ふりがな ここから */
+var RUBY={"下げる":"さ","上げる":"あ","最終":"さいしゅう","電車":"でんしゃ","降り":"お","潮":"しお","三年":"さんねん","体":"からだ","先":"さき","思い出し":"おも|だ","駅前":"えきまえ","何":"なに","三年前":"さんねんまえ","同じ":"おな","街灯":"がいとう","一本":"いちほん","自販機":"じはんき","一台":"いちだい","暗い":"くら","海":"うみ","兄":"あに","家":"いえ","歩い":"ある","二十分":"にじゅうふん","呼ば":"よ","歩き":"ある","坂":"さか","子供":"こども","頃":"ころ","自転車":"じてんしゃ","後ろ":"うし","上っ":"のぼ","荷台":"にだい","固く":"かた","文句":"もんく","言っ":"い","笑っ":"わら","飛ばし":"と","下り":"くだ","声":"こえ","汐里":"しおり","遠く":"とお","来":"き","魚屋":"さかなや","奥さん":"おく","名前":"なまえ","出":"で","頭":"あたま","深く":"ふか","下げ":"さ","言わ":"い","行っ":"い","夜":"よる","通夜":"つや","帰り":"かえ","疲れ":"つか","港":"みなと","風":"かぜ","来る":"く","丸":"まる","明日":"あした","見":"み","行こ":"い","船具屋":"ふなぐや","角":"かく","曲がっ":"ま","玄関":"げんかん","灯り":"あか","道":"みち","伸び":"の","今度":"こんど","隣":"となり","言葉":"ことば","町":"まち","人":"ひと","挨拶":"あいさつ","もう一度":"いちど","中":"なか","戻っ":"もど","入る":"はい","線香":"せんこう","細い":"ほそ","線":"せん","奥":"おく","流れ":"なが","靴":"くつ","脱ぐ":"ぬ","前":"まえ","廊下":"ろうか","脇":"わき","机":"つくえ","見え":"み","白い":"しろ","布":"ぬの","帳場":"ちょうば","向こう":"む","老人":"ろうじん","座っ":"すわ","父":"ちち","葬式":"そうしき","十七":"じゅうなな","遅く":"おそ","遠い":"とお","芳名帳":"ほうめいちょう","開い":"ひら","埋まっ":"う","持ち":"も","言い方":"い|かた","最初":"さいしょ","聞く":"き","答える":"こた","凪":"なぎ","黒い":"くろ","着物":"きもの","見る":"み","少し":"すこ","痩せ":"や","綺麗":"きれい","首":"くび","振っ":"ふ","目":"め","身内":"みうち","香典":"こうでん","鞄":"かばん","手":"て","入れ":"い","気":"き","遣っ":"や","帰ら":"かえ","妹":"いもうと","間":"ま","置い":"お","言い":"い","仰い":"あお","帳":"ちょう","穏やか":"おだ","以上":"いじょう","決まり":"き","逆らわ":"さか","出棺":"しゅっかん","朝":"あさ","集まっ":"あつ","全員":"ぜんいん","額":"がく","読み上げ":"よ|あ","一人":"いちにん","全部":"ぜんぶ","聞き":"き","泣い":"な","東京":"とうきょう","一度":"いちど","話":"はなし","相手":"あいて","顔":"かお","好き":"す","惜しま":"お","空気":"くうき","数え":"かぞ","袋":"ふくろ","出し":"だ","表書き":"おもてが","書い":"か","字":"じ","気持ち":"きも","出さ":"だ","自分":"じぶん","思っ":"おも","両手":"りょうて","受け取っ":"う|と","下":"した","頷い":"うなず","回し":"まわ","筆":"ふで","渡さ":"わた","書こ":"か","気づい":"き","最後":"さいご","一番下":"いちばんか","行":"くだり","空い":"あ","空け":"あ","待っ":"ま","一行":"いっこう","震え":"ふる","戻し":"もど","静か":"しず","閉じ":"と","兄さん":"にい","お待ち":"ま","立っ":"た","寒かっ":"さむ","一歩":"いちほ","濃く":"こ","背中":"せなか","帰っ":"かえ","重かっ":"おも","代金":"だいきん","惜しかっ":"お","百万":"ひゃくまん","入っ":"はい","合わ":"あ","聞か":"き","今夜":"こんや","気遣い":"きづか","今さら":"いま","済ませる":"す","言え":"い","負け":"ま","分から":"わ","正しかっ":"ただ","載ら":"の","聞い":"き","育っ":"そだ","人間":"にんげん","飲み":"の","席":"せき","笑い話":"わら|ばなし","本当":"ほんとう","帰る":"かえ","一つ":"ひと","済む":"す","何度":"なんど","書き直し":"か|なお","引き出し":"ひ|だ","抜い":"ぬ","厚":"あつ","重":"おも","覚え":"おぼ","分かっ":"わ","誰":"だれ","順":"じゅん","行わ":"おこな","読ま":"よ","思う":"おも","楽":"らく","思お":"おも","待つ":"ま","一番最後":"いちばんさいご","終わっ":"お","残る":"のこ","振り向か":"ふ|む","振り向く":"ふ|む","必要":"ひつよう","思い":"おも","着い":"つ","仏間":"ぶつま","蝋燭":"ろうそく","火":"ひ","二本":"にほん","眠っ":"ねむ","本当に":"ほんとう","使わ":"つか","知っ":"し","日":"ひ","焼け":"や","目尻":"めじり","皺":"しわ","老け":"ふ","触っ":"さわ","頬":"ほお","冷たかっ":"つめ","水":"みず","意外":"いがい","泣き":"な","終わる":"お","上げ":"あ","煙":"けむり","天井":"てんじょう","近く":"ちか","揺れ":"ゆ","美波":"みなみ","寝":"ね","起こさ":"お","姪":"めい","六つ":"むっ","舌足らず":"したた","今":"いま","喋る":"しゃべ","知ら":"し","開け":"あ","新しい":"あたら","封筒":"ふうとう","何通":"なんつう","重なっ":"かさ","保険会社":"ほけんかいしゃ","印刷":"いんさつ","一番上":"いちばんじょう","封":"ふう","切っ":"き","紙":"かみ","端":"はじ","仕事":"しごと","終わら":"お","手続き":"てつづ","束":"たば","溜まっ":"た","大変":"たいへん","船":"ふね","帳簿":"ちょうぼ","上":"うえ","閉め":"し","二人":"ににん","電話":"でんわ","着信履歴":"ちゃくしんりれき","残っ":"のこ","金曜":"きんよう","夕方":"ゆうがた","聞け":"き","仕事中":"しごとちゅう","直そ":"なお","位牌":"いはい","話せ":"はな","謝る":"あやま","膝":"ひざ","重ね":"かさ","温かかっ":"あたた","出る":"で","小さく":"ちい","お前":"まえ","場所":"ばしょ","昔":"むかし","少なかっ":"すく","足り":"た","分":"ぶん","埋める":"う","音":"おと","立て":"た","口元":"くちもと","外":"そと","吸っ":"す","立ち上がる":"た|あ","触れ":"ふ","驚か":"おどろ","知ろ":"し","日付":"ひづけ","読め":"よ","先月":"せんげつ","死ぬ":"し","一":"いち","か月":"げつ","一通":"いちつう","隠す":"かく","五時十二分":"ごじじゅうにふん","十八分前":"じゅうはちふんまえ","速い":"はや","言う":"い","埋め":"う","方":"かた","返さ":"かえ","三年間":"さんねんかん","都合":"つごう","持っ":"も","決め":"き","行く":"い","順番":"じゅんばん","暗かっ":"くら","堤防":"ていぼう","付け根":"つ|ね","点い":"つ","五":"ご","六艘":"ろくそう","並ん":"なら","十艘":"じゅうそう","一番奥":"いちばんおく","船体":"せんたい","白":"しろ","明るい":"あか","塗り":"ぬ","直し":"なお","新しかっ":"あたら","艶":"つや","小学生":"しょうがくせい","継い":"つ","変え":"か","直さ":"なお","熱く":"あつ","振り向い":"ふ|む","綱":"つな","確かめ":"たし","珍しく":"めずら","凪い":"な","落ちる":"お","運":"うん","悪かっ":"わる","片付ける":"かたづ","正しい":"ただ","胴衣":"どうい","顎":"あご","操舵室":"そうだしつ","指し":"さ","着け":"つ","救命胴衣":"きゅうめいどうい","乗せ":"の","着せ":"き","暑い":"あつ","忘れ":"わす","戻る":"もど","乗っ":"の","足":"あし","裏":"うら","戸":"と","狭い":"せま","魚":"さかな","油":"あぶら","座席":"ざせき","畳ん":"たた","脱い":"ぬ","携帯":"けいたい","古い":"ふる","機種":"きしゅ","画面":"がめん","傷":"きず","濡らさ":"ぬ","分かる":"わ","持ち上げ":"も|あ","元":"もと","七つ":"なな","落ち":"お","釣り":"つ","滑ら":"すべ","冷たく":"つめ","気がつい":"き","制服":"せいふく","飛び込ん":"と|こ","片腕":"かたうで","抱え":"かか","泳い":"およ","引き上げ":"ひ|あ","叱ら":"しか","震える":"ふる","拭い":"ふ","濡れ":"ぬ","一番":"いちばん","泳ぎ":"およ","中学":"ちゅうがく","大会":"たいかい","県":"けん","動い":"うご","離れ":"はな","心配":"しんぱい","口":"くち","重い":"おも","浮い":"う","戻ろ":"もど","穴":"あな","引っかかっ":"ひ","片付け":"かたづ","忘れる":"わす","多い":"おお","電源":"でんげん","考え":"かんが","金":"かね","売る":"う","出す":"だ","成功":"せいこう","湯呑み":"ゆの","二つ":"ふた","用意":"ようい","茶":"ちゃ","熱かっ":"あつ","冷え":"ひ","指":"ゆび","抜け":"ぬ","小さな":"ちい","木箱":"きばこ","蓋":"ふた","上着":"うわぎ","預かる":"あず","預かっ":"あず","記し":"しる","意味":"いみ","細かい":"こま","作法":"さほう","見せ":"み","端金":"はしたがね","お気":"き","年寄り":"としよ","笑い":"わら","遺品":"いひん","お金":"かね","変":"へん","通る":"とお","箱":"はこ","取っ":"と","手帳":"てちょう","一冊":"いちさつ","鍵":"かぎ","小銭":"こぜに","表紙":"ひょうし","丸く":"まる","数字":"すうじ","几帳面":"きちょうめん","小さかっ":"ちい","途中":"とちゅう","大きな":"おお","引い":"ひ","定規":"じょうぎ","使っ":"つか","修理費":"しゅうりひ","替えれ":"か","諦め":"あきら","印":"しるし","払い":"はら","切符":"きっぷ","一枚":"いちまい","行き":"い","改札":"かいさつ","跡":"あと","会い":"あ","来よ":"こ","休み":"やす","動け":"うご","胸":"むね","使う":"つか","包ん":"つつ","知り":"し","落とし":"お","勧め":"すす","仕方":"しかた","留守番":"るすばん","相応":"そうおう","値段":"ねだん","留守番電話":"るすばんでんわ","二秒":"にびょう","無音":"むおん","思え":"おも","お尋ね":"たず","ひと月":"つき","安く":"やす","信用金庫":"しんようきんこ","相談":"そうだん","黙っ":"だま","続き":"つづ","大丈夫":"だいじょうぶ","乾き":"かわ","切ら":"き","墨":"すみ","横":"よこ","書き":"か","足し":"た","受付":"うけつけ","時刻":"じこく","暗く":"くら","感じ":"かん","匂い":"にお","違う":"ちが","知る":"し","載る":"の","引か":"ひ","修理":"しゅうり","探さ":"さが","強く":"つよ","怒る":"おこ","丁寧":"ていねい","買わ":"か","迎え":"むか","置く":"お","使お":"つか","買っ":"か","足さ":"た","向かっ":"む","買え":"か","記さ":"しる","答え":"こた","見よ":"み","職場":"しょくば","連絡":"れんらく","月曜":"げつよう","戻れ":"もど","書け":"か","送る":"おく","課":"か","先輩":"せんぱい","一番世話":"いちばんせわ","打ち":"う","読み上げる":"よ|あ","会":"かい","見える":"み","送信":"そうしん","返事":"へんじ","一件":"いちけん","息":"いき","波":"なみ","切れる":"き","電波":"でんぱ","言お":"い","届か":"とど","週末":"しゅうまつ","落ち着い":"お|つ","握っ":"にぎ","石段":"いしだん","部屋":"へや","止め":"と","心配性":"しんぱいせい","置き手紙":"お|てがみ","探す":"さが","怒ら":"おこ","当たり前":"あ|まえ","泣く":"な","貯金":"ちょきん","戻ら":"もど","働い":"はたら","一年":"いちねん","二年目":"にねんめ","会社":"かいしゃ","三年目":"さんねんめ","正社員":"せいしゃいん","軌道":"きどう","無駄":"むだ","恥ずかしかっ":"は","次に":"つぎ","形":"かたち","経っ":"た","通帳":"かよいちょう","増え":"ふ","久しぶり":"ひさ","特に":"とく","用事":"ようじ","何となく":"なん","話し":"はな","天気":"てんき","元気":"げんき","話そ":"はな","大きく":"おお","繋がっ":"つな","悪く":"わる","言い換え":"い|か","思い出さ":"おも|だ","去年":"きょねん","帰れ":"かえ","送ら":"おく","用":"よう","言える":"い","二本目":"にほんめ","替わっ":"か","座布団":"ざぶとん","眠れ":"ねむ","起き":"お","番":"ばん","安心":"あんしん","財布":"さいふ","革":"かわ","茶色く":"ちゃいろ","擦れ":"す","千円札":"せんえんさつ","形見":"かたみ","現金":"げんきん","持ち歩か":"も|ある","落とす":"お","千円":"せんえん","札":"さつ","折ら":"お","病ま":"や","念":"ねん","押し":"お","夫婦":"ふうふ","当然":"とうぜん","立ち上がっ":"た|あ","襖":"ふすま","勝手":"かって","道具":"どうぐ","釣り竿":"つ|ざお","貼っ":"は","四枚":"よんまい","縦":"たて","合わせ":"あ","故人":"こじん","閉まる":"し","済ん":"す","分かり":"わ","順に":"じゅん","細く":"ほそ","崩し":"くず","糊":"のり","連れ":"つ","子":"こ","早い":"はや","起こす":"お","初めて":"はじ","窓":"まど","青く":"あお","押す":"お","一度目":"いちどめ","通ら":"とお","聞こえ":"き","以外":"いがい","時間":"じかん","長かっ":"なが","比べる":"くら","過ごし":"す","残し":"のこ","三枚":"さんまい","乾い":"かわ","貼ら":"は","に対して":"たい","肩":"かた","揺すら":"ゆ","白かっ":"しろ","帯":"おび","締め":"し","洗っ":"あら","髪":"かみ","結び":"むす","鏡":"かがみ","普通":"ふつう","昨日":"きのう","軋む":"きし","着":"き","眠":"ねむ","人見知り":"ひとみし","叔母":"おば","高":"たか","始まっ":"はじ","魚政":"うおまさ","金一万円":"きんいちまんえん","隣家":"りんか","田上":"たがみ","組合":"くみあい","金三万円":"きんさんまんえん","昨夜":"さくや","泣か":"な","良い":"よ","耳":"みみ","澄ます":"す","汐里様":"しおさとさま","二度目":"にどめ","読む":"よ","次":"つぎ","落とさ":"お","読ん":"よ","消え":"き","並べ":"なら","やり方":"かた","向き直っ":"む|なお","長い":"なが","一礼":"いちれい","閉じる":"と","済ませ":"す","礼":"れい","柩":"ひつぎ","男":"おとこ","六人":"ろくにん","担い":"かつ","海沿い":"うみぞ","進ん":"すす","光":"ひかり","明るかっ":"あか","手前":"てまえ","火葬場":"かそうじょう","見送っ":"みおく","畳ま":"たた","載っ":"の","お疲れさま":"つか","取り出し":"と|だ","精算":"せいさん","寝かしつけ":"ね","持参":"じさん","布団":"ふとん","畳":"たたみ","内":"うち","開か":"ひら","残":"ざん","次封":"じふう","軋ん":"きし","二度":"にど","届い":"とど","四つ":"よっ","不足":"ふそく","載り":"の","払う":"はら","精算書":"せいさんしょ","挟ん":"はさ","剥がれる":"は","文":"ぶん","数":"かず","最終行":"さいしゅうぎょう","第一封":"だいいちふう","真実":"しんじつ","裏返し":"うらがえ","隙間":"すきま","土曜":"どよう","一緒":"いっしょ","戻さ":"もど","発信履歴":"はっしんりれき","十七時十二分":"じゅうななじじゅうにふん","通話":"つうわ","七秒":"ななびょう","呼び出し":"よ|だ","長":"なが","着く":"つ","一週間前":"いちしゅうかんまえ","書か":"か","書く":"か","座ら":"すわ","渡し":"わた","立た":"た","赦す":"ゆる","開く":"ひら","本人":"ほんにん","第二封":"だいにふう","世界":"せかい","仕組み":"しく","二枚目":"にまいめ","弔い":"とむら","死ん":"し","値":"ね","借り":"か","数える":"かぞ","中身":"なかみ","保険金":"ほけんきん","借入":"かりいれ","葬儀":"そうぎ","収まる":"おさ","多く":"おお","少なくも":"すく","死に":"し","残ら":"のこ","者":"もの","引く":"ひ","少なく":"すく","痛":"いた","一部":"いちぶ","軽く":"かる","見せる":"み","一円":"いちえん","欠け":"か","全額":"ぜんがく","誠実":"せいじつ","第三封":"だいさんふう","三枚目":"さんまいめ","二枚":"にまい","乗る":"の","必ず":"かなら","脱が":"ぬ","選ん":"えら","週":"しゅう","理由":"りゆう","立つ":"た","売っ":"う","塗っ":"ぬ","駅":"えき","乗ら":"の","会っ":"あ","保険":"ほけん","書類":"しょるい","揃え":"そろ","翌朝":"よくあさ","問い":"と","残す":"のこ","妻":"つま","娘":"むすめ","合う":"あ","事故":"じこ","思える":"おも","第四封":"だいよんふう","四枚目":"よんまいめ","湿っ":"しめ","四月":"しがつ","赦し":"ゆる","取り戻せ":"と|もど","盗ま":"ぬす","光っ":"ひか","口座":"こうざ","百万以上":"ひゃくまんいじょう","請求":"せいきゅう","伝え":"つた","半分":"はんぶん","全財産":"ぜんざいさん","千円札一枚":"せんえんさついちまい","並べる":"なら","調べ":"しら","余裕":"よゆう","癖":"くせ","呼ん":"よ","一艘":"いちそう","今日":"きょう","誰か":"だれ","冷め":"さ","冷た":"つめ","もう少し":"すこ","早く":"はや","移っ":"うつ","帰ろ":"かえ","明るく":"あか","足音":"あしおと","止まっ":"と","包ま":"つつ","閉まっ":"し","折り目":"お|め","折っ":"お","確か":"たし","調べる":"しら","動か":"うご","一生":"いっしょう","疑わ":"うたが","向い":"む","思い出す":"おも|だ","認めれ":"みと","認め":"みと","今朝":"けさ","惜し":"お","合":"ごう","替え":"か","届":"とどけ","名":"な","行き先":"ゆ|さき","着か":"つ","死":"し","泣き声":"な|ごえ","押さえ":"お","四月十九日":"しがつじゅうきゅうにち","六日後":"ろくにちご","表":"ひょう","印字":"いんじ","薄かっ":"うす","上り":"のぼ","便":"びん","通っ":"とお","一文字":"ひともじ","短い":"みじか","何本":"なんほん","金額":"きんがく","欄":"らん","空":"そら","一秒":"いちびょう","吸う":"す","切れ":"き","件":"けん","夏":"なつ","沖":"おき","言伝":"ことづて","お話し":"はな","写し":"うつ","四月十四日":"しがつじゅうよんにち","午前十時三分":"ごぜんじゅうじさんふん","発信":"はっしん","一分四十秒":"いちふんよんじゅうびょう","第一章":"だいいちしょう","帰郷":"ききょう","第二章":"だいにしょう","第三章":"だいさんしょう","第四章":"だいよんしょう","第五章":"だいごしょう","寄せ":"よ","大き":"おお","揃っ":"そろ","慣れ":"な","向き":"む","読み":"よ","遅れ":"おく","飛ばさ":"と","折り詰め":"お|づ","包み":"つつ","台所":"だいどころ","謝ろ":"あやま","経":"た","履い":"は","何度目":"なんどめ","訊く":"き","上がり框":"あ|かまち","腰":"こし","下ろし":"お","減り":"へ","減っ":"へ","二軒":"にけん","若い":"わか","責める":"せ","巽":"たつみ","若かっ":"わか","辞め":"や","終わり":"お","悪い":"わる","三和土":"たたき","つま先":"さき","上がる":"あ","長靴":"ながぐつ","二足":"にそく","革靴":"かわぐつ","三足":"さんそく","片側":"かたがわ","揃える":"そろ","思い出せる":"おも|だ","段取り":"だんど","何時":"いつ","六時":"ろくじ","集まり":"あつ","変える":"か","伸ばし":"の","似":"に","肝心":"かんじん","お父さん":"とう","嘘":"うそ","寝返り":"ねがえ","打つ":"う","髭":"ひげ","剃っ":"す","太い":"ふと","網":"あみ","握る":"にぎ","甲":"かぶと","混ざっ":"ま","拭か":"ふ","忙しかっ":"いそが","危ない":"あぶ","少ない":"すく","仏壇":"ぶつだん","写真":"しゃしん","十年前":"じゅうねんまえ","細め":"ほそ","撮っ":"と","支度":"したく","お寺":"てら","残さ":"のこ","返し":"かえ","違っ":"ちが","立てる":"た","香炉":"こうろ","灰":"はい","三本":"さんほん","上がっ":"あ","願っ":"ねが","短く":"みじか","気づく":"き","学校":"がっこう","始まる":"はじ","手放す":"てばな","俺":"おれ","手伝っ":"てつだ","二日":"ににち","大事":"だいじ","年":"とし","何日":"なんにち","早かっ":"はや","呼ぶ":"よ","三本目":"さんほんめ","継ぎ目":"つ|め","深":"ふか","底":"そこ","腕":"うで","船首":"せんしゅ","近い":"ちか","生まれ":"う","買い替え":"か|か","縁起":"えんぎ","毎朝":"まいあさ","塗料":"とりょう","速かっ":"はや","後":"ご","表彰状":"ひょうしょうじょう","絡ん":"から","潜っ":"もぐ","外し":"はず","真似":"まね","溺れる":"おぼ","続か":"つづ","直す":"なお","動く":"うご","屈ん":"かが","教わっ":"おそ","結び方":"むす|かた","引け":"ひ","締まっ":"し","急い":"いそ","困る":"こま","教わら":"おそ","動かさ":"うご","取る":"と","真鍮":"しんちゅう","持つ":"も","色":"いろ","変わっ":"か","小さい":"ちい","大きい":"おお","存じ":"ぞん","内側":"うちがわ","隅":"すみ","百円玉":"ひゃくえんだま","十円玉":"じゅうえんだま","何枚":"なんまい","一円玉":"いちえんだま","持た":"も","手のひら":"て","載せる":"の","軽かっ":"かる","並べ方":"なら|かた","お茶":"ちゃ","飲ま":"の","今夜三度目":"こんやさんどめ","三十年":"さんじゅうねん","支店":"してん","話し方":"はな|かた","頼ま":"たの","謙遜":"けんそん","引き受ける":"ひ|う","一晩中":"いちばんちゅう","米":"べい","残り":"のこ","習わし":"なら","長く":"なが","決まる":"き","尽きる":"つ","申し":"もう","急が":"いそ","湯気":"ゆげ","訊い":"き","訊き":"き","歩く":"ある","終える":"お","夜明け":"よあ","継ぎ足し":"つ|た","第六章":"だいろくしょう","未執筆":"みしっぴつ","一二三四五六七八九":"いちにさんよんごろくななはちきゅう","千":"せん","百":"ひゃく","十":"じゅう","零":"れい","万":"ばん","円":"えん","第七章":"だいななしょう","坂道":"さかみち","回想":"かいそう","玄関前":"げんかんまえ","片付い":"かたづ","選択肢":"せんたくし","無い":"な","選べ":"えら","語句":"ごく","買い":"か","章":"あきら","包む":"つつ","物語":"ものがたり","読み方":"よ|かた","上限":"じょうげん","二":"に","返金":"へんきん","三":"さん","足す":"た","刻み":"きざ","選ぶ":"えら","立ち":"た","不足額":"ふそくがく","表示":"ひょうじ","事実":"じじつ","場":"ば","控え":"ひか","移動":"いどう","要り":"い","制作中":"せいさくちゅう","試作":"しさく","実際":"じっさい","決済":"けっさい","全七章":"ぜんななしょう","書き換え":"か|か","含め":"ふく","本文":"ほんぶん","検証用":"けんしょうよう","指せる":"さ","光らせる":"ひか","考え直す":"かんが|なお","開封":"かいふう","仮":"かり","絵":"え","貝原":"かいはら","框":"かまち","舵":"かじ","経て":"た","鋏":"はさみ","舫":"もやい","内引":"うちびき","引":"ひ"};
+/* ふりがな ここまで */
+
 /* 話者表 ここから */
 var SPEAK={"1":{"L006":"魚屋の奥さん","L011":"隣のおじさん","L018":"帳場さん","L021":"帳場さん","L023":"帳場さん","L026":"凪さん","L028":"凪さん","L031":"凪さん","L033":"凪さん","L036":"帳場さん","L044":"帳場さん","L049":"帳場さん","L053":"帳場さん"},"2":{"L005":"凪さん","L012":"凪さん","L018":"凪さん","L020":"凪さん","L024":"凪さん","L026":"凪さん","L028":"凪さん","L033":"凪さん","L037":"凪さん","L039":"凪さん","L041":"凪さん","L043":"凪さん","L051":"凪さん"},"3":{"L009":"隣のおじさん","L011":"隣のおじさん","L014":"隣のおじさん","L016":"隣のおじさん","L018":"隣のおじさん","L020":"隣のおじさん","L024":"隣のおじさん","L043":"隣のおじさん","L045":"隣のおじさん"},"4":{"L003":"帳場さん","L005":"帳場さん","L007":"帳場さん","L010":"帳場さん","L013":"帳場さん","L015":"帳場さん","L018":"帳場さん","L020":"帳場さん","L024":"帳場さん","L042":"帳場さん","L048":"帳場さん","L050":"帳場さん","L052":"帳場さん","L055":"帳場さん","L057":"帳場さん","L059":"帳場さん","L061":"帳場さん","L067":"帳場さん","L071":"帳場さん"},"5":{"L027":"兄"},"6":{"L003":"凪さん","L005":"凪さん","L007":"凪さん","L010":"凪さん","L012":"凪さん","L016":"凪さん","L020":"凪さん","L022":"凪さん","L026":"凪さん","L029":"凪さん","L034":"凪さん","L036":"凪さん","L039":"凪さん","L041":"凪さん","L043":"凪さん","L048":"凪さん","L050":"凪さん","L052":"凪さん","L054":"凪さん"},"7":{"L002":"凪さん","L012":"帳場さん","L013":"帳場さん","L014":"帳場さん","L021":"帳場さん","L023":"帳場さん","L025":"帳場さん","L031":"凪さん","L044":"帳場さん","L046":"帳場さん","L048":"帳場さん","L058":"帳場さん","L063":"帳場さん","L065":"帳場さん","L068":"帳場さん","L071":"帳場さん"},"t01":{"L007":"帳場さん"},"t02":{"L002":"魚屋の奥さん","L006":"魚屋の奥さん","L008":"魚屋の奥さん"},"t03":{"L003":"隣のおじさん","L005":"隣のおじさん","L007":"隣のおじさん","L009":"隣のおじさん"},"t05":{"L002":"帳場さん","L004":"帳場さん","L006":"帳場さん","L009":"帳場さん"},"t06":{"L003":"凪さん","L005":"凪さん","L008":"凪さん"},"t08":{"L003":"凪さん","L005":"凪さん","L007":"凪さん","L009":"凪さん"},"t10":{"L002":"凪さん","L004":"凪さん","L006":"凪さん","L008":"凪さん"},"t12":{"L002":"凪さん","L004":"凪さん","L006":"凪さん","L009":"凪さん"},"t13":{"L002":"隣のおじさん","L004":"隣のおじさん","L006":"隣のおじさん","L008":"隣のおじさん"},"t14":{"L003":"隣のおじさん","L005":"隣のおじさん","L007":"隣のおじさん","L009":"隣のおじさん"},"t17":{"L002":"隣のおじさん","L004":"隣のおじさん","L006":"隣のおじさん","L008":"隣のおじさん"},"t19":{"L006":"帳場さん"},"t21":{"L002":"帳場さん","L004":"帳場さん","L007":"帳場さん","L010":"帳場さん"},"t22":{"L002":"帳場さん","L004":"帳場さん","L007":"帳場さん","L010":"帳場さん"},"t23":{"L003":"帳場さん","L005":"帳場さん","L007":"帳場さん"},"t24":{"L002":"帳場さん","L004":"帳場さん","L006":"帳場さん","L008":"帳場さん"}};
 /* 話者表 ここまで */
@@ -478,6 +492,125 @@ function paint(){
   r.setProperty("--accent",a[0]); r.setProperty("--soft",a[1]); r.setProperty("--glow",String(a[2]));
 }
 
+
+/* ---------- 音 ----------
+   波も風も線香も、その場で作る。音の files は積まない。
+   旋律は置かない。この夜に音楽は流れていないので、鳴っているのは部屋と海だけ。
+   ただ一箇所、第四封が開いたときにだけ、鈴が一度鳴る。満額の人しか聞かない音。 */
+var AU={ ctx:null, on:true, master:null, beds:{}, now:null, noise:null };
+
+function auNoise(){
+  if(AU.noise) return AU.noise;
+  var n=AU.ctx.sampleRate*3, b=AU.ctx.createBuffer(1,n,AU.ctx.sampleRate), d=b.getChannelData(0);
+  for(var i=0;i<n;i++) d[i]=Math.random()*2-1;
+  AU.noise=b; return b;
+}
+function auSrc(){ var s=AU.ctx.createBufferSource(); s.buffer=auNoise(); s.loop=true; s.start(); return s; }
+function auGain(v){ var g=AU.ctx.createGain(); g.gain.value=v; return g; }
+function auLfo(hz,depth,target,base){                 // ゆっくり呼吸させる
+  var o=AU.ctx.createOscillator(), g=auGain(depth);
+  o.frequency.value=hz; o.connect(g); g.connect(target); o.start();
+  if(base!==undefined) target.value=base;
+  return o;
+}
+
+/* 場所ごとの床。作って繋いだまま、音量だけを行き来させる。 */
+function auBed(k){
+  var c=AU.ctx, out=auGain(0); out.connect(AU.master);
+  if(k==="minato"||k==="asa"){                        // 海。打ち寄せと潮騒の二層
+    var s1=auSrc(), f1=c.createBiquadFilter(), g1=auGain(.0);
+    f1.type="bandpass"; f1.frequency.value=(k==="asa"?520:380); f1.Q.value=.6;
+    s1.connect(f1); f1.connect(g1); g1.connect(out);
+    auLfo(.07,.055,g1.gain,.075); auLfo(.113,.03,g1.gain);
+    var s2=auSrc(), f2=c.createBiquadFilter(), g2=auGain(.05);
+    f2.type="lowpass"; f2.frequency.value=150;
+    s2.connect(f2); f2.connect(g2); g2.connect(out);
+    var s3=auSrc(), f3=c.createBiquadFilter(), g3=auGain(.018);  // 風
+    f3.type="bandpass"; f3.frequency.value=760; f3.Q.value=1.4;
+    s3.connect(f3); f3.connect(g3); g3.connect(out);
+    auLfo(.041,300,f3.frequency,760);
+  } else if(k==="ishi"){                              // 外。海は遠い
+    var a=auSrc(), fa=c.createBiquadFilter(), ga=auGain(.03);
+    fa.type="bandpass"; fa.frequency.value=300; fa.Q.value=.5;
+    a.connect(fa); fa.connect(ga); ga.connect(out); auLfo(.06,.02,ga.gain,.03);
+    var w=auSrc(), fw=c.createBiquadFilter(), gw=auGain(.022);
+    fw.type="bandpass"; fw.frequency.value=620; fw.Q.value=1.1;
+    w.connect(fw); fw.connect(gw); gw.connect(out); auLfo(.037,240,fw.frequency,620);
+  } else {                                            // 家の中。低い持続と部屋の空気
+    var o1=c.createOscillator(), o2=c.createOscillator(), gd=auGain(k==="butsu"?.035:.026);
+    o1.type="sine"; o2.type="sine"; o1.frequency.value=55; o2.frequency.value=55.4;
+    o1.connect(gd); o2.connect(gd); gd.connect(out); o1.start(); o2.start();
+    var r=auSrc(), fr=c.createBiquadFilter(), gr=auGain(.017);
+    fr.type="lowpass"; fr.frequency.value=k==="butsu"?170:240;
+    r.connect(fr); fr.connect(gr); gr.connect(out);
+    if(k==="butsu") auLfo(.13,.012,gd.gain,.035);     // 蝋燭
+  }
+  return out;
+}
+
+function auPlace(k){
+  if(!AU.ctx) return;
+  if(AU.now===k) return;
+  var t=AU.ctx.currentTime;
+  if(AU.now && AU.beds[AU.now]) AU.beds[AU.now].gain.linearRampToValueAtTime(0, t+2.2);
+  if(!AU.beds[k]) AU.beds[k]=auBed(k);
+  AU.beds[k].gain.cancelScheduledValues(t);
+  AU.beds[k].gain.linearRampToValueAtTime(1, t+2.2);
+  AU.now=k;
+}
+
+/* 一度きりの音。名前は鳴るものの名前にする。 */
+function auSE(k){
+  if(!AU.ctx||!AU.on) return;
+  var c=AU.ctx, t=c.currentTime;
+  if(k==="ki"){                                       // 木。移動と決定
+    var o=c.createOscillator(), g=auGain(0);
+    o.type="triangle"; o.frequency.setValueAtTime(340,t); o.frequency.exponentialRampToValueAtTime(180,t+.05);
+    g.gain.setValueAtTime(.10,t); g.gain.exponentialRampToValueAtTime(.0001,t+.09);
+    o.connect(g); g.connect(AU.master); o.start(t); o.stop(t+.1);
+  } else if(k==="kami"){                              // 紙。剥がす、置く
+    var s=auSrc(), f=c.createBiquadFilter(), g2=auGain(0);
+    f.type="highpass"; f.frequency.value=2200;
+    g2.gain.setValueAtTime(.0001,t);
+    g2.gain.exponentialRampToValueAtTime(.075,t+.06);
+    g2.gain.exponentialRampToValueAtTime(.0001,t+.34);
+    s.connect(f); f.connect(g2); g2.connect(AU.master);
+    setTimeout(function(){ try{s.stop();}catch(e){} },420);
+  } else if(k==="ko"){                                // 線香が一本尽きる
+    var o3=c.createOscillator(), g3=auGain(0);
+    o3.type="sine"; o3.frequency.setValueAtTime(196,t); o3.frequency.exponentialRampToValueAtTime(132,t+.3);
+    g3.gain.setValueAtTime(.085,t); g3.gain.exponentialRampToValueAtTime(.0001,t+.55);
+    o3.connect(g3); g3.connect(AU.master); o3.start(t); o3.stop(t+.6);
+  } else if(k==="fusuma"){                            // 襖。乾いた糊と溝
+    var s4=auSrc(), f4=c.createBiquadFilter(), g4=auGain(0);
+    f4.type="bandpass"; f4.frequency.setValueAtTime(420,t); f4.frequency.linearRampToValueAtTime(1500,t+.7); f4.Q.value=.8;
+    g4.gain.setValueAtTime(.0001,t);
+    g4.gain.exponentialRampToValueAtTime(.09,t+.18);
+    g4.gain.exponentialRampToValueAtTime(.0001,t+.9);
+    s4.connect(f4); f4.connect(g4); g4.connect(AU.master);
+    setTimeout(function(){ try{s4.stop();}catch(e){} },1000);
+  } else if(k==="rin"){                               // 鈴。第四封が開いた人だけが聞く
+    [1,2.76,5.4,8.9].forEach(function(m,i){
+      var o5=c.createOscillator(), g5=auGain(0);
+      o5.type="sine"; o5.frequency.value=294*m;
+      g5.gain.setValueAtTime(.055/(i+1),t+.004*i);
+      g5.gain.exponentialRampToValueAtTime(.0001,t+5.5-i*.9);
+      o5.connect(g5); g5.connect(AU.master); o5.start(t); o5.stop(t+6);
+    });
+  }
+}
+
+function auStart(){
+  if(AU.ctx) return;
+  try{ AU.ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return; }
+  AU.master=auGain(AU.on?.55:0); AU.master.connect(AU.ctx.destination);
+}
+function auDraw(){
+  var b=$("bau"); if(b) b.classList.toggle("off",!AU.on);
+  if(AU.master) AU.master.gain.linearRampToValueAtTime(AU.on?.55:0, AU.ctx.currentTime+.25);
+  try{ localStorage.setItem("oto",AU.on?"1":"0"); }catch(e){}
+}
+
 /* ---------- 支払い ---------- */
 STEPS.forEach(function(v){
   var i=document.createElement("i");
@@ -510,6 +643,7 @@ $("decide").addEventListener("click",function(){
 /* ---------- 開始 ---------- */
 function start(){
   S.band=bandOf(S.paid);
+  auStart();
   $("pay").classList.remove("on");
   $("game").classList.add("on");
   $("hud").hidden=false;
@@ -526,7 +660,7 @@ function drawSticks(){
     el.appendChild(d);
   }
 }
-function burn(){ if(S.done) return false; S.incense--; drawSticks();
+function burn(){ if(S.done) return false; S.incense--; drawSticks(); auSE("ko");
   if(S.incense<=0){ dawn(); return true; } return false; }
 
 /* ---------- 本文 ---------- */
@@ -572,6 +706,42 @@ function speakerOf(it){
   return (SPEAK[it.src]||{})[it.id] || "汐里";
 }
 
+/* ふりがな。原稿には埋め込まない。描いた HTML の、札の外側だけを走査して包む。
+   辞書は語の表記から引き、長いものを先に当てる。読みは漢字の連なりごとに | で区切ってある。 */
+var RUBYON=true, RBIX=null;
+var KJ=/[\u4e00-\u9fff々〆ヶ]/;
+function rbIndex(){
+  if(RBIX) return RBIX;
+  RBIX={};
+  Object.keys(RUBY).forEach(function(k){ (RBIX[k.charAt(0)]=RBIX[k.charAt(0)]||[]).push(k); });
+  Object.keys(RBIX).forEach(function(c){ RBIX[c].sort(function(a,b){ return b.length-a.length; }); });
+  return RBIX;
+}
+function rubyWord(k){
+  var v=RUBY[k].split("|"), out="", i=0, j=0;
+  while(i<k.length){
+    if(KJ.test(k.charAt(i))){
+      var s=i; while(i<k.length && KJ.test(k.charAt(i))) i++;
+      out+="<ruby>"+k.slice(s,i)+"<rt>"+(v[j++]||"")+"</rt></ruby>";
+    } else out+=k.charAt(i++);
+  }
+  return out;
+}
+function addRuby(html){
+  if(!RUBYON) return html;
+  var ix=rbIndex(), parts=html.split(/(<[^>]*>)/), out="";
+  for(var p=0;p<parts.length;p++){
+    if(p%2===1){ out+=parts[p]; continue; }          // 札には触らない
+    var s=parts[p], i=0;
+    while(i<s.length){
+      var list=ix[s.charAt(i)], hit=null;
+      if(list) for(var n=0;n<list.length;n++){ if(s.substr(i,list[n].length)===list[n]){ hit=list[n]; break; } }
+      if(hit){ out+=rubyWord(hit); i+=hit.length; } else out+=s.charAt(i++);
+    }
+  }
+  return out;
+}
+
 function nextLine(){
   if(Q.i>=Q.list.length){
     $("tri").classList.remove("on");                    // 最後の一行は窓に残す
@@ -589,11 +759,12 @@ function nextLine(){
   var w=$("who"), nm=speakerOf(it);
   if(nm){ w.textContent=nm; w.hidden=false; } else { w.hidden=true; }
   if(it.bg) setArt(it.bg);
+  if(it.se) auSE(it.se);
   $("wt").className="win-t"+(it.cls?" "+it.cls:"");
   logPush(it); markSeen(it.t);
   var html=esc(it.t);
   if(it.id) html=markAsks(it.src,it.id,html);
-  type(html);
+  type(addRuby(html));
 }
 
 /* 一字ずつ出す。字を <i> に割ってから透かす。指せる語句の span は壊さない。 */
@@ -608,7 +779,12 @@ function type(html){
           var s=document.createElement("i"); s.className="c"; s.textContent=ch; f.appendChild(s);
         });
         n.replaceChild(f,c);
-      } else if(c.nodeType===1) split(c);
+      } else if(c.nodeType===1){
+        if(c.tagName==="RT"){                       // 読みは一度で出す
+          var w=document.createElement("i"); w.className="c"; w.textContent=c.textContent;
+          c.replaceChildren(w);
+        } else split(c);
+      }
     }
   })(el);
   Q.chars=Array.prototype.slice.call(el.querySelectorAll("i.c")); Q.k=0;
@@ -715,6 +891,27 @@ $("blog").addEventListener("click",openLog);
 $("logclose").addEventListener("click",closeLog);
 $("bnav").addEventListener("click",function(){ if(!S.done) drawNav(); });
 
+/* ふりがなの入り切り。切っても本文は変わらない（辞書を当てているだけなので） */
+try{ if(localStorage.getItem("ruby")==="0") RUBYON=false; }catch(e){}
+function drawRuby(){
+  $("bruby").classList.toggle("off",!RUBYON);
+  try{ localStorage.setItem("ruby",RUBYON?"1":"0"); }catch(e){}
+}
+$("bruby").addEventListener("click",function(){
+  RUBYON=!RUBYON; drawRuby();
+
+try{ if(localStorage.getItem("oto")==="0") AU.on=false; }catch(e){}
+$("bau").addEventListener("click",function(){ AU.on=!AU.on; auStart(); auDraw(); });
+auDraw();
+  var it=Q.list[Q.i-1];                                  // いま出ている一行を引き直す
+  if(it && it.t!==undefined){
+    var html=esc(it.t);
+    if(it.id) html=markAsks(it.src,it.id,html);
+    $("wt").innerHTML=addRuby(html);
+  }
+});
+drawRuby();
+
 /* 会話の本文。帯の書き換えは章と同じ当て方をする。 */
 function talkLines(t){
   return t.lines.map(function(txt,i){
@@ -735,7 +932,7 @@ function enter(k){
   var P=PLACES.filter(function(p){return p.k===k;})[0];
   $("place").textContent=P.name;
   $("card").replaceChildren();
-  setArt(PLACEBG[k]);
+  setArt(PLACEBG[k]); auPlace(k); auSE("ki");
   chapTitle(P.ch);
   var hint = P.opens && !S.opened;
   if(P.opens) S.opened=true;
@@ -773,6 +970,7 @@ function choices(list){
 }
 
 function stubEl(A){
+  auSE("kami");
   var w=document.createElement("div"); w.className="stub";
   w.innerHTML='<div class="stub-in">芳名帳　内引<br>'+(A.item||'——')+'<br>'+
               '<span class="amt2">金 ■■■ 円</span></div>';
@@ -849,6 +1047,7 @@ function dawn(){
   S.done=true; S.lastAsk=true;
   $("card").replaceChildren();
   S.place="cha";
+  auPlace("butsu");
   chapTitle("第六章　夜明け前");
   var at6=BGAT["6"];
   var q=CH["6"].order.map(function(id){ return { t:chText("6",id), src:"6", id:id, bg:at6[id] }; });
@@ -907,7 +1106,27 @@ function kan(n){
   var man=Math.floor(n/10000), rest=n%10000;
   return (man?kan4(man)+"万":"")+(rest?kan4(rest):"");
 }
-function kin(n){ return "金"+kan(n)+"円"; }
+var KY={"一":"いち","二":"に","三":"さん","四":"よん","五":"ご","六":"ろく","七":"なな","八":"はち","九":"きゅう"};
+function kan4y(v){
+  var o="", d=[[1000,"せん",{3:"さんぜん",8:"はっせん"}],[100,"ひゃく",{3:"さんびゃく",6:"ろっぴゃく",8:"はっぴゃく"}],[10,"じゅう",{}]];
+  d.forEach(function(x){
+    var q=Math.floor(v/x[0])%10; if(!q) return;
+    o += x[2][q] || (q===1?"":KY[KD[q]])+x[1];
+  });
+  var r=v%10; if(r) o+=KY[KD[r]];
+  return o;
+}
+function kany(n){
+  if(n===0) return "れい";
+  var man=Math.floor(n/10000), rest=n%10000;
+  return (man?kan4y(man)+"まん":"")+(rest?kan4y(rest):"");
+}
+/* 額は本文に出るたびに読みを辞書へ足す。漢数字は書いた側でしか読めない。 */
+function kin(n){
+  var s="金"+kan(n)+"円";
+  if(!RUBY[s]){ RUBY[s]="きん"+kany(n)+"えん"; RBIX=null; }
+  return s;
+}
 
 function ch7state(){
   var bal=balance(), opened=0, next=null;
@@ -970,11 +1189,14 @@ function build7(st){
     var x=ch7Text(id,st);
     if(x===null || x.indexOf("（ここから")===0) return;
     if(!st.zero && id==="L051"){ out.push({slip:true}); return; }
-    out.push({t:x, id:id, src:"7"});
+    out.push({t:x, id:id, src:"7", se:(id==="L072"||id==="L073")?"fusuma":(id==="L050"?"kami":null)});
   });
   for(var i=0;i<st.opened;i++){
     var s=SEALTEXT[i];
-    s.common.forEach(function(l){ out.push({t:l,cls:"seal-t"}); });
+    s.common.forEach(function(l,j){
+      /* 鈴は第四封の一行目だけ。満額で四つ開いた人しか聞かない音 */
+      out.push({t:l,cls:"seal-t",se:(j===0?(i===3?"rin":"kami"):null)});
+    });
     var ex=st.bought? s.bought : s.unbought;
     if(ex) ex.forEach(function(l){ out.push({t:l,cls:"seal-t"}); });
   }
@@ -987,11 +1209,12 @@ function morning(){
   var st=ch7state(); S.st=st;
   $("nav").replaceChildren(); $("card").replaceChildren();
   $("place").textContent="出棺";
+  auPlace("asa");                                   // 朝の海。高いところが開く
   chapTitle("第七章　出棺");
   var at7=BGAT["7"];
   var q=build7(st).map(function(it){
     return it.slip ? { card:function(){ return slipEl(st); } }
-                   : { t:it.t, cls:it.cls, src:it.src, id:it.id, bg:it.id?at7[it.id]:undefined };
+                   : { t:it.t, cls:it.cls, src:it.src, id:it.id, se:it.se, bg:it.id?at7[it.id]:undefined };
   });
   say(q, function(){
     $("card").replaceChildren(edCard(st));
