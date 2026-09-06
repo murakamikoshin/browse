@@ -8,6 +8,35 @@
 """
 import io, re, sys, json
 
+def hooks():
+    """章の終わりの引き。一度目だけ出る。＊は翳りの音、名前「…」は名札。"""
+    try:
+        t = io.open("scenario/step8_hooks.md", encoding="utf-8").read()
+    except FileNotFoundError:
+        return {}
+    out = {}
+    for blk in t.split("\n## ")[1:]:
+        head, body = blk.split("\n", 1)
+        m = re.match(r'^(\d)\s+終わりに\s*$', head.strip())
+        if not m: raise SystemExit("見出しの形が違う: ## " + head.strip())
+        rows = []
+        for l in body.split("\n"):
+            l = l.rstrip()
+            if l.startswith("---"): break
+            m2 = re.match(r'^(＊?)\[(L\d+)\]\s*(.+)$', l)
+            if not m2: continue
+            se, txt = m2.group(1), m2.group(3).strip()
+            who = None
+            m3 = re.match(r'^([^「]{1,6})(「.+)$', txt)
+            if m3: who, txt = m3.group(1), m3.group(2)
+            r = {"t": txt}
+            if who: r["who"] = who
+            if se: r["se"] = "kage"
+            rows.append(r)
+        if not rows: raise SystemExit("%s の引きが空" % m.group(1))
+        out[m.group(1)] = rows
+    return out
+
 def parse():
     t = io.open("scenario/step7_acts.md", encoding="utf-8").read()
     out = {}
@@ -49,9 +78,12 @@ if __name__ == "__main__":
     for ch in sorted(d): print("   第%s章 %d" % (ch, len(d[ch])))
     print("不備 %d 件" % len(bad))
     if bad: sys.exit(1)
-    blob = "var ACTS=" + json.dumps(d, ensure_ascii=False, separators=(",", ":")) + ";"
+    h = hooks()
+    blob = ("var ACTS=" + json.dumps(d, ensure_ascii=False, separators=(",", ":")) + ";\n"
+            + "var HOOKS=" + json.dumps(h, ensure_ascii=False, separators=(",", ":")) + ";")
     g = io.open("game.html", encoding="utf-8").read()
     a, b = g.index("/* 手を動かすところ ここから */"), g.index("/* 手を動かすところ ここまで */")
     io.open("game.html", "w", encoding="utf-8").write(
         g[:a] + "/* 手を動かすところ ここから */\n" + blob + "\n" + g[b:])
+    print("章の終わりの引き %d箇所（%d行）" % (len(h), sum(len(v) for v in h.values())))
     print("game.html を更新")

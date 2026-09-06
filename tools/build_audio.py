@@ -8,7 +8,8 @@ artifact では外部の音声ホストが遮断されるので、焼き込む�
 """
 import io, os, re, sys, base64, json
 
-WANT = ["nami", "kaze", "heya", "asa", "ki", "kami", "ko", "fusuma", "rin"]
+WANT = ["nami", "kaze", "heya", "asa", "ki", "kami", "ko", "fusuma", "rin",
+        "music_yoru", "music_asa"]
 MIME = {".mp3": "audio/mpeg", ".ogg": "audio/ogg", ".m4a": "audio/mp4", ".wav": "audio/wav"}
 CAP = 3 * 1024 * 1024
 
