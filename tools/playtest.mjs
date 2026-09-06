@@ -193,6 +193,35 @@ await ui('章の札は同じ章で二度出ない', async () => {
   const b = await page.evaluate(() => window.__dev.state().chapcard);
   return a >= 2 && b === false; });
 
+/* 狭い画面。配信を見て携帯で開く人がいるので、ここが崩れていると届かない */
+console.log('\n  狭い画面');
+for (const [w, h, name] of [[390, 844, '携帯 390x844'], [360, 640, '小さめ 360x640'], [820, 1180, 'タブレット 820x1180']]) {
+  const pg = await browser.newPage({ viewport: { width: w, height: h }, isMobile: true, hasTouch: true });
+  const pe = []; pg.on('pageerror', e => pe.push(String(e)));
+  await pg.goto(URL);
+  const r = await pg.evaluate(() => {
+    const D = window.__dev; D.fast(true); D.begin(20); D.flush(400);
+    if (!document.getElementById('nav').firstChild) document.getElementById('bnav').click();
+    const nv = document.getElementById('nav');
+    const bs = [...nv.querySelectorAll('button')];
+    const last = bs.length ? bs[bs.length - 1].getBoundingClientRect() : null;
+    const hud = document.querySelector('.hud-in').getBoundingClientRect();
+    const chap = document.getElementById('chap').getBoundingClientRect();
+    return {
+      yoko: document.documentElement.scrollWidth > window.innerWidth + 1,
+      hud: Math.round(hud.height),
+      kasanari: chap.top < hud.bottom - 1,
+      todokanai: last && last.bottom > window.innerHeight + 1 && nv.scrollHeight <= nv.clientHeight + 1,
+      buttons: bs.length
+    };
+  });
+  const ok = !r.yoko && !r.kasanari && !r.todokanai && r.hud < 90 && !pe.length;
+  console.log(`    ${ok ? '○' : '×'} ${name}  HUD${r.hud}px 選択肢${r.buttons}個` +
+    `${r.yoko ? ' 横あふれ' : ''}${r.kasanari ? ' 章題が隠れる' : ''}${r.todokanai ? ' 押せない選択肢' : ''}${pe.length ? ' ERR' : ''}`);
+  if (!ok) note('狭い画面: ' + name);
+  await pg.close();
+}
+
 if (perr.length) note('画面のエラー: ' + perr[0]);
 console.log('\n不備 ' + bad.length + ' 件');
 bad.forEach(b => console.log('NG  ' + b));
