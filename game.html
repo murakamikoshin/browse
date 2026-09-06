@@ -173,6 +173,76 @@ p.l.fin{ margin-top:2.4em; }
 .dev button{ background:none; border:none; color:var(--fg-faint); font-family:inherit;
              font-size:.62rem; letter-spacing:.14em; cursor:pointer; padding:0; }
 .dev button:hover{ color:var(--fg-dim); }
+
+/* ---------- 画面。上が絵、下が窓 ---------- */
+#game.on{ position:fixed; inset:0; z-index:5; display:flex; flex-direction:column; }
+#stage{ position:relative; flex:1 1 auto; min-height:72px; display:flex;
+        align-items:center; justify-content:center; overflow:hidden; }
+#bg{ position:absolute; inset:0; z-index:0;
+     background:radial-gradient(125% 85% at 50% 112%, var(--soft), transparent 70%), var(--ink2);
+     transition:background 1.2s ease; }
+#chap{ position:absolute; z-index:2; top:74px; left:0; right:0; text-align:center;
+       font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.34em;
+       color:var(--fg-faint); opacity:0; pointer-events:none; }
+#chap.in{ animation:chin 4s ease-out forwards; }
+@keyframes chin{ 0%{opacity:0} 12%{opacity:1} 70%{opacity:1} 100%{opacity:.24} }
+#card{ position:relative; z-index:3; width:100%; max-height:100%; overflow-y:auto;
+       padding:26px clamp(14px,4vw,26px); display:flex; align-items:center; justify-content:center; }
+#card:empty{ display:none; }
+#stage.wait::after{ content:""; position:absolute; z-index:4; right:18px; bottom:14px;
+  width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent;
+  border-top:7px solid var(--fg-faint); animation:tri 1.3s ease-in-out infinite; }
+#stage.wait{ cursor:pointer; }
+
+/* 窓 */
+.win{ flex:0 0 auto; width:min(46em,100%); margin:0 auto; visibility:hidden;
+      padding:0 clamp(10px,3vw,18px) calc(env(safe-area-inset-bottom,0px) + 16px); }
+.win.on{ visibility:visible; }
+.win-in{ position:relative; border:1px solid var(--edge); background:rgba(8,12,14,.9);
+  backdrop-filter:blur(10px); padding:17px clamp(17px,4vw,26px) 25px; min-height:7.2em;
+  box-shadow:0 -16px 50px rgba(0,0,0,.55); cursor:pointer; }
+.win-who{ font-family:"IBM Plex Mono",monospace; font-size:.6rem; letter-spacing:.2em;
+          color:var(--accent); margin-bottom:.65em; }
+.win-t{ margin:0; font-size:1.02rem; line-height:2; min-height:4em; }
+.win-t i.c{ font-style:normal; }
+.win-t.fin{ color:var(--accent); }
+.win-t.seal-t{ color:#CBD2CD; }
+.win-t.aside{ color:var(--fg-dim); font-size:.94rem; }
+.win-tri{ position:absolute; right:15px; bottom:11px; width:0; height:0; opacity:0;
+  border-left:5px solid transparent; border-right:5px solid transparent; border-top:7px solid var(--fg-faint); }
+.win-tri.on{ animation:tri 1.3s ease-in-out infinite; }
+@keyframes tri{ 0%,100%{opacity:.25;transform:translateY(0)} 50%{opacity:.9;transform:translateY(2px)} }
+
+/* 選択肢。窓のすぐ上に積む */
+#nav{ flex:0 1 auto; width:min(46em,100%); margin:0 auto; max-height:52vh; overflow-y:auto;
+      padding:0 clamp(10px,3vw,18px); }
+#nav:empty{ display:none; }
+#nav .map{ margin:0 0 7px; padding:9px 13px; border:1px solid var(--edge);
+           background:rgba(14,20,23,.9); backdrop-filter:blur(8px); }
+#nav .map-l{ margin-bottom:8px; }
+#nav .acts{ gap:7px; }
+#nav .acts button{ padding:7px 13px; font-size:.85rem; }
+
+/* 読み返し */
+#logbox{ position:fixed; inset:0; z-index:60; display:none; overflow-y:auto;
+         background:rgba(6,9,10,.975); padding:64px clamp(16px,5vw,26px) 80px; }
+#logbox.on{ display:block; }
+#logbox .in{ max-width:40em; margin:0 auto; }
+#logbox p{ margin:0 0 1.25em; }
+#logbox p.w{ color:var(--accent); font-family:"IBM Plex Mono",monospace;
+             font-size:.6rem; letter-spacing:.2em; margin-bottom:.4em; }
+#logclose{ position:fixed; z-index:61; top:12px; right:12px; padding:8px 16px;
+  background:rgba(8,12,14,.9); border:1px solid var(--edge); color:var(--fg-dim);
+  font-family:inherit; font-size:.84rem; cursor:pointer; }
+
+/* 上の帯 */
+.hud{ position:fixed; top:0; left:0; right:0; z-index:40; }
+.hud-in{ max-width:46em; }
+.hud button{ background:none; border:1px solid var(--edge); color:var(--fg-faint);
+  font-family:"IBM Plex Mono",monospace; font-size:.58rem; letter-spacing:.18em;
+  padding:6px 11px; cursor:pointer; }
+.hud button:hover{ color:var(--fg-dim); border-color:var(--fg-faint); }
+.dev{ position:fixed; z-index:41; right:10px; bottom:auto; top:calc(100% - 34px); }
 </style>
 </head>
 <body>
@@ -182,8 +252,13 @@ p.l.fin{ margin-top:2.4em; }
     <span class="hud-lab">線香</span>
     <div class="sticks" id="sticks"></div>
     <span class="place" id="place"></span>
+    <button type="button" id="blog">読み返す</button>
+    <button type="button" id="bnav">行き先</button>
   </div>
 </div>
+
+<div id="logbox"><div class="in" id="loglist"></div></div>
+<button type="button" id="logclose" hidden>閉じる</button>
 
 <div class="wrap">
 
@@ -213,9 +288,17 @@ p.l.fin{ margin-top:2.4em; }
   </section>
 
   <section class="scene" id="game">
-    <div id="story"></div>
-    <div id="slot"></div>
+    <div id="stage">
+      <div id="bg"></div>
+      <div id="chap"></div>
+      <div id="card"></div>
+    </div>
     <div id="nav"></div>
+    <div class="win" id="win"><div class="win-in">
+      <div class="win-who" id="who" hidden></div>
+      <p class="win-t" id="wt"></p>
+      <div class="win-tri" id="tri"></div>
+    </div></div>
     <div class="dev" id="dev" hidden>
       <label><input type="checkbox" id="mk"> 検証用：指せる語句を光らせる</label>
       <button type="button" id="again">最初から</button>
@@ -314,7 +397,7 @@ var TALK=[
 ];
 
 var S = { idx:0, paid:0, band:0, spent:0, incense:8, place:"genkan", noted:{}, lastAsk:false,
-          opened:false, bought:{}, talked:{}, shown:0, done:false };
+          opened:false, bought:{}, talked:{}, shown:0, done:false, log:[] };
 
 var $=function(i){ return document.getElementById(i); };
 var yen=function(n){ return "¥"+n.toLocaleString("ja-JP"); };
@@ -367,7 +450,6 @@ function start(){
   $("dev").hidden=false;
   drawSticks();
   enter("genkan");
-  window.scrollTo({top:0});
 }
 
 function drawSticks(){
@@ -378,7 +460,8 @@ function drawSticks(){
     el.appendChild(d);
   }
 }
-function burn(){ if(S.done) return; S.incense--; drawSticks(); if(S.incense<=0) dawn(); }
+function burn(){ if(S.done) return false; S.incense--; drawSticks();
+  if(S.incense<=0){ dawn(); return true; } return false; }
 
 /* ---------- 本文 ---------- */
 function chText(src,id){
@@ -401,114 +484,192 @@ function markAsks(src,id,text){
   return out;
 }
 
+/* 一行ずつ窓に出す。送りは窓のどこを押しても効く。ただし指せる語句の上だけは
+   送らずに「控える」に回る。下線もカーソル変化も出さないので、押した本人にしか
+   起きたことが分からない（SPEC 3.5 A）。 */
+var Q={ list:[], i:0, end:null, tid:null, chars:[], k:0, hold:false };
+var REDUCE = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function say(list,onEnd){
+  Q.list=list.slice(); Q.i=0; Q.end=onEnd||function(){};
+  $("nav").replaceChildren();
+  nextLine();
+}
+
+function nextLine(){
+  if(Q.i>=Q.list.length){
+    $("tri").classList.remove("on");                    // 最後の一行は窓に残す
+    var e=Q.end; Q.end=function(){}; Q.list=[]; Q.i=0;   // 締めは一度だけ焚く
+    e(); return;
+  }
+  var it=Q.list[Q.i++];
+  if(it.card){                                  // 領収書・精算書。窓を閉じて札だけ見せる
+    $("card").replaceChildren(it.card());
+    $("win").classList.remove("on");
+    Q.hold=true; $("stage").classList.add("wait");
+    return;
+  }
+  $("win").classList.add("on");
+  var w=$("who");
+  if(it.who){ w.textContent=it.who; w.hidden=false; } else { w.hidden=true; }
+  $("wt").className="win-t"+(it.cls?" "+it.cls:"");
+  logPush(it);
+  var html=esc(it.t);
+  if(it.id) html=markAsks(it.src,it.id,html);
+  type(html);
+}
+
+/* 一字ずつ出す。字を <i> に割ってから透かす。指せる語句の span は壊さない。 */
+function type(html){
+  var el=$("wt"); el.innerHTML=html;
+  (function split(n){
+    for(var i=n.childNodes.length-1;i>=0;i--){
+      var c=n.childNodes[i];
+      if(c.nodeType===3){
+        var f=document.createDocumentFragment();
+        c.nodeValue.split("").forEach(function(ch){
+          var s=document.createElement("i"); s.className="c"; s.textContent=ch; f.appendChild(s);
+        });
+        n.replaceChild(f,c);
+      } else if(c.nodeType===1) split(c);
+    }
+  })(el);
+  Q.chars=Array.prototype.slice.call(el.querySelectorAll("i.c")); Q.k=0;
+  clearInterval(Q.tid); Q.tid=null;
+  $("tri").classList.remove("on");
+  if(REDUCE){ revealAll(); return; }
+  Q.chars.forEach(function(s){ s.style.opacity="0"; });
+  Q.tid=setInterval(function(){
+    if(Q.k>=Q.chars.length){ revealAll(); return; }
+    Q.chars[Q.k++].style.opacity="1";
+  },26);
+}
+function revealAll(){
+  clearInterval(Q.tid); Q.tid=null;
+  Q.chars.forEach(function(s){ s.style.opacity="1"; });
+  $("tri").classList.add("on");
+}
+
+function tap(e){
+  if(Q.hold){ Q.hold=false; $("stage").classList.remove("wait"); $("card").replaceChildren(); nextLine(); return; }
+  var a=(e&&e.target&&e.target.closest)?e.target.closest(".ask"):null;
+  if(a && !Q.tid && !a.classList.contains("used")){ point(a); return; }
+  if(Q.tid){ revealAll(); return; }
+  nextLine();
+}
+$("win").addEventListener("click",tap);
+$("stage").addEventListener("click",function(e){ if(Q.hold) tap(e); });
+document.addEventListener("keydown",function(e){
+  if(!$("game").classList.contains("on")) return;
+  if($("logbox").classList.contains("on")){ if(e.key==="Escape") closeLog(); return; }
+  if(e.key===" "||e.key==="Enter"){ e.preventDefault(); tap(null); }
+});
+
+/* 指す。その場では買えない。帳場さんは玄関の机から動かない。 */
+function point(el){
+  if(S.done && !S.lastAsk) return;
+  var k=el.dataset.k;
+  if(S.place==="cha"){ offer(k); return; }
+  if(S.noted[k]) return;
+  S.noted[k]=true; el.classList.add("noted");
+  Q.list.splice(Q.i,0,{t:"——帳場さんに訊いてみよう。朝までおります、と言っていた。",cls:"aside"});
+  nextLine();
+}
+
+/* 読み返し。遡及の書き換えは、戻って読み直したときにだけ見える。 */
+function logPush(it){
+  S.log.push({t:it.t, who:it.who||null});
+  if(S.log.length>900) S.log.shift();
+}
+function openLog(){
+  var l=$("loglist"); l.replaceChildren();
+  S.log.forEach(function(x){
+    if(x.who){ var w=document.createElement("p"); w.className="w"; w.textContent=x.who; l.appendChild(w); }
+    var p=document.createElement("p"); p.className="l"; p.textContent=x.t; l.appendChild(p);
+  });
+  $("logbox").classList.add("on"); $("logclose").hidden=false;
+  $("logbox").scrollTop=$("logbox").scrollHeight;
+}
+function closeLog(){ $("logbox").classList.remove("on"); $("logclose").hidden=true; }
+$("blog").addEventListener("click",openLog);
+$("logclose").addEventListener("click",closeLog);
+$("bnav").addEventListener("click",function(){ if(!S.done) drawNav(); });
+
+function chapTitle(s){
+  var c=$("chap"); c.textContent=s;
+  c.classList.remove("in"); void c.offsetWidth; c.classList.add("in");
+}
+
 function enter(k){
-  S.place=k; S.shown=0;
+  S.place=k;
   var P=PLACES.filter(function(p){return p.k===k;})[0];
   $("place").textContent=P.name;
-  var st=$("story"); st.replaceChildren();
-  var h=document.createElement("div");
-  h.innerHTML='<div class="chap">'+P.ch+'</div>';
-  st.appendChild(h);
-  $("slot").replaceChildren();
-  if(P.src) showCh(P.src,12);
-  if(P.opens && !S.opened){
-    S.opened = true;
-    /* 一度だけ。仕組みの存在だけを示し、それ以上は説明しない（SPEC 3.5 A）。
-       文言は SPEC のもの。差し替えるなら本文側の発注に回す。 */
-    var hint=document.createElement("div");
-    hint.className="cb";
-    hint.innerHTML='<div class="who">帳場さん</div><p>「何か、気になるものはございましたか」</p>';
-    $("slot").replaceChildren(hint);
-  } else if(P.opens){ S.opened = true; }
-  drawNav();
+  $("card").replaceChildren();
+  chapTitle(P.ch);
+  var hint = P.opens && !S.opened;
+  if(P.opens) S.opened=true;
+  var q=(CH[P.src]||{order:[]}).order.map(function(id){
+    return { t:chText(P.src,id), src:P.src, id:id };
+  });
+  /* 仕組みの開示は場所ではなく行動。茶を飲んだ時点で一度だけ（SPEC 3.5 A）。 */
+  if(hint) q.push({t:"「何か、気になるものはございましたか」", who:"帳場さん"});
+  say(q, drawNav);
 }
 
-function addLine(text,src,id,cls){
-  var p=document.createElement("p");
-  p.className="l"+(cls?" "+cls:"");
-  p.innerHTML=id?markAsks(src,id,text):text;
-  $("story").appendChild(p);
+function choices(list){
+  var n=$("nav"); n.replaceChildren();
+  var d=document.createElement("div"); d.className="map";
+  var a=document.createElement("div"); a.className="acts";
+  list.forEach(function(x){
+    var b=document.createElement("button"); b.type="button"; b.textContent=x[0];
+    if(x[2]===false) b.disabled=true; else b.addEventListener("click",x[1]);
+    a.appendChild(b);
+  });
+  d.appendChild(a); n.appendChild(d);
 }
 
-function showCh(src,n){
-  var C=CH[src];
-  var end=Math.min(S.shown+n, C.order.length);
-  for(var i=S.shown;i<end;i++){ var id=C.order[i]; addLine(chText(src,id),src,id); }
-  S.shown=end;
-  var m=$("story").querySelector(".more"); if(m) m.remove();
-  if(S.shown<C.order.length){
-    var d=document.createElement("div");
-    d.className="more";
-    d.innerHTML='<button type="button">つづきを読む</button>';
-    d.querySelector("button").addEventListener("click",function(){ showCh(src,12); if(S.done) corridor(); });
-    $("story").appendChild(d);
-  }
+function stubEl(A){
+  var w=document.createElement("div"); w.className="stub";
+  w.innerHTML='<div class="stub-in">芳名帳　内引<br>'+(A.item||'——')+'<br>'+
+              '<span class="amt2">金 ■■■ 円</span></div>';
+  return w;
 }
 
 /* ---------- 訊く ---------- */
-$("story").addEventListener("click",function(e){
-  if(S.done||S.incense<=0) return;
-  var el=e.target.closest(".ask");
-  if(!el){
-    var p=e.target.closest("p.l");
-    if(p&&S.opened){ p.classList.remove("nothing"); void p.offsetWidth; p.classList.add("nothing"); }
-    return;
-  }
-  if(el.classList.contains("used")) return;
-  var k=el.dataset.k;
-  if(S.place==="cha"){ offer(k); return; }   // 帳場さんは玄関の机から動かない
-  if(S.noted[k]) return;
-  S.noted[k]=true;
-  el.classList.add("noted");
-  var p=document.createElement("p");
-  p.className="l"; p.style.color="var(--fg-dim)";
-  p.textContent="——帳場さんに訊いてみよう。朝までおります、と言っていた。";
-  $("story").appendChild(p);
-  drawNav();
-});
-
 function offer(k){
   var A=ASKS[k], price=priceOf(A.tier);
-  var box=document.createElement("div");
-  box.className="cb";
 
   /* ¥0 には購入UIを一切出さない。値も、買うか否かの選択肢も、買えないという表示も出さない。
      帳場さんが一言だけ言って帳を閉じる。帯1の本文はこれを気遣いとして受け取る。 */
   if(S.paid===0){
-    box.innerHTML='<div class="who">帳場さん</div><p>「お持ちでないようで」</p>';
-    $("slot").replaceChildren(box);
-    box.scrollIntoView({behavior:"smooth",block:"nearest"});
-    delete S.noted[k];
-    document.querySelectorAll('.ask[data-k="'+k+'"]').forEach(function(e2){ e2.classList.add("used"); });
-    S.done ? corridor() : drawNav();
+    say([{t:"「お持ちでないようで」", who:"帳場さん"}], function(){
+      delete S.noted[k];
+      document.querySelectorAll('.ask[data-k="'+k+'"]').forEach(function(e2){ e2.classList.add("used"); });
+      S.done ? corridor() : drawNav();
+    });
     return;
   }
 
-  var say = '<p>'+A.say+'</p>';
-  var afford = balance()>=price;
-  box.innerHTML='<div class="who">帳場さん</div>'+say+
-    '<div class="acts"><button type="button" data-y '+(afford?"":"disabled")+'>訊く</button>'+
-    '<button type="button" data-n>やめておく</button></div>';
-  $("slot").replaceChildren(box);
-  box.scrollIntoView({behavior:"smooth",block:"nearest"});
-  box.querySelector("[data-n]").addEventListener("click",function(){ $("slot").replaceChildren(); });
-  var y=box.querySelector("[data-y]");
-  if(afford) y.addEventListener("click",function(){
-    S.bought[k]=true; S.spent+=price;
-    var w=document.createElement("div");
-    w.className="stub";
-    w.innerHTML='<div class="stub-in">芳名帳　内引<br>'+(A.item||'——')+'<br>'+
-                '<span class="amt2">金 ■■■ 円</span></div>';
-    var frag=document.createDocumentFragment();
-    frag.appendChild(w);
-    A.fact.split("|").forEach(function(t){
-      var q=document.createElement("p"); q.className="l"; q.textContent=t;
-      frag.appendChild(q);
-    });
-    $("slot").replaceChildren(frag);
-    document.querySelectorAll('.ask[data-k="'+k+'"]').forEach(function(e2){ e2.classList.add("used"); });
-    if(S.done) S.lastAsk=false;
-    burn(); S.done ? corridor() : drawNav();
+  say([{t:A.say, who:"帳場さん"}], function(){
+    choices([
+      ["訊く", function(){ take(k); }, balance()>=price],
+      ["やめておく", function(){ S.done ? corridor() : drawNav(); }]
+    ]);
+  });
+}
+
+function take(k){
+  var A=ASKS[k];
+  S.bought[k]=true; S.spent+=priceOf(A.tier);
+  document.querySelectorAll('.ask[data-k="'+k+'"]').forEach(function(e2){ e2.classList.add("used"); });
+  if(S.done) S.lastAsk=false;
+  var q=[{card:function(){ return stubEl(A); }}];
+  A.fact.split("|").forEach(function(t){ q.push({t:t}); });
+  say(q, function(){
+    $("card").replaceChildren();
+    if(burn()) return;                       // 線香が尽きたら夜が明ける
+    S.done ? corridor() : drawNav();
   });
 }
 
@@ -541,7 +702,8 @@ function drawNav(){
       var b=document.createElement("button");
       b.type="button"; b.textContent=t.label;
       b.addEventListener("click",function(){
-        S.talked[t.k]=true; addLine(t.text); burn(); drawNav();
+        S.talked[t.k]=true;
+        say([{t:t.text}], function(){ if(!burn()) drawNav(); });
       });
       d.querySelector(".acts").appendChild(b);
     });
@@ -554,11 +716,8 @@ function drawNav(){
   eb.type="button";
   eb.textContent = S.incense>1 ? "線香が尽きるまで、座っている" : "夜明けを待つ";
   eb.addEventListener("click",function(){
-    var p=document.createElement("p");
-    p.className="l"; p.style.color="var(--fg-dim)";
-    p.textContent="仏間の隅に座った。線香を継ぎ足しながら、朝までそうしていた。";
-    $("story").appendChild(p);
-    S.incense=0; drawSticks(); dawn();
+    S.incense=0; drawSticks();
+    say([{t:"仏間の隅に座った。線香を継ぎ足しながら、朝までそうしていた。",cls:"aside"}], dawn);
   });
   e.querySelector(".acts").appendChild(eb);
   n.appendChild(e);
@@ -570,7 +729,7 @@ function drawNav(){
     var b=document.createElement("button");
     b.type="button"; b.textContent=p.name;
     if(p.k===S.place) b.className="here";
-    b.addEventListener("click",function(){ enter(p.k); window.scrollTo({top:0,behavior:"smooth"}); });
+    b.addEventListener("click",function(){ enter(p.k); });
     m.querySelector(".acts").appendChild(b);
   });
   n.appendChild(m);
@@ -579,24 +738,18 @@ function drawNav(){
 /* ---------- 夜明けと扉 ---------- */
 function dawn(){
   S.done=true; S.lastAsk=true;
-  $("nav").replaceChildren();
-  $("slot").replaceChildren();
-  var st=$("story"); st.replaceChildren();
-  var h=document.createElement("div");
-  h.innerHTML='<div class="chap">第六章　夜明け前</div>';
-  st.appendChild(h);
-  S.shown=0; S.place="cha";
-  showCh("6", 14);
-  corridor();
+  $("card").replaceChildren();
+  S.place="cha";
+  chapTitle("第六章　夜明け前");
+  var q=CH["6"].order.map(function(id){ return { t:chText("6",id), src:"6", id:id }; });
+  say(q, corridor);
 }
 
-// 廊下。帳場さんはまだ机にいる。最後の機会。
+// 廊下。帳場さんはまだ机にいる。最後の機会。訊けるのはひとつだけ。
 function corridor(){
   var n=$("nav"); n.replaceChildren();
-  if(S.shown < CH["6"].order.length) return;   // 本文を読み切るまで出さない
-  var zero = S.paid===0;
-  var pend = Object.keys(S.noted).filter(function(k){ return !S.bought[k]; });
-  if(!zero && pend.length && S.lastAsk){
+  var pend = S.paid===0 ? [] : Object.keys(S.noted).filter(function(k){ return !S.bought[k]; });
+  if(pend.length && S.lastAsk){
     var q=document.createElement("div");
     q.className="map";
     q.innerHTML='<div class="map-l">「もう、帳を閉じますので。ひとつだけ」</div><div class="acts"></div>';
@@ -608,14 +761,14 @@ function corridor(){
     });
     n.appendChild(q);
   }
-  var g=document.createElement("div");
-  g.className="map";
-  g.innerHTML='<div class="map-l">朝まで、あと少し</div><div class="acts"></div>';
-  var b=document.createElement("button");
-  b.type="button"; b.textContent = "目を閉じる";
-  b.addEventListener("click",function(){ n.replaceChildren(); morning(); });
-  g.querySelector(".acts").appendChild(b);
-  n.appendChild(g);
+  var g2=document.createElement("div");
+  g2.className="map";
+  g2.innerHTML='<div class="map-l">朝まで、あと少し</div><div class="acts"></div>';
+  var b2=document.createElement("button");
+  b2.type="button"; b2.textContent="目を閉じる";
+  b2.addEventListener("click",function(){ n.replaceChildren(); morning(); });
+  g2.querySelector(".acts").appendChild(b2);
+  n.appendChild(g2);
 }
 
 /* ---------- 朝 ---------- */
@@ -734,48 +887,114 @@ function build7(st){
 }
 
 function morning(){
-  var st=ch7state();
-  S.st=st; S.q=build7(st); S.qi=0;
-  $("nav").replaceChildren(); $("slot").replaceChildren();
+  var st=ch7state(); S.st=st;
+  $("nav").replaceChildren(); $("card").replaceChildren();
   $("place").textContent="出棺";
-  var story=$("story"); story.replaceChildren();
-  var h=document.createElement("div");
-  h.innerHTML='<div class="chap">第七章　出棺</div>';
-  story.appendChild(h);
-  show7();
+  chapTitle("第七章　出棺");
+  var q=build7(st).map(function(it){
+    return it.slip ? { card:function(){ return slipEl(st); } } : { t:it.t, cls:it.cls };
+  });
+  say(q, function(){
+    $("card").replaceChildren(edCard(st));
+    choices([["最初から", function(){ location.reload(); }]]);
+  });
 }
 
-function show7(){
-  var story=$("story");
-  var m=story.querySelector(".more"); if(m) m.remove();
-  var end=Math.min(S.qi+14, S.q.length);
-  for(; S.qi<end; S.qi++){
-    var it=S.q[S.qi];
-    if(it.slip) story.appendChild(slipEl(S.st));
-    else addLine(it.t, null, null, it.cls);
-  }
-  if(S.qi<S.q.length){
-    var d=document.createElement("div");
-    d.className="more";
-    d.innerHTML='<button type="button">つづきを読む</button>';
-    d.querySelector("button").addEventListener("click",show7);
-    story.appendChild(d);
-  } else {
-    var host=$("slot"); host.replaceChildren();
-    host.appendChild(edCard(S.st));
-    host.scrollIntoView({behavior:"smooth",block:"nearest"});
-  }
-}
+/* ---------- 検証モード ----------
+   本編には出ない。制作側が中の状態を見て、任意の局面に飛ぶための口。
+   決済を入れる前に、38額 × 開封 × 購入の組をここから機械で舐める。 */
+window.__dev = {
+  STEPS: STEPS,
+  ASKS: Object.keys(ASKS),
 
-/* 試験用。四つの終端を直接見る。 */
-window.__t = function(idx, buys){
-  S.idx=idx; drawPay(); start();
-  (buys||[]).forEach(function(k){ if(!ASKS[k]) throw new Error("no ask "+k);
-    S.bought[k]=true; S.spent+=priceOf(ASKS[k].tier); });
-  S.done=true; S.incense=0; drawSticks(); morning();
+  state: function(){
+    var st=ch7state();
+    return { idx:S.idx, paid:S.paid, band:S.band+1, spent:S.spent, balance:balance(),
+             incense:S.incense, place:S.place, opened:S.opened, done:S.done,
+             bought:Object.keys(S.bought), noted:Object.keys(S.noted),
+             seals:st.opened, short:st.sf, ed:S.done?edNumber(S.idx,st.opened):null,
+             line:$("wt").textContent, who:$("who").hidden?null:$("who").textContent,
+             card:$("card").textContent||null, log:S.log.length,
+             nav:Array.prototype.map.call(document.querySelectorAll("#nav button"),
+                 function(b){ return { t:b.textContent, off:b.disabled }; }) };
+  },
+
+  /* 窓を最後まで送る。札が出ていれば送って先へ進む。 */
+  flush: function(max){
+    var n=0, idle=0;
+    while(n++ < (max||3000)){
+      if(Q.hold){ tap(null); idle=0; continue; }
+      if(Q.tid){ revealAll(); idle=0; continue; }
+      if(Q.i < Q.list.length){ nextLine(); idle=0; continue; }
+      if(idle++) break;
+      nextLine();
+    }
+    return n;
+  },
+
+  /* いま窓に出ている、指せる語句 */
+  asks: function(){
+    return Array.prototype.map.call($("wt").querySelectorAll(".ask"),
+      function(e){ return { k:e.dataset.k, phrase:e.textContent, used:e.classList.contains("used") }; });
+  },
+
+  /* 章を頭から送りながら、その語句が出たところで指す。無ければ null */
+  point: function(k){
+    for(var i=0;i<600;i++){
+      if(Q.tid){ revealAll(); }
+      var a=$("wt").querySelector('.ask[data-k="'+k+'"]:not(.used)');
+      if(a){ a.click(); return true; }
+      if(Q.i>=Q.list.length) break;
+      nextLine();
+    }
+    return false;
+  },
+
+  nav: function(label){
+    var b=Array.prototype.filter.call(document.querySelectorAll("#nav button"),
+      function(x){ return x.textContent===label; })[0];
+    if(!b) throw new Error("選択肢が無い: "+label+" ／ ある: "+
+      Array.prototype.map.call(document.querySelectorAll("#nav button"),function(x){return x.textContent;}).join("|"));
+    if(b.disabled) throw new Error("選べない: "+label);
+    b.click(); return true;
+  },
+
+  /* 支払いを飛ばして夜へ */
+  begin: function(idx){ S.idx=idx; drawPay(); start(); return this.flush(); },
+
+  /* 夜を飛ばして朝へ。買い物は指定のものだけ済ませた状態にする */
+  jump: function(idx, buys){
+    S.idx=idx; drawPay(); start();
+    (buys||[]).forEach(function(k){
+      if(!ASKS[k]) throw new Error("そんな語句は無い: "+k);
+      S.bought[k]=true; S.spent+=priceOf(ASKS[k].tier);
+    });
+    if(S.spent>S.paid) throw new Error("買いすぎ: "+S.spent+" > "+S.paid);
+    S.done=true; S.incense=0; drawSticks(); morning();
+    return this.flush();
+  },
+
+  log: function(){ return S.log.slice(); },
+
+  /* いまの帯で、その章の全行と、指せる語句の位置。書き換えで語句が消えていないかを見る。 */
+  chapter: function(src){
+    var C=CH[src]; if(!C) throw new Error("そんな章は無い: "+src);
+    return C.order.map(function(id){
+      var t=chText(src,id), hit=[];
+      Object.keys(ASKS).forEach(function(k){
+        var A=ASKS[k];
+        if(A.ch===src && A.line===id && t.indexOf(A.phrase)>=0) hit.push(k);
+      });
+      return { id:id, t:t, asks:hit };
+    });
+  },
+
+  /* いま窓に積まれている行（送っていない分も含む） */
+  queue: function(){ return Q.list.map(function(x){ return x.card?"[札]":x.t; }); }
 };
+window.__t = function(idx,buys){ return window.__dev.jump(idx,buys); };
 
-$("mk").addEventListener("change",function(){ $("story").classList.toggle("reveal",this.checked); });
+$("mk").addEventListener("change",function(){ $("game").classList.toggle("reveal",this.checked); });
 $("again").addEventListener("click",function(){ location.reload(); });
 
 drawPay();
