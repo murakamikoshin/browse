@@ -244,24 +244,41 @@ var RATE={ yasui:3, chu:8, takai:20, saikou:45 };
 
 /* 指せる語句と、売る事実。解釈は売らない。 */
 var ASKS={
-  aki:{ ch:"1", line:"L047", phrase:"最後のページ、一番下の行", tier:"yasui",
-        say:"「その行ですか。端金です。……ただ、お勧めはしません」",
-        fact:"空けたのは帳場さんだった。通夜の始まる前に、そうしたという。" },
-  kotoba:{ ch:"2", line:"L041", phrase:"いいって言っといて", tier:"chu",
-        say:"「奥さんがお聞きになった言葉ですか。相応のお値段はいただきます」",
-        fact:"「いいって言っといて」の前に、兄は何かを言いかけて、やめたのだという。" },
-  fuutou:{ ch:"2", line:"L015", phrase:"封が切ってあった", tier:"takai",
-        say:"「あの封筒を、奥さんがいつ開けたか。安くはございません。……お勧めも、しません」",
-        fact:"凪さんがあの封筒を見つけたのは、事故の前の日だった。" },
-  hikiage:{ ch:"3", line:"L038", phrase:"震える手でわたしの頭を拭いていた", tier:"chu",
-        say:"「堤防から落ちた日のことですか。相応のお値段はいただきます」",
-        fact:"あの日から、兄は必ず救命胴衣を着けるようになった。" },
-  motte:{ ch:"5", line:"L027", phrase:"持っていけ", tier:"saikou",
-        say:"帳場さんは、何も言わなかった。値も、言わなかった。",
-        fact:"あの電話は、汐里が東京に着いた翌日にかかっている。" },
-  toi:{ ch:"4", line:"L060", phrase:"兄が、帳場さんに", tier:"takai",
-        say:"「ひと月前の、あのお尋ねですか。安くはございません。……お勧めも、しません」",
-        fact:"堤防から落ちたら、事故になりますか。兄はそう聞いたという。" }
+  techou:{ ch:"4", line:"L030", phrase:"1,000,000", tier:"yasui", item:"手帳　一件",
+    say:"「そのページの、続きです。端金です」",
+    fact:"帳場さんが、線の引かれたページを、指で押さえたまま裏返した。|裏に、日付があった。|三年前の、四月十九日。|わたしが出た日の、六日後。|線は、その日に引かれていた。" },
+
+  kippu:{ ch:"4", line:"L038", phrase:"改札の鋏の跡", tier:"yasui", item:"切符　一件",
+    say:"「切符の、表です。端金です」",
+    fact:"切符を光にかざした。印字は薄かったけれど、読めた。|三年前、四月十九日。上り、朝の便。|わたしが出た日の、六日後。|鋏の跡はない。改札は、通っていない。" },
+
+  aki:{ ch:"1", line:"L047", phrase:"最後のページ、一番下の行", tier:"yasui", item:"芳名帳　一件",
+    say:"「端金です。……ただ、お勧めはしません」",
+    fact:"帳場さんが、芳名帳を回してくれた。最後の行。|自分の名前の横に、細い字で、一文字。|内。|その下に、短い線が、何本か引いてあった。|数えた。今夜、帳場さんが見せてくれたものの数と、同じだった。|金額の欄は、空だった。" },
+
+  rusuban:{ ch:"5", line:"L014", phrase:"ただの二秒", tier:"chu", item:"留守番　一件",
+    say:"「相応のお値段はいただきます」",
+    fact:"兄の留守番電話には、二秒の無音だけが残っていた。|もう一度、聞いた。|一秒。二秒。|息を、吸う音がした。|それで、切れた。" },
+
+  hikiage:{ ch:"3", line:"L038", phrase:"震える手でわたしの頭を拭いていた", tier:"chu", item:"堤防の件　一件",
+    say:"「相応のお値段はいただきます」",
+    fact:"七つの夏。堤防から落ちて、兄に引き上げられた。|その前の夏、兄は救命胴衣を着けていなかった。港の中でも、沖でも。父もそうだった。|その次の夏から、兄は着けていた。港の中でも。|あの日からだった。" },
+
+  kotoba:{ ch:"2", line:"L041", phrase:"いいって言っといて", tier:"chu", item:"言伝の件　一件",
+    say:"「奥さんがわたくしにお話しになったことです。相応のお値段はいただきます」",
+    fact:"土曜の朝。玄関で、兄は凪さんに言った。|「汐里に、もう」|そこで、止まった。|少し間があって、それから。|「いいって言っといて」|凪さんがわたしに伝えたのは、後ろの半分だった。" },
+
+  fuutou:{ ch:"2", line:"L015", phrase:"封が切ってあった", tier:"takai", item:"封筒の件　一件",
+    say:"「安くはございません。……お勧めしません」",
+    fact:"仏間の引き出しに、保険の封筒が重ねてある。一番上だけ、封が切ってあった。|切られたのは、金曜の夜だった。|兄が、東京に電話をかけた日の、夜。|兄が家を出たのは、その翌朝だった。" },
+
+  toi:{ ch:"4", line:"L060", phrase:"兄が、帳場さんに", tier:"takai", item:"お尋ねの件　一件",
+    say:"「安くはございません。……お勧めも、しません」",
+    fact:"ひと月前。この机で。|兄は帳場さんに、一つだけ聞いた。|「堤防から落ちたら、事故になりますか」|帳場さんは、答えた。|何と答えたかは、帳場さんは言わなかった。答えた、とだけ言った。" },
+
+  motte:{ ch:"5", line:"L027", phrase:"持っていけ", tier:"saikou", item:null,
+    say:"帳場さんは、何も言わない。値も言わない。机の上に、一枚の紙を置く。",
+    fact:"兄の古い携帯の、発信履歴の写しだった。|三年前の欄。|四月十四日　午前十時三分　発信　汐里　一分四十秒|わたしが東京に着いた朝。|その前の日の夜に、わたしは出ている。" }
 };
 
 var PLACES=[
@@ -447,10 +464,15 @@ function offer(k){
     S.bought[k]=true; S.spent+=price;
     var w=document.createElement("div");
     w.className="stub";
-    w.innerHTML='<div class="stub-in">芳名帳　内引<br>'+A.phrase+'　一件<br>'+
+    w.innerHTML='<div class="stub-in">芳名帳　内引<br>'+(A.item||'——')+'<br>'+
                 '<span class="amt2">金 ■■■ 円</span></div>';
-    var p=document.createElement("p"); p.className="l"; p.textContent=A.fact;
-    $("slot").replaceChildren(w,p);
+    var frag=document.createDocumentFragment();
+    frag.appendChild(w);
+    A.fact.split("|").forEach(function(t){
+      var q=document.createElement("p"); q.className="l"; q.textContent=t;
+      frag.appendChild(q);
+    });
+    $("slot").replaceChildren(frag);
     document.querySelectorAll('.ask[data-k="'+k+'"]').forEach(function(e2){ e2.classList.add("used"); });
     if(S.done) S.lastAsk=false;
     burn(); S.done ? corridor() : drawNav();
@@ -568,7 +590,7 @@ function edNumber(i,op){ var n=0; for(var j=0;j<i;j++) n+=maxSeals(STEPS[j])+1; 
 
 function slipOf(host, opened, sf, bal){
   var items=Object.keys(S.bought).map(function(k){
-    return { name:ASKS[k].phrase, price:priceOf(ASKS[k].tier) };
+    return { name:ASKS[k].item || "——", price:priceOf(ASKS[k].tier) };
   });
   var rows=items.map(function(it){
     return '<div class="slip-r"><span>'+it.name+'</span><span>−'+yen(it.price)+'</span></div>';
