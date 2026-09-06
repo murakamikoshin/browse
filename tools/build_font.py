@@ -11,6 +11,7 @@ artifact では外部のフォントを読めない（CSPで fonts.gstatic.com �
 import io, os, re, sys, glob, base64
 from fontTools import subset
 from fontTools.ttLib import TTFont
+from fontTools.pens.boundsPen import BoundsPen
 
 CAP = 1_200_000          # base64にすると1.33倍。ここを超えたら使う場所を絞る
 
@@ -37,18 +38,36 @@ if __name__ == "__main__":
         print("fonts/ に書体がありません（fonts/README.md）"); sys.exit(0)
     want = chars()
     f = TTFont(p, fontNumber=0)
+    cmap = f.getBestCmap()
+    gs = f.getGlyphSet()
     have = set()
     for t in f["cmap"].tables: have.update(chr(c) for c in t.cmap)
+
+    # 字割りだけあって輪郭が無い字がある。クラフト明朝は第二水準の多く（綺・柩・框・鋏・舫）が
+    # これで、cmap には載っているので次の書体に落ちてくれない。**そのまま焼くと空白になる。**
+    # 削る前にここで外して、次の書体（Zen Old Mincho）に渡す。
+    blank = set()
+    for c in want & have:
+        g = cmap.get(ord(c))
+        if not g: continue
+        bp = BoundsPen(gs)
+        try: gs[g].draw(bp)
+        except Exception: continue
+        if bp.bounds is None: blank.add(c)
+
     miss = sorted(want - have)
     print("%s  収録 %d字 ／ この作品が使う %d字" % (os.path.basename(p), len(have), len(want)))
     if miss:
         print("\n**この書体に無い文字 %d字**（落ちずに次の書体で出るが、そこだけ書体が混ざる）" % len(miss))
         print("   " + " ".join(miss))
     else:
-        print("\n無い文字はありません")
+        print("\nこの書体に無い文字はありません")
+    if blank:
+        print("\n**中身が空の字 %d字**（焼き込むと空白になるので、この書体からは外す）" % len(blank))
+        print("   " + " ".join(sorted(blank)))
     if "--check" in sys.argv: sys.exit(0)
 
-    use = "".join(sorted(want & have))
+    use = "".join(sorted((want & have) - blank))
     out = "/tmp/subset.woff2"
     subset.main([p, "--text=" + use, "--flavor=woff2", "--layout-features=*",
                  "--no-hinting", "--desubroutinize", "--output-file=" + out])

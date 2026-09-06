@@ -71,7 +71,9 @@ for (const idx of AMOUNTS) {
         /* 選べるものが一つも無ければ行き止まり */
         const has = (re) => nav.filter(b => re.test(b.t)).map(b => b.t);
         /* 手を動かすところ。半分は「やめる」ほうを選んで、戻ってこられるか見る */
-        if (nav.length <= 2 && !nav.some(b => /^(玄関|仏間|港|帳場|閉じる|夜を終える|横になる|読み進める|はい|いいえ|最初から)/.test(b.t))) {
+        const PLACE = /^(玄関・帳場|仏間|港|帳場の奥|玄関の外)$/;
+        const UI = /^(閉じる|やめる|ほかの場所へ|もう一度読む|夜を終える|横になる|読み進める|はい|いいえ|最初から)$/;
+        if (nav.length <= 2 && !nav.some(b => PLACE.test(b.t) || UI.test(b.t))) {
           out.acts = (out.acts || 0) + 1;
           D.nav(nav.length === 2 && out.acts % 2 === 0 ? nav[1].t : nav[0].t); continue;
         }
@@ -89,8 +91,7 @@ for (const idx of AMOUNTS) {
           if (s.place === 'cha') { const a2 = has(/のこと$/); if (a2.length) { D.nav(a2[0]); continue; } }
         }
         if (way.talk) {
-          const skip = /^(玄関|仏間|港|帳場|閉じる|やめる|ほかの場所へ|もう一度読む|夜を終える|横になる|読み進める|いいえ|はい|最初から)/;
-          const tk = nav.filter(b => !skip.test(b.t) && !/のこと$/.test(b.t)).map(b => b.t);
+          const tk = nav.filter(b => !PLACE.test(b.t) && !UI.test(b.t) && !/のこと$/.test(b.t)).map(b => b.t);
           if (tk.length) { D.nav(tk[0]); out.talked++; continue; }
         }
         const go = has(/読み進める/); if (go.length) { D.nav(go[0]); continue; }
@@ -212,6 +213,30 @@ await ui('章の札は同じ章で二度出ない', async () => {
   const b = await page.evaluate(() => window.__dev.state().chapcard);
   return a >= 2 && b === false; });
 
+await ui('ふりがなが小さくなりすぎない', async () => {
+  const px = await page.evaluate(() => {
+    const rt = document.querySelector('#wt rt');
+    return rt ? parseFloat(getComputedStyle(rt).fontSize) : 0;
+  });
+  return px >= 9.5; });
+await ui('なぞっても字が選べない', async () =>
+  await page.evaluate(() => {
+    const v = (el) => getComputedStyle(el).webkitUserSelect || getComputedStyle(el).userSelect;
+    return v(document.body) === 'none' && v(document.getElementById('wt')) === 'none';
+  }));
+await ui('切り替えると合図が出る', async () => {
+  await page.click('#bruby');
+  const a = await page.locator('#toast.on').count();
+  const t = await page.textContent('#toast');
+  await page.click('#bruby');
+  return a === 1 && /ふりがな/.test(t); });
+await ui('夜の場所に章の番号が付いていない', async () => {
+  const t = await page.evaluate(() => {
+    const c = document.getElementById('chapcard');
+    return (c.querySelector('.cc-n').textContent || '') + (c.querySelector('.cc-t').textContent || '');
+  });
+  return t.length > 0 && !/第.章/.test(t); });
+
 /* 帳。見た結末の数と、帳場さんの帳が段どおりに開くか */
 console.log('\n  帳');
 const to = async (name, fn) => { const r = await fn(); console.log('    ' + (r ? '\u25cb' : '\u00d7') + ' ' + name); if (!r) note('帳: ' + name); };
@@ -221,14 +246,14 @@ const seed = async (n) => {
     try { localStorage.setItem('choba.ed', JSON.stringify(a)); } catch (e) {} }, n);
   await page.reload();
 };
-await to('何も見ていないと帳の口は出ない', async () => {
+await to('何も見ていないと帳は押せない', async () => {
   await page.goto(URL); await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
   await page.reload();
-  return await page.locator('#tolink button').count() === 0; });
-await to('一度見ると包む前の画面から開ける', async () => {
-  await seed(1); return await page.locator('#tolink button').count() === 1; });
+  return await page.locator('#tto').isDisabled(); });
+await to('一度見ると題の画面から開ける', async () => {
+  await seed(1); return !(await page.locator('#tto').isDisabled()); });
 await to('八十五行あり、見た分だけ名が出る', async () => {
-  await seed(38); await page.click('#tolink button');
+  await seed(38); await page.click('#tto');
   const all = await page.locator('#tobox .to-e').count();
   const on = await page.locator('#tobox .to-e:not(.off)').count();
   const named = await page.locator('#tobox .to-e:not(.off) .nm').evaluateAll(e => e.filter(x => x.textContent.trim()).length);
@@ -242,13 +267,58 @@ await to('額と開封の対応は帳に出ていない', async () => {
   return !/金[一二三四五六七八九十百千万]+円/.test(t) && t.indexOf('開封') < 0; });
 for (const [n, open] of [[4, 0], [5, 1], [15, 2], [30, 3], [50, 4], [85, 5]]) {
   await to(`結末${n} で帳場さんの帳が${open}節`, async () => {
-    await seed(n); await page.click('#tolink button');
+    await seed(n); await page.click('#tto');
     const o = await page.locator('#tobox .to-s.on').count();
     const lock = await page.locator('#tobox .to-s.lock').count();
     return o === open && o + lock === 5; });
 }
+await to('結末を押すと最後の一行が出る', async () => {
+  await seed(40); await page.click('#tto');
+  await page.locator('.to-e[data-n]').nth(5).click();
+  const t = await page.textContent('#tod');
+  return t.length > 20 && !/金[一二三四五六七八九十百千万]+円|¥|開封/.test(t); });
 await to('Escape で閉じる', async () => {
   await page.keyboard.press('Escape'); return await page.locator('#tobox.on').count() === 0; });
+
+/* 画面の並び。題 → 説明三枚 → 支払い。どの画面も一枚に収まって、頁が動かない */
+console.log('\n  画面の並び');
+const noScroll = () => page.evaluate(() =>
+  document.documentElement.scrollHeight <= window.innerHeight + 1 &&
+  document.documentElement.scrollWidth <= window.innerWidth);
+await to('題から始まる', async () => {
+  await page.goto(URL);
+  await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
+  await page.reload();
+  return await page.locator('#title.on').count() === 1 && await noScroll(); });
+await to('説明は三枚で、戻れる', async () => {
+  await page.click('#tstart');
+  const t = [];
+  t.push(await page.textContent('#ititle'));
+  await page.locator('#inav button', { hasText: '次へ' }).click();
+  t.push(await page.textContent('#ititle'));
+  await page.locator('#inav button', { hasText: '戻る' }).click();
+  const back = await page.textContent('#ititle');
+  await page.locator('#inav button', { hasText: '次へ' }).click();
+  await page.locator('#inav button', { hasText: '次へ' }).click();
+  t.push(await page.textContent('#ititle'));
+  return t.length === 3 && back === t[0] && await noScroll(); });
+await to('支払いへ進んで、題へ戻れる', async () => {
+  await page.locator('#inav button', { hasText: '包む画面へ' }).click();
+  const at = await page.locator('#pay.on').count();
+  const ns = await noScroll();
+  await page.click('#pback');
+  return at === 1 && ns && await page.locator('#title.on').count() === 1; });
+await to('設定でふりがなと音を切り替えられる', async () => {
+  await page.click('#tset');
+  const a = await page.textContent('#setruby');
+  await page.click('#setruby');
+  const b = await page.textContent('#setruby');
+  await page.click('#setruby');
+  const c = await page.textContent('#setau');
+  await page.click('#setau');
+  const d = await page.textContent('#setau');
+  await page.click('#setau'); await page.click('#setclose');
+  return a !== b && c !== d; });
 
 /* 狭い画面。配信を見て携帯で開く人がいるので、ここが崩れていると届かない */
 console.log('\n  狭い画面');
