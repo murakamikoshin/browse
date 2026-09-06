@@ -6,7 +6,7 @@
 支払額×開封数の格子は96あるが、そのうち11は誰も到達できない。名前が要るのは85。
 
   python3 tools/build_ed.py --slots    名前が要る85組を並べる（発注用）
-  python3 tools/build_ed.py            step4_ed_names.md を検査して流し込む
+  python3 tools/build_ed.py            step5_ed_names.md を検査して流し込む
 """
 import io, re, sys, json
 from itertools import combinations
