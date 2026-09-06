@@ -109,9 +109,18 @@ body::before{
   background:rgba(8,12,14,.9); border:1px solid var(--edge); color:var(--fg-dim);
   font-family:inherit; font-size:.84rem; cursor:pointer; }
 
-/* 説明。一枚ずつ送る。頁を長くしない */
-#intro.on{ height:100dvh; display:flex; align-items:center; }
-#intro .inner{ width:100%; padding:24px 0; }
+/* 説明。一枚ずつ送る。頁を長くしない。
+   **送りのボタンは動かさない。** 頁ごとに行数が違うので、下から追わせると
+   毎回カーソルを動かすことになる。位置は下から固定する。 */
+#intro.on{ height:100dvh; display:flex; align-items:center; position:relative; }
+#intro .inner{ width:100%; padding:24px 0 22vh; }
+#inav{ position:absolute; left:0; right:0; bottom:12vh; margin-top:0; }
+/* 幅も固定する。最後の頁だけ字数が多いと、左右にもずれて追わせることになる */
+#inav button{ min-width:9.6em; }
+@media (max-height:620px){
+  #intro .inner{ padding-bottom:19vh; }
+  #inav{ bottom:9vh; }
+}
 #intro .t{ margin-bottom:30px; font-size:1.5rem; letter-spacing:.2em; }
 #intro .terms{ margin-bottom:34px; }
 #intro .terms div{ line-height:1.95; }

@@ -299,8 +299,18 @@ await to('題から始まる', async () => {
   await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
   await page.reload();
   return await page.locator('#title.on').count() === 1 && await noScroll(); });
+await to('送りのボタンが三枚とも同じ位置', async () => {
+  await page.goto(URL); await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
+  await page.reload(); await page.click('#tstart');
+  const pos = [];
+  for (let i = 0; i < 3; i++) {
+    pos.push(await page.evaluate(() => [...document.querySelectorAll('#inav button')]
+      .map(b => { const r = b.getBoundingClientRect(); return Math.round(r.left) + ',' + Math.round(r.top); }).join('/')));
+    if (i < 2) await page.locator('#inav button', { hasText: '次へ' }).click();
+  }
+  return pos[0] === pos[1] && pos[1] === pos[2]; });
 await to('説明は三枚で、戻れる', async () => {
-  await page.click('#tstart');
+  await page.goto(URL); await page.reload(); await page.click('#tstart');
   const t = [];
   t.push(await page.textContent('#ititle'));
   await page.locator('#inav button', { hasText: '次へ' }).click();
