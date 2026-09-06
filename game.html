@@ -70,6 +70,11 @@ button.go:focus-visible, .pm button:focus-visible{ outline:2px solid var(--accen
 .confirm button{ padding:9px 20px; background:transparent; border:1px solid var(--edge);
   color:var(--fg-dim); font-family:inherit; font-size:.9rem; cursor:pointer; }
 .confirm button:hover{ border-color:var(--accent); color:var(--fg); }
+.terms2{ margin-top:-24px; margin-bottom:44px; }
+.terms-h{ font-family:"Zen Old Mincho",serif; font-size:.72rem; letter-spacing:.28em;
+          color:var(--fg-faint); padding-bottom:6px; }
+.terms span{ min-width:3.2em; }
+.note b{ color:var(--fg-dim); font-weight:500; }
 .note{ margin-top:34px; font-size:.72rem; line-height:1.9; color:var(--fg-faint); }
 
 /* 上部（線香） */
@@ -267,8 +272,9 @@ rt{ font-size:.46em; font-weight:400; line-height:1; letter-spacing:.01em;
   background:rgba(8,12,14,.74); backdrop-filter:blur(14px); padding:11px 15px 13px; }
 #nav .row{ display:flex; gap:12px; align-items:baseline; padding:5px 0; }
 #nav .row + .row{ border-top:1px solid rgba(120,132,128,.13); }
-#nav .row-l{ flex:0 0 auto; width:7.4em; font-family:"IBM Plex Mono",monospace;
-  font-size:.56rem; letter-spacing:.16em; color:var(--fg-faint); padding-top:.7em; }
+#nav .row-l{ flex:0 0 auto; width:8.2em; font-family:"Zen Old Mincho",serif;
+  font-size:.82rem; letter-spacing:.1em; color:var(--fg-dim); padding-top:.55em; line-height:1.5; }
+.row-l small{ display:block; font-size:.66rem; letter-spacing:.06em; color:var(--fg-faint); }
 #nav .acts{ flex:1 1 auto; display:flex; gap:6px; flex-wrap:wrap; }
 #nav .acts button{ padding:6px 12px; font-size:.85rem; background:rgba(20,27,29,.5);
   border:1px solid var(--edge); color:var(--fg-dim); font-family:inherit; cursor:pointer;
@@ -304,7 +310,10 @@ rt{ font-size:.46em; font-weight:400; line-height:1; letter-spacing:.01em;
 .hbar{ display:flex; gap:5px; }
 .hud button.on{ color:var(--accent); border-color:var(--accent); }
 .hud button.off{ opacity:.42; }
-#bruby,#bau{ font-family:"Zen Old Mincho",serif; letter-spacing:.08em; }
+.menu-h{ font-family:"Zen Old Mincho",serif; font-size:.8rem; color:var(--fg-faint);
+         padding:2px 0 14px; letter-spacing:.04em; }
+.menu-h.warn{ color:#D28C79; }
+.hud .hbar button{ font-family:"Zen Old Mincho",serif; font-size:.72rem; letter-spacing:.1em; }
 </style>
 </head>
 <body>
@@ -315,12 +324,12 @@ rt{ font-size:.46em; font-weight:400; line-height:1; letter-spacing:.01em;
     <div class="sticks" id="sticks"></div>
     <span class="place" id="place"></span>
     <span class="hbar">
-      <button type="button" id="bauto">AUTO</button>
-      <button type="button" id="bskip">SKIP</button>
-      <button type="button" id="blog">LOG</button>
+      <button type="button" id="bauto">自動</button>
+      <button type="button" id="bskip">早送り</button>
+      <button type="button" id="blog">記録</button>
       <button type="button" id="bau">音</button>
       <button type="button" id="bruby">ふりがな</button>
-      <button type="button" id="bnav">行き先</button>
+      <button type="button" id="bnav">どうする</button>
     </span>
   </div>
 </div>
@@ -340,6 +349,13 @@ rt{ font-size:.46em; font-weight:400; line-height:1; letter-spacing:.01em;
         <div><span>二</span>返金はありません。</div>
         <div><span>三</span>始まったあと、足すことはできません。</div>
       </div>
+      <div class="terms terms2">
+        <div class="terms-h">この夜のこと</div>
+        <div><span>線香</span>一本尽きるごとに夜が進みます。尽きたら朝が来て、通夜は終わります。</div>
+        <div><span>歩く</span>家と港のあいだは自由に行き来できます。歩くのにも、読み直すのにも線香は要りません。</div>
+        <div><span>話す</span>人と話すと線香を一本使います。お金はかかりません。</div>
+        <div><span>朝</span>線香を残したまま、朝を待つこともできます。</div>
+      </div>
       <div class="amtrow">
         <div class="amt mono" id="pamt">¥0</div>
         <div class="pm">
@@ -351,7 +367,7 @@ rt{ font-size:.46em; font-weight:400; line-height:1; letter-spacing:.01em;
       <div class="ladder" id="ladder"></div>
       <button class="go" type="button" id="decide">この額で包む</button>
       <div id="confirmSlot"></div>
-      <p class="note">¥0 を選ぶと、襖の前に立ちません。封の値段も不足額も表示されず、四つあったという事実だけが精算書に残ります。<br>指した語句は、その場では買えません。帳場さんは玄関の机から動かないので、訊きたいことを控えて、帳場の奥に戻ってから訊きます。移動に線香は要りません。<br>これは制作中の試作です。実際の決済は行われません。全七章と四つの封、最終行まで、帯ごとの書き換えを含めて本文が入っています。ED名だけが未執筆です。</p>
+      <p class="note">用意した行動より、線香のほうが少なくしてあります。<b>全部はできません。</b>何をして何をしなかったかで、あなたの夜が決まります。<br>¥0 を選ぶと、襖の前に立ちません。封の値段も不足額も表示されず、四つあったという事実だけが精算書に残ります。<br>これは制作中の試作です。実際の決済は行われません。</p>
     </div>
   </section>
 
@@ -475,6 +491,10 @@ var TALK=[{"k":"t01","place":"genkan","who":null,"label":"芳名帳をもう一�
 
 /* 夜に灯る線香の数。用意した行動より少なくする。 */
 var INCENSE=14;
+
+/* 場面の途中で立ち止まる行。ここで、その場にいる相手と話せる。
+   第1章は五つの動作を入れてあるので置かない。第5章（玄関の外）には相手がいない。 */
+var BREAK={ "2":["L022","L038"], "3":["L021","L041"], "4":["L035","L047"] };
 
 var S = { idx:0, paid:0, band:0, spent:0, incense:INCENSE, place:"genkan", noted:{}, lastAsk:false,
           opened:false, bought:{}, talked:{}, shown:0, done:false, log:[], art:null, char:null };
@@ -785,6 +805,26 @@ function nextLine(){
     e(); return;
   }
   var it=Q.list[Q.i++];
+  if(it.brk){                                   // 場面の途中。ここにいる相手と話せる
+    var av=TALK.filter(function(x){ return x.place===it.brk && !S.talked[x.k]; });
+    if(!av.length){ nextLine(); return; }
+    $("win").classList.remove("on");
+    var back=Q.list, bi=Q.i;                    // 読みかけを覚えておいて、話し終えたら戻る
+    menu([["話す\n線香を一本", av.map(function(x){
+      return [x.label, function(){
+        S.talked[x.k]=true;
+        say(talkLines(x), function(){
+          if(!burn()){ Q.list=back; Q.i=bi; $("nav").replaceChildren(); nextLine(); }
+        });
+      }];
+    })], ["", [["読み進める", function(){ $("nav").replaceChildren(); nextLine(); }]]]]);
+    return;
+  }
+  if(it.act){                                   // 一手だけの間。線香は減らない
+    $("win").classList.remove("on");
+    choices([[it.act, function(){ $("nav").replaceChildren(); auSE("ki"); nextLine(); }]]);
+    return;
+  }
   if(it.card){                                  // 領収書・精算書。窓を閉じて札だけ見せる
     $("card").replaceChildren(it.card());
     $("win").classList.remove("on");
@@ -831,7 +871,7 @@ function type(html){
   Q.tid=setInterval(function(){
     if(Q.k>=Q.chars.length){ revealAll(); return; }
     Q.chars[Q.k++].style.opacity="1";
-  },26);
+  },17);
 }
 function revealAll(){
   clearInterval(Q.tid); Q.tid=null;
@@ -894,6 +934,7 @@ $("game").addEventListener("click",function(e){
 document.addEventListener("keydown",function(e){
   if(!$("game").classList.contains("on")) return;
   if($("logbox").classList.contains("on")){ if(e.key==="Escape") closeLog(); return; }
+  if(e.key==="Escape"){ if($("nav").firstChild && !S.done) $("nav").replaceChildren(); return; }
   if(e.key===" "||e.key==="Enter"){ e.preventDefault(); tap(null); }
 });
 
@@ -923,9 +964,12 @@ function openLog(){
   $("logbox").scrollTop=$("logbox").scrollHeight;
 }
 function closeLog(){ $("logbox").classList.remove("on"); $("logclose").hidden=true; }
-$("blog").addEventListener("click",openLog);
+$("blog").addEventListener("click",function(){ $("logbox").classList.contains("on")?closeLog():openLog(); });
 $("logclose").addEventListener("click",closeLog);
-$("bnav").addEventListener("click",function(){ if(!S.done) drawNav(); });
+$("bnav").addEventListener("click",function(){
+  if(S.done) return;
+  if($("nav").firstChild) $("nav").replaceChildren(); else drawNav();   // 押したら閉じる
+});
 
 /* ふりがなの入り切り。切っても本文は変わらない（辞書を当てているだけなので） */
 try{ if(localStorage.getItem("ruby")==="0") RUBYON=false; }catch(e){}
@@ -973,8 +1017,18 @@ function enter(k){
   var hint = P.opens && !S.opened;
   if(P.opens) S.opened=true;
   var at=BGAT[P.src]||{};
-  var q=(CH[P.src]||{order:[]}).order.map(function(id){
-    return { t:chText(P.src,id), src:P.src, id:id, bg:at[id] };
+  var q=[];
+  /* 第一章だけ一本道が長い。話の中にある動作を、そのまま一手にして渡す。
+     線香は減らない。読むだけの時間が続かないようにするためだけの間。 */
+  var ACT1={ L006:"振り向く", L014:"戸を開ける", L032:"鞄に手を入れる",
+             L042:(S.paid>0?"袋を出す":"鞄から手を出す"), L051:"汐里、と書く" };
+  /* 選択肢を章の切れ目だけに置くと、読むだけの時間が長くなる。
+     その場面に相手がいるところで立ち止まらせて、話すかどうかをそこで選ばせる。 */
+  var BRK=(BREAK[P.src]||[]);
+  (CH[P.src]||{order:[]}).order.forEach(function(id){
+    if(P.src==="1" && ACT1[id]) q.push({act:ACT1[id]});
+    q.push({ t:chText(P.src,id), src:P.src, id:id, bg:at[id] });
+    if(BRK.indexOf(id)>=0) q.push({brk:P.k});
   });
   /* 仕組みの開示は場所ではなく行動。茶を飲んだ時点で一度だけ（SPEC 3.5 A）。 */
   if(hint) q.push({t:"「何か、気になるものはございましたか」", who:"帳場さん"});
@@ -989,7 +1043,10 @@ function menu(rows){
   rows.forEach(function(r){
     if(!r[1].length) return;
     var row=document.createElement("div"); row.className="row";
-    var l=document.createElement("div"); l.className="row-l"; l.textContent=r[0];
+    var l=document.createElement("div"); l.className="row-l";
+    var lab=String(r[0]).split("\n");
+    l.textContent=lab[0];
+    if(lab[1]){ var s=document.createElement("small"); s.textContent=lab[1]; l.appendChild(s); }
     var a=document.createElement("div"); a.className="acts";
     r[1].forEach(function(x){
       var b=document.createElement("button"); b.type="button"; b.textContent=x[0];
@@ -1057,25 +1114,44 @@ function drawNav(){
 
   if(S.place==="cha"){
     var pend=Object.keys(S.noted).filter(function(k){ return !S.bought[k]; });
-    rows.push(["訊きたいこと", pend.map(function(k){
+    rows.push(["訊きたいこと\n線香を一本と、帳に", pend.map(function(k){
       return ["「"+ASKS[k].phrase+"」のこと", function(){ offer(k); }];
     })]);
   }
-  rows.push(["線香を一本", TALK.filter(function(t){ return t.place===S.place && !S.talked[t.k]; })
+  rows.push(["話す\n線香を一本", TALK.filter(function(t){ return t.place===S.place && !S.talked[t.k]; })
     .map(function(t){
       return [t.label, function(){
         S.talked[t.k]=true;
         say(talkLines(t), function(){ if(!burn()) drawNav(); });
       }];
     })]);
-  rows.push(["歩く", PLACES.map(function(p){
+  rows.push(["歩く\n線香は要らない", PLACES.map(function(p){
     return [p.name, function(){ enter(p.k); }, p.k===S.place];
   })]);
-  rows.push(["夜を終える", [[S.incense>1 ? "線香が尽きるまで、座っている" : "夜明けを待つ", function(){
-    S.incense=0; drawSticks();
-    say([{t:"仏間の隅に座った。線香を継ぎ足しながら、朝までそうしていた。",cls:"aside"}], dawn);
-  }]]]);
+  rows.push(["", [["朝を待つ", askDawn], ["閉じる", function(){ $("nav").replaceChildren(); }]]]);
   menu(rows);
+  if(!S.navSeen){                                    // 初めてここに来た人にだけ
+    S.navSeen=true;
+    var h=document.createElement("div"); h.className="menu-h";
+    h.textContent="線香が一本尽きるごとに夜が進みます。全部はできません。";
+    $("nav").querySelector(".menu").prepend(h);
+  }
+}
+
+/* 朝は戻れない。押し間違いで夜が終わらないように、残りを見せてから訊く。 */
+function askDawn(){
+  if(S.incense<=1){ toDawn(); return; }
+  menu([["", [
+    ["いいえ、まだ夜のうちに", drawNav],
+    ["はい、朝にする", toDawn]
+  ]]]);
+  var h=document.createElement("div"); h.className="menu-h warn";
+  h.textContent="線香が"+kan(S.incense)+"本、残っています。朝になると、この夜には戻れません。";
+  $("nav").querySelector(".menu").prepend(h);
+}
+function toDawn(){
+  S.incense=0; drawSticks();
+  say([{t:"仏間の隅に座った。線香を継ぎ足しながら、朝までそうしていた。",cls:"aside"}], dawn);
 }
 
 /* ---------- 夜明けと扉 ---------- */
