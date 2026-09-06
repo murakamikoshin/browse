@@ -212,6 +212,44 @@ await ui('章の札は同じ章で二度出ない', async () => {
   const b = await page.evaluate(() => window.__dev.state().chapcard);
   return a >= 2 && b === false; });
 
+/* 帳。見た結末の数と、帳場さんの帳が段どおりに開くか */
+console.log('\n  帳');
+const to = async (name, fn) => { const r = await fn(); console.log('    ' + (r ? '\u25cb' : '\u00d7') + ' ' + name); if (!r) note('帳: ' + name); };
+const seed = async (n) => {
+  await page.goto(URL);
+  await page.evaluate((n) => { const a = []; for (let i = 1; i <= n; i++) a.push(i);
+    try { localStorage.setItem('choba.ed', JSON.stringify(a)); } catch (e) {} }, n);
+  await page.reload();
+};
+await to('何も見ていないと帳の口は出ない', async () => {
+  await page.goto(URL); await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
+  await page.reload();
+  return await page.locator('#tolink button').count() === 0; });
+await to('一度見ると包む前の画面から開ける', async () => {
+  await seed(1); return await page.locator('#tolink button').count() === 1; });
+await to('八十五行あり、見た分だけ名が出る', async () => {
+  await seed(38); await page.click('#tolink button');
+  const all = await page.locator('#tobox .to-e').count();
+  const on = await page.locator('#tobox .to-e:not(.off)').count();
+  const named = await page.locator('#tobox .to-e:not(.off) .nm').evaluateAll(e => e.filter(x => x.textContent.trim()).length);
+  const blank = await page.locator('#tobox .to-e.off .nm').evaluateAll(e => e.every(x => !x.textContent.trim()));
+  return all === 85 && on === 38 && named === 38 && blank; });
+await to('見ていない結末の名は出ていない', async () => {
+  const t = await page.locator('#tobox').innerText();
+  return t.indexOf('わたしの帳') < 0 && t.indexOf('兄の帳') < 0; });
+await to('額と開封の対応は帳に出ていない', async () => {
+  const t = await page.locator('#tobox').innerText();
+  return !/金[一二三四五六七八九十百千万]+円/.test(t) && t.indexOf('開封') < 0; });
+for (const [n, open] of [[4, 0], [5, 1], [15, 2], [30, 3], [50, 4], [85, 5]]) {
+  await to(`結末${n} で帳場さんの帳が${open}節`, async () => {
+    await seed(n); await page.click('#tolink button');
+    const o = await page.locator('#tobox .to-s.on').count();
+    const lock = await page.locator('#tobox .to-s.lock').count();
+    return o === open && o + lock === 5; });
+}
+await to('Escape で閉じる', async () => {
+  await page.keyboard.press('Escape'); return await page.locator('#tobox.on').count() === 0; });
+
 /* 狭い画面。配信を見て携帯で開く人がいるので、ここが崩れていると届かない */
 console.log('\n  狭い画面');
 for (const [w, h, name] of [[390, 844, '携帯 390x844'], [360, 640, '小さめ 360x640'], [820, 1180, 'タブレット 820x1180']]) {

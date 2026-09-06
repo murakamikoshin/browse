@@ -1,0 +1,15 @@
+# 書体の本体は置かない。
+# クラフト明朝の許諾は「フォントファイルのみの再配布・販売」を禁じている。
+# このリポジトリは公開なので、.otf をそのまま置くとそれに当たる。
+# 作品に必要な862字ぶんは game.html に焼き込んであるので、遊ぶだけなら要らない。
+# 焼き直したいときだけ https://free-fonts.jp/craftmincho/ から取って fonts/ に置く。
+fonts/*.otf
+fonts/*.ttf
+fonts/*.woff
+fonts/*.woff2
+
+# 音の素材も同じ。置いた人の手元にだけあればよい
+audio/*.mp3
+audio/*.ogg
+audio/*.m4a
+audio/*.wav
