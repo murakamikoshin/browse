@@ -101,6 +101,7 @@ p.l{ margin:0 0 1.3em; animation:fu .5s ease-out; }
 .ask{ cursor:inherit; }
 .reveal .ask{ box-shadow:inset 0 -1px 0 rgba(185,146,69,.5); }
 .ask.used{ color:var(--fg-dim); }
+.ask.noted{ box-shadow:inset 0 -1px 0 rgba(185,146,69,.34); }
 .nothing{ animation:no .5s ease-out; }
 @keyframes no{ 0%{background:rgba(120,132,128,.09)} 100%{background:transparent} }
 
@@ -203,7 +204,7 @@ p.l{ margin:0 0 1.3em; animation:fu .5s ease-out; }
       <div class="ladder" id="ladder"></div>
       <button class="go" type="button" id="decide">この額で包む</button>
       <div id="confirmSlot"></div>
-      <p class="note">これは制作中の試作です。実際の決済は行われません。第一章から第五章まで本文が入っています。第五章の帯2〜5は未執筆のため、そこだけどの金額でも同じ文になります。</p>
+      <p class="note">指した語句は、その場では買えません。帳場さんは玄関の机から動かないので、訊きたいことを控えて、帳場の奥に戻ってから訊きます。移動に線香は要りません。<br>これは制作中の試作です。実際の決済は行われません。第一章から第五章まで本文が入っています。第五章の帯2〜5は未執筆のため、そこだけどの金額でも同じ文になります。</p>
     </div>
   </section>
 
@@ -282,7 +283,7 @@ var TALK=[
     text:"名前が並んでいる。どの行も、字の大きさが揃っていた。書き慣れた人が、順番に書かせたのだと思った。" }
 ];
 
-var S = { idx:0, paid:0, band:0, spent:0, incense:8, place:"genkan",
+var S = { idx:0, paid:0, band:0, spent:0, incense:8, place:"genkan", noted:{},
           opened:false, bought:{}, talked:{}, shown:0, done:false };
 
 var $=function(i){ return document.getElementById(i); };
@@ -416,7 +417,16 @@ $("story").addEventListener("click",function(e){
     return;
   }
   if(el.classList.contains("used")) return;
-  offer(el.dataset.k);
+  var k=el.dataset.k;
+  if(S.place==="cha"){ offer(k); return; }   // 帳場さんは玄関の机から動かない
+  if(S.noted[k]) return;
+  S.noted[k]=true;
+  el.classList.add("noted");
+  var p=document.createElement("p");
+  p.className="l"; p.style.color="var(--fg-dim)";
+  p.textContent="——帳場さんに訊いてみよう。朝までおります、と言っていた。";
+  $("story").appendChild(p);
+  drawNav();
 });
 
 function offer(k){
@@ -442,7 +452,7 @@ function offer(k){
     var p=document.createElement("p"); p.className="l"; p.textContent=A.fact;
     $("slot").replaceChildren(w,p);
     document.querySelectorAll('.ask[data-k="'+k+'"]').forEach(function(e2){ e2.classList.add("used"); });
-    burn();
+    burn(); drawNav();
   });
 }
 
@@ -450,6 +460,22 @@ function offer(k){
 function drawNav(){
   if(S.done){ $("nav").replaceChildren(); return; }
   var n=$("nav"); n.replaceChildren();
+
+  if(S.place==="cha"){
+    var pend=Object.keys(S.noted).filter(function(k){ return !S.bought[k]; });
+    if(pend.length){
+      var q=document.createElement("div");
+      q.className="map";
+      q.innerHTML='<div class="map-l">訊きたいこと</div><div class="acts"></div>';
+      pend.forEach(function(k){
+        var b=document.createElement("button");
+        b.type="button"; b.textContent="「"+ASKS[k].phrase+"」のこと";
+        b.addEventListener("click",function(){ offer(k); });
+        q.querySelector(".acts").appendChild(b);
+      });
+      n.appendChild(q);
+    }
+  }
   var talks=TALK.filter(function(t){ return t.place===S.place && !S.talked[t.k]; });
   if(talks.length){
     var d=document.createElement("div");
