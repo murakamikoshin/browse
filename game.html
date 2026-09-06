@@ -250,6 +250,10 @@ var SEALS=[{n:"第一封",t:"凪の真実",p:1000},{n:"第二封",t:"世界の�
            {n:"第三封",t:"兄の真実",p:100000},{n:"第四封",t:"あなたの真実",p:1000000}];
 var RATE={ yasui:3, chu:8, takai:20, saikou:45 };
 
+/* ED名 ここから */
+var EDNAMES={};
+/* ED名 ここまで */
+
 
 /* 指せる語句と、売る事実。解釈は売らない。 */
 var ASKS={
@@ -596,7 +600,26 @@ function corridor(){
 
 /* ---------- 朝 ---------- */
 function maxSeals(v){ var n=0; SEALS.forEach(function(s){ if(v>=s.p) n++; }); return n; }
-function edNumber(i,op){ var n=0; for(var j=0;j<i;j++) n+=maxSeals(STEPS[j])+1; return n+op+1; }
+
+/* 買える上限は99%なので、残高は支払額の1%を下回らない。¥100,000以上は必ず一封、
+   満額は必ず二封が開く。支払額×開封数の格子は96あるが、11は誰も到達できない。
+   ED番号は到達する85組だけに、支払額の順で詰めて振る。 */
+var MAXPCT=(function(){
+  var s=[0];
+  Object.keys(ASKS).forEach(function(k){
+    var p=RATE[ASKS[k].tier], n=[];
+    s.forEach(function(x){ if(x+p<=100) n.push(x+p); });
+    s=s.concat(n);
+  });
+  return Math.max.apply(null,s);
+})();
+function minSeals(v){ return maxSeals(v*(100-MAXPCT)/100); }
+function edNumber(i,op){
+  var n=0;
+  for(var j=0;j<i;j++) n+=maxSeals(STEPS[j])-minSeals(STEPS[j])+1;
+  return n+(op-minSeals(STEPS[i]))+1;
+}
+function edName(v,op){ return (EDNAMES[String(v)]||{})[String(op)] || "（ED名は未執筆）"; }
 
 /* 帳の言葉。額は漢数字で読む。 */
 var KD="〇一二三四五六七八九".split("");
@@ -664,7 +687,7 @@ function edCard(st){
     '<div class="slip-r"><span>開封</span><span>'+st.opened+' / '+SEALS.length+'</span></div>'+
     '<div class="slip-rule"></div>'+
     '<div class="slip-ed"><div class="no">ED-'+String(edNumber(S.idx,st.opened)).padStart(2,"0")+
-    '</div><div class="nm">（ED名は未執筆）</div></div></div>';
+    '</div><div class="nm">'+edName(S.paid,st.opened)+'</div></div></div>';
   return c;
 }
 
