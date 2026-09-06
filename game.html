@@ -411,7 +411,15 @@ function enter(k){
   st.appendChild(h);
   $("slot").replaceChildren();
   if(P.src) showCh(P.src,12);
-  if(P.opens) S.opened = true;
+  if(P.opens && !S.opened){
+    S.opened = true;
+    /* 一度だけ。仕組みの存在だけを示し、それ以上は説明しない（SPEC 3.5 A）。
+       文言は SPEC のもの。差し替えるなら本文側の発注に回す。 */
+    var hint=document.createElement("div");
+    hint.className="cb";
+    hint.innerHTML='<div class="who">帳場さん</div><p>「何か、気になるものはございましたか」</p>';
+    $("slot").replaceChildren(hint);
+  } else if(P.opens){ S.opened = true; }
   drawNav();
 }
 
@@ -463,12 +471,24 @@ function offer(k){
   var A=ASKS[k], price=priceOf(A.tier);
   var box=document.createElement("div");
   box.className="cb";
+
+  /* ¥0 には購入UIを一切出さない。値も、買うか否かの選択肢も、買えないという表示も出さない。
+     帳場さんが一言だけ言って帳を閉じる。帯1の本文はこれを気遣いとして受け取る。 */
+  if(S.paid===0){
+    box.innerHTML='<div class="who">帳場さん</div><p>「お持ちでないようで」</p>';
+    $("slot").replaceChildren(box);
+    box.scrollIntoView({behavior:"smooth",block:"nearest"});
+    delete S.noted[k];
+    document.querySelectorAll('.ask[data-k="'+k+'"]').forEach(function(e2){ e2.classList.add("used"); });
+    S.done ? corridor() : drawNav();
+    return;
+  }
+
   var say = '<p>'+A.say+'</p>';
-  var afford = S.paid>0 && balance()>=price;
+  var afford = balance()>=price;
   box.innerHTML='<div class="who">帳場さん</div>'+say+
     '<div class="acts"><button type="button" data-y '+(afford?"":"disabled")+'>訊く</button>'+
-    '<button type="button" data-n>やめておく</button></div>'+
-    (S.paid===0?'<p style="color:var(--fg-faint);font-size:.82rem;margin-top:12px">「お持ちでないようで」</p>':'');
+    '<button type="button" data-n>やめておく</button></div>';
   $("slot").replaceChildren(box);
   box.scrollIntoView({behavior:"smooth",block:"nearest"});
   box.querySelector("[data-n]").addEventListener("click",function(){ $("slot").replaceChildren(); });
