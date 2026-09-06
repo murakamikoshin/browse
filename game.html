@@ -497,7 +497,37 @@ function paint(){
    波も風も線香も、その場で作る。音の files は積まない。
    旋律は置かない。この夜に音楽は流れていないので、鳴っているのは部屋と海だけ。
    ただ一箇所、第四封が開いたときにだけ、鈴が一度鳴る。満額の人しか聞かない音。 */
+/* 音の素材 ここから */
+var SND={};
+/* 音の素材 ここまで */
+/* audio/ に音声を置いて tools/build_audio.py を叩くと、その音だけ合成から差し替わる。
+   artifact では外部の音声ホストが遮断されるので、data URI で持つ以外に道がない。 */
+var SNDBUF={};
+var BEDSND={ minato:"nami", asa:"asa", ishi:"kaze", genkan:"heya", butsu:"heya", cha:"heya" };
+
 var AU={ ctx:null, on:true, master:null, beds:{}, now:null, noise:null };
+
+function auDecode(){
+  Object.keys(SND).forEach(function(k){
+    var s=SND[k], bin=atob(s.slice(s.indexOf(",")+1)), n=bin.length, a=new Uint8Array(n);
+    for(var j=0;j<n;j++) a[j]=bin.charCodeAt(j);
+    try{
+      AU.ctx.decodeAudioData(a.buffer, function(buf){
+        SNDBUF[k]=buf;
+        var cur=AU.now;                                  // 鳴っている床が合成なら差し替える
+        if(cur && BEDSND[cur]===k && AU.beds[cur] && !AU.beds[cur].file){
+          try{ AU.beds[cur].disconnect(); }catch(e){}
+          delete AU.beds[cur]; AU.now=null; auPlace(cur);
+        }
+      }, function(){});
+    }catch(e){}
+  });
+}
+function auLoop(k){                                      // 素材の床。継ぎ目でつなぐ
+  var s=AU.ctx.createBufferSource(); s.buffer=SNDBUF[k]; s.loop=true;
+  var out=auGain(0); out.file=true; s.connect(out); out.connect(AU.master); s.start();
+  return out;
+}
 
 function auNoise(){
   if(AU.noise) return AU.noise;
@@ -516,6 +546,7 @@ function auLfo(hz,depth,target,base){                 // ゆっくり呼吸さ�
 
 /* 場所ごとの床。作って繋いだまま、音量だけを行き来させる。 */
 function auBed(k){
+  if(SNDBUF[BEDSND[k]]) return auLoop(BEDSND[k]);
   var c=AU.ctx, out=auGain(0); out.connect(AU.master);
   if(k==="minato"||k==="asa"){                        // 海。打ち寄せと潮騒の二層
     var s1=auSrc(), f1=c.createBiquadFilter(), g1=auGain(.0);
@@ -563,6 +594,10 @@ function auPlace(k){
 function auSE(k){
   if(!AU.ctx||!AU.on) return;
   var c=AU.ctx, t=c.currentTime;
+  if(SNDBUF[k]){                                         // 素材があればそちらを鳴らす
+    var b=c.createBufferSource(); b.buffer=SNDBUF[k];
+    var bg=auGain(1); b.connect(bg); bg.connect(AU.master); b.start(t); return;
+  }
   if(k==="ki"){                                       // 木。移動と決定
     var o=c.createOscillator(), g=auGain(0);
     o.type="triangle"; o.frequency.setValueAtTime(340,t); o.frequency.exponentialRampToValueAtTime(180,t+.05);
@@ -604,6 +639,7 @@ function auStart(){
   if(AU.ctx) return;
   try{ AU.ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return; }
   AU.master=auGain(AU.on?.55:0); AU.master.connect(AU.ctx.destination);
+  auDecode();
 }
 function auDraw(){
   var b=$("bau"); if(b) b.classList.toggle("off",!AU.on);
