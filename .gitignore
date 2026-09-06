@@ -4,6 +4,7 @@
 # 作品に必要な862字ぶんは game.html に焼き込んであるので、遊ぶだけなら要らない。
 # 焼き直したいときだけ https://free-fonts.jp/craftmincho/ から取って fonts/ に置く。
 fonts/*.otf
+*.otf
 fonts/*.ttf
 fonts/*.woff
 fonts/*.woff2
