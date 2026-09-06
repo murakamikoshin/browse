@@ -85,7 +85,7 @@ button.go:focus-visible, .pm button:focus-visible{ outline:2px solid var(--accen
   border-radius:50%; background:var(--ember); filter:blur(2px); animation:gl 2.4s ease-in-out infinite; }
 @keyframes gl{ 0%,100%{opacity:.5} 50%{opacity:1} }
 .stick.spent{ height:4px; background:#333C3A; } .stick.spent::after{ display:none; }
-.place{ margin-left:auto; font-family:"IBM Plex Mono",monospace; font-size:.62rem;
+.place{ margin-left:auto; margin-right:4px; font-family:"IBM Plex Mono",monospace; font-size:.62rem;
         letter-spacing:.18em; color:var(--fg-dim); }
 
 /* 本文 */
@@ -174,54 +174,104 @@ p.l.fin{ margin-top:2.4em; }
              font-size:.62rem; letter-spacing:.14em; cursor:pointer; padding:0; }
 .dev button:hover{ color:var(--fg-dim); }
 
-/* ---------- 画面。上が絵、下が窓 ---------- */
-#game.on{ position:fixed; inset:0; z-index:5; display:flex; flex-direction:column; }
-#stage{ position:relative; flex:1 1 auto; min-height:72px; display:flex;
-        align-items:center; justify-content:center; overflow:hidden; }
-#bg{ position:absolute; inset:0; z-index:0;
-     background:radial-gradient(125% 85% at 50% 112%, var(--soft), transparent 70%), var(--ink2);
-     transition:background 1.2s ease; }
-#chap{ position:absolute; z-index:2; top:74px; left:0; right:0; text-align:center;
-       font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.34em;
-       color:var(--fg-faint); opacity:0; pointer-events:none; }
-#chap.in{ animation:chin 4s ease-out forwards; }
-@keyframes chin{ 0%{opacity:0} 12%{opacity:1} 70%{opacity:1} 100%{opacity:.24} }
-#card{ position:relative; z-index:3; width:100%; max-height:100%; overflow-y:auto;
-       padding:26px clamp(14px,4vw,26px); display:flex; align-items:center; justify-content:center; }
-#card:empty{ display:none; }
-#stage.wait::after{ content:""; position:absolute; z-index:4; right:18px; bottom:14px;
-  width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent;
-  border-top:7px solid var(--fg-faint); animation:tri 1.3s ease-in-out infinite; }
-#stage.wait{ cursor:pointer; }
+/* ---------- 画面。全面が絵。文章と選択肢はその上に浮く ---------- */
+#game.on{ position:fixed; inset:0; z-index:5; overflow:hidden; }
 
-/* 窓 */
-.win{ flex:0 0 auto; width:min(46em,100%); margin:0 auto; visibility:hidden;
-      padding:0 clamp(10px,3vw,18px) calc(env(safe-area-inset-bottom,0px) + 16px); }
+/* 絵。ASSETS.md のとおり 16:9 を cover で敷き、左右は切れる前提。 */
+#art{ position:absolute; inset:0; z-index:0; overflow:hidden; background:var(--ink); }
+#art .lay{ position:absolute; inset:0; background-size:cover; background-position:center;
+           background-repeat:no-repeat; transition:filter 1.4s ease, opacity 1.4s ease; }
+#art .char,#art .csil{ background-size:auto 92%; background-position:center bottom; opacity:0; }
+#art .fog{ position:absolute; inset:0; background:#0A0F12; opacity:var(--fog,0);
+           transition:opacity 1.4s ease; }
+#art .face{ position:absolute; border-radius:50%; background:#05080A; filter:blur(9px);
+            opacity:0; transition:opacity 1s ease; }
+
+/* 帯1〜4はコード側で作る。描いてもらうのは帯5の完成形だけ（ASSETS.md 1）。
+
+   背景と人物で梯子を分ける。背景まで黒く潰すと、無料のプレイヤーの画面が
+   最初から最後まで真っ黒になり、「無料でも一本の短編として完結する」が絵の側で崩れる。
+   背景は「霧が濃くて色が無い夜」まで。黒いシルエットになるのは人物だけ。
+   帯は主人公の自己認識の解像度なので、読めなくなるのは人の顔である、という分担にも合う。 */
+#art.b1{ --fog:.50 } #art.b1 .bg{ filter:saturate(.10) brightness(.36) blur(2.4px) contrast(.86) }
+#art.b2{ --fog:.40 } #art.b2 .bg{ filter:saturate(.24) brightness(.46) blur(1.6px) contrast(.9) }
+#art.b3{ --fog:.27 } #art.b3 .bg{ filter:saturate(.44) brightness(.60) blur(.8px) }
+#art.b4{ --fog:.12 } #art.b4 .bg{ filter:saturate(.76) brightness(.84) }
+#art.b5{ --fog:0 }   #art.b5 .bg{ filter:none }
+
+#art.b1 .char{ opacity:0 } #art.b1 .csil{ opacity:1; filter:brightness(0) }
+#art.b2 .char{ opacity:0 } #art.b2 .csil{ opacity:1; filter:brightness(0) drop-shadow(0 0 3px rgba(190,170,120,.55)) }
+#art.b3 .char{ opacity:.66; filter:grayscale(.8) brightness(.46) blur(5px) }
+#art.b3 .csil{ opacity:.55; filter:brightness(0) }
+#art.b4 .char{ opacity:1; filter:saturate(.3) brightness(.78) } #art.b4 .csil{ opacity:0 }
+#art.b5 .char{ opacity:1; filter:none }                          #art.b5 .csil{ opacity:0 }
+#art.b1 .face,#art.b2 .face,#art.b3 .face,#art.b4 .face{ opacity:1 }
+
+/* 絵を沈める幕。上は帯、下は文章のために濃くする */
+#scrim{ position:absolute; inset:0; z-index:1; pointer-events:none;
+  background:
+    linear-gradient(180deg, rgba(6,9,11,.74) 0, rgba(6,9,11,.26) 8%, rgba(6,9,11,0) 20%,
+                            rgba(6,9,11,0) 62%, rgba(6,9,11,.34) 74%,
+                            rgba(6,9,11,.86) 88%, rgba(6,9,11,.95) 100%),
+    radial-gradient(120% 70% at 50% 108%, var(--soft), transparent 66%);
+  transition:background 1.4s ease; }
+
+#chap{ position:absolute; z-index:6; top:76px; left:0; right:0; text-align:center;
+       font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.34em;
+       color:rgba(220,225,221,.72); text-shadow:0 1px 12px rgba(0,0,0,.9);
+       opacity:0; pointer-events:none; }
+#chap.in{ animation:chin 4s ease-out forwards; }
+@keyframes chin{ 0%{opacity:0} 12%{opacity:1} 70%{opacity:1} 100%{opacity:.22} }
+
+/* 札（領収書・精算書・ED）。絵の中央に置く */
+#card{ position:absolute; z-index:8; inset:0; display:flex; align-items:center; justify-content:center;
+       padding:76px clamp(14px,4vw,26px) 30%; overflow-y:auto; pointer-events:none; }
+#card:empty{ display:none; }
+#card > *{ pointer-events:auto; }
+#game.wait{ cursor:pointer; }
+#game.wait::after{ content:""; position:absolute; z-index:9; right:20px; bottom:16px;
+  width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent;
+  border-top:7px solid rgba(220,225,221,.5); animation:tri 1.3s ease-in-out infinite; }
+
+/* 窓。下から25%（ASSETS.md 3）。枠で囲わず、幕の上に字だけ置く */
+.win{ position:absolute; z-index:4; left:0; right:0; bottom:0;
+      height:max(25%, 9.6em); visibility:hidden; cursor:pointer;
+      padding:0 clamp(16px,5vw,30px) calc(env(safe-area-inset-bottom,0px) + 18px);
+      display:flex; align-items:flex-end; }
 .win.on{ visibility:visible; }
-.win-in{ position:relative; border:1px solid var(--edge); background:rgba(8,12,14,.9);
-  backdrop-filter:blur(10px); padding:17px clamp(17px,4vw,26px) 25px; min-height:7.2em;
-  box-shadow:0 -16px 50px rgba(0,0,0,.55); cursor:pointer; }
+.win-in{ position:relative; width:min(46em,100%); margin:0 auto; }
 .win-who{ font-family:"IBM Plex Mono",monospace; font-size:.6rem; letter-spacing:.2em;
-          color:var(--accent); margin-bottom:.65em; }
-.win-t{ margin:0; font-size:1.02rem; line-height:2; min-height:4em; }
+          color:var(--accent); margin-bottom:.6em; text-shadow:0 1px 10px rgba(0,0,0,.9); }
+.win-t{ margin:0; font-size:1.04rem; line-height:2; min-height:4em;
+        text-shadow:0 1px 14px rgba(0,0,0,.95), 0 0 34px rgba(0,0,0,.7); }
 .win-t i.c{ font-style:normal; }
 .win-t.fin{ color:var(--accent); }
-.win-t.seal-t{ color:#CBD2CD; }
-.win-t.aside{ color:var(--fg-dim); font-size:.94rem; }
-.win-tri{ position:absolute; right:15px; bottom:11px; width:0; height:0; opacity:0;
-  border-left:5px solid transparent; border-right:5px solid transparent; border-top:7px solid var(--fg-faint); }
+.win-t.seal-t{ color:#D5DAD4; }
+.win-t.aside{ color:var(--fg-dim); font-size:.95rem; }
+.win-tri{ position:absolute; right:0; bottom:1px; width:0; height:0; opacity:0;
+  border-left:5px solid transparent; border-right:5px solid transparent;
+  border-top:7px solid rgba(220,225,221,.55); }
 .win-tri.on{ animation:tri 1.3s ease-in-out infinite; }
-@keyframes tri{ 0%,100%{opacity:.25;transform:translateY(0)} 50%{opacity:.9;transform:translateY(2px)} }
+@keyframes tri{ 0%,100%{opacity:.3;transform:translateY(0)} 50%{opacity:1;transform:translateY(2px)} }
 
-/* 選択肢。窓のすぐ上に積む */
-#nav{ flex:0 1 auto; width:min(46em,100%); margin:0 auto; max-height:52vh; overflow-y:auto;
-      padding:0 clamp(10px,3vw,18px); }
+/* 選択肢。窓のすぐ上。出ているあいだだけ絵に重なる */
+#nav{ position:absolute; z-index:7; left:0; right:0; bottom:max(25%, 9.6em);
+      display:flex; justify-content:center; max-height:52vh; overflow-y:auto;
+      padding:0 clamp(16px,5vw,30px) 12px; }
 #nav:empty{ display:none; }
-#nav .map{ margin:0 0 7px; padding:9px 13px; border:1px solid var(--edge);
-           background:rgba(14,20,23,.9); backdrop-filter:blur(8px); }
-#nav .map-l{ margin-bottom:8px; }
-#nav .acts{ gap:7px; }
-#nav .acts button{ padding:7px 13px; font-size:.85rem; }
+#nav .menu{ width:min(46em,100%); border:1px solid rgba(120,132,128,.22);
+  background:rgba(8,12,14,.74); backdrop-filter:blur(14px); padding:11px 15px 13px; }
+#nav .row{ display:flex; gap:12px; align-items:baseline; padding:5px 0; }
+#nav .row + .row{ border-top:1px solid rgba(120,132,128,.13); }
+#nav .row-l{ flex:0 0 auto; width:7.4em; font-family:"IBM Plex Mono",monospace;
+  font-size:.56rem; letter-spacing:.16em; color:var(--fg-faint); padding-top:.7em; }
+#nav .acts{ flex:1 1 auto; display:flex; gap:6px; flex-wrap:wrap; }
+#nav .acts button{ padding:6px 12px; font-size:.85rem; background:rgba(20,27,29,.5);
+  border:1px solid var(--edge); color:var(--fg-dim); font-family:inherit; cursor:pointer;
+  transition:border-color .2s,color .2s,background .2s; }
+#nav .acts button:hover:not(:disabled){ border-color:var(--accent); color:var(--fg); background:var(--soft); }
+#nav .acts button:disabled{ opacity:.3; cursor:not-allowed; }
+#nav .acts button.here{ border-color:var(--accent); color:var(--accent); }
 
 /* 読み返し */
 #logbox{ position:fixed; inset:0; z-index:60; display:none; overflow-y:auto;
@@ -236,13 +286,19 @@ p.l.fin{ margin-top:2.4em; }
   font-family:inherit; font-size:.84rem; cursor:pointer; }
 
 /* 上の帯 */
-.hud{ position:fixed; top:0; left:0; right:0; z-index:40; }
-.hud-in{ max-width:46em; }
-.hud button{ background:none; border:1px solid var(--edge); color:var(--fg-faint);
-  font-family:"IBM Plex Mono",monospace; font-size:.58rem; letter-spacing:.18em;
-  padding:6px 11px; cursor:pointer; }
-.hud button:hover{ color:var(--fg-dim); border-color:var(--fg-faint); }
-.dev{ position:fixed; z-index:41; right:10px; bottom:auto; top:calc(100% - 34px); }
+.hud{ position:fixed; top:0; left:0; right:0; z-index:40; background:none;
+      border-bottom:none; backdrop-filter:none; }
+.hud-in{ max-width:none; padding:14px clamp(16px,5vw,30px); }
+.hud .hud-lab,.hud .place{ text-shadow:0 1px 10px rgba(0,0,0,.9); }
+.hud button{ background:rgba(8,12,14,.5); border:1px solid rgba(120,132,128,.24);
+  color:var(--fg-dim); font-family:"IBM Plex Mono",monospace; font-size:.58rem;
+  letter-spacing:.18em; padding:6px 11px; cursor:pointer; backdrop-filter:blur(8px); }
+.hud button:hover{ color:var(--fg); border-color:var(--accent); }
+.dev{ position:fixed; z-index:41; right:12px; bottom:auto; top:calc(100% - 30px);
+      font-size:.58rem; color:var(--fg-faint); opacity:.5; }
+.dev:hover{ opacity:1 }
+.hbar{ display:flex; gap:5px; }
+.hud button.on{ color:var(--accent); border-color:var(--accent); }
 </style>
 </head>
 <body>
@@ -252,8 +308,12 @@ p.l.fin{ margin-top:2.4em; }
     <span class="hud-lab">線香</span>
     <div class="sticks" id="sticks"></div>
     <span class="place" id="place"></span>
-    <button type="button" id="blog">読み返す</button>
-    <button type="button" id="bnav">行き先</button>
+    <span class="hbar">
+      <button type="button" id="bauto">AUTO</button>
+      <button type="button" id="bskip">SKIP</button>
+      <button type="button" id="blog">LOG</button>
+      <button type="button" id="bnav">行き先</button>
+    </span>
   </div>
 </div>
 
@@ -288,11 +348,16 @@ p.l.fin{ margin-top:2.4em; }
   </section>
 
   <section class="scene" id="game">
-    <div id="stage">
-      <div id="bg"></div>
-      <div id="chap"></div>
-      <div id="card"></div>
+    <div id="art">
+      <div class="lay bg"   id="artBg"></div>
+      <div class="lay csil" id="artCharSil"></div>
+      <div class="lay char" id="artChar"></div>
+      <div class="fog"></div>
+      <div class="face" id="artFace"></div>
     </div>
+    <div id="scrim"></div>
+    <div id="chap"></div>
+    <div id="card"></div>
     <div id="nav"></div>
     <div class="win" id="win"><div class="win-in">
       <div class="win-who" id="who" hidden></div>
@@ -397,7 +462,7 @@ var TALK=[
 ];
 
 var S = { idx:0, paid:0, band:0, spent:0, incense:8, place:"genkan", noted:{}, lastAsk:false,
-          opened:false, bought:{}, talked:{}, shown:0, done:false, log:[] };
+          opened:false, bought:{}, talked:{}, shown:0, done:false, log:[], art:null, char:null };
 
 var $=function(i){ return document.getElementById(i); };
 var yen=function(n){ return "¥"+n.toLocaleString("ja-JP"); };
@@ -507,14 +572,14 @@ function nextLine(){
   if(it.card){                                  // 領収書・精算書。窓を閉じて札だけ見せる
     $("card").replaceChildren(it.card());
     $("win").classList.remove("on");
-    Q.hold=true; $("stage").classList.add("wait");
+    Q.hold=true; $("game").classList.add("wait"); stopAuto();
     return;
   }
   $("win").classList.add("on");
   var w=$("who");
   if(it.who){ w.textContent=it.who; w.hidden=false; } else { w.hidden=true; }
   $("wt").className="win-t"+(it.cls?" "+it.cls:"");
-  logPush(it);
+  logPush(it); markSeen(it.t);
   var html=esc(it.t);
   if(it.id) html=markAsks(it.src,it.id,html);
   type(html);
@@ -538,7 +603,7 @@ function type(html){
   Q.chars=Array.prototype.slice.call(el.querySelectorAll("i.c")); Q.k=0;
   clearInterval(Q.tid); Q.tid=null;
   $("tri").classList.remove("on");
-  if(REDUCE){ revealAll(); return; }
+  if(REDUCE||SKIP){ revealAll(); return; }
   Q.chars.forEach(function(s){ s.style.opacity="0"; });
   Q.tid=setInterval(function(){
     if(Q.k>=Q.chars.length){ revealAll(); return; }
@@ -549,17 +614,60 @@ function revealAll(){
   clearInterval(Q.tid); Q.tid=null;
   Q.chars.forEach(function(s){ s.style.opacity="1"; });
   $("tri").classList.add("on");
+  afterLine();
 }
 
+/* 既読。二周目を勧める設計（SPEC「無料を先に勧める」）なので、読んだ行は覚えておく。 */
+var SEEN=(function(){
+  try{ return new Set(JSON.parse(localStorage.getItem("choba.seen")||"[]")); }
+  catch(e){ return new Set(); }
+})();
+function seenKey(t){ var h=0; for(var i=0;i<t.length;i++){ h=(h*31+t.charCodeAt(i))|0; } return h; }
+function markSeen(t){
+  SEEN.add(seenKey(t));
+  if(SEEN.size%12===0){ try{ localStorage.setItem("choba.seen",JSON.stringify(Array.from(SEEN))); }catch(e){} }
+}
+addEventListener("pagehide",function(){
+  try{ localStorage.setItem("choba.seen",JSON.stringify(Array.from(SEEN))); }catch(e){}
+});
+
+var AUTO=false, SKIP=false, autoT=null;
+function stopAuto(){ clearTimeout(autoT); autoT=null; }
+function setAuto(v){ AUTO=v; $("bauto").classList.toggle("on",v); if(!v) stopAuto(); else afterLine(); }
+function setSkip(v){ SKIP=v; $("bskip").classList.toggle("on",v); if(!v) stopAuto(); else afterLine(); }
+
+/* 行が出切ったあと。オートなら間を置いて、スキップなら既読のあいだだけ即座に送る。 */
+function afterLine(){
+  stopAuto();
+  if(Q.hold) return;
+  if(SKIP){
+    if(Q.i<Q.list.length && Q.list[Q.i] && !Q.list[Q.i].card && !SEEN.has(seenKey(Q.list[Q.i].t))){
+      setSkip(false); return;                    // 未読に着いたら止まる
+    }
+    autoT=setTimeout(function(){ if(SKIP) nextLine(); },18);
+    return;
+  }
+  if(AUTO){
+    var n=Q.chars.length;
+    autoT=setTimeout(function(){ if(AUTO) nextLine(); }, 900+n*45);
+  }
+}
+$("bauto").addEventListener("click",function(){ setSkip(false); setAuto(!AUTO); });
+$("bskip").addEventListener("click",function(){ setAuto(false); setSkip(!SKIP); });
+
+
 function tap(e){
-  if(Q.hold){ Q.hold=false; $("stage").classList.remove("wait"); $("card").replaceChildren(); nextLine(); return; }
+  setAuto(false); setSkip(false);
+  if(Q.hold){ Q.hold=false; $("game").classList.remove("wait"); $("card").replaceChildren(); nextLine(); return; }
   var a=(e&&e.target&&e.target.closest)?e.target.closest(".ask"):null;
   if(a && !Q.tid && !a.classList.contains("used")){ point(a); return; }
   if(Q.tid){ revealAll(); return; }
   nextLine();
 }
 $("win").addEventListener("click",tap);
-$("stage").addEventListener("click",function(e){ if(Q.hold) tap(e); });
+$("game").addEventListener("click",function(e){
+  if(Q.hold && !e.target.closest("#nav,#win,.hud")) tap(e);
+});
 document.addEventListener("keydown",function(e){
   if(!$("game").classList.contains("on")) return;
   if($("logbox").classList.contains("on")){ if(e.key==="Escape") closeLog(); return; }
@@ -606,6 +714,7 @@ function enter(k){
   var P=PLACES.filter(function(p){return p.k===k;})[0];
   $("place").textContent=P.name;
   $("card").replaceChildren();
+  setArt(k);
   chapTitle(P.ch);
   var hint = P.opens && !S.opened;
   if(P.opens) S.opened=true;
@@ -617,16 +726,28 @@ function enter(k){
   say(q, drawNav);
 }
 
-function choices(list){
+/* 選択肢はひとつの札にまとめる。絵に重なるのは出ているあいだだけ。 */
+function menu(rows){
+  setAuto(false); setSkip(false); stopAuto();
   var n=$("nav"); n.replaceChildren();
-  var d=document.createElement("div"); d.className="map";
-  var a=document.createElement("div"); a.className="acts";
-  list.forEach(function(x){
-    var b=document.createElement("button"); b.type="button"; b.textContent=x[0];
-    if(x[2]===false) b.disabled=true; else b.addEventListener("click",x[1]);
-    a.appendChild(b);
+  var m=document.createElement("div"); m.className="menu";
+  rows.forEach(function(r){
+    if(!r[1].length) return;
+    var row=document.createElement("div"); row.className="row";
+    var l=document.createElement("div"); l.className="row-l"; l.textContent=r[0];
+    var a=document.createElement("div"); a.className="acts";
+    r[1].forEach(function(x){
+      var b=document.createElement("button"); b.type="button"; b.textContent=x[0];
+      if(x[2]) b.className="here";
+      if(x[3]===false) b.disabled=true; else b.addEventListener("click",x[1]);
+      a.appendChild(b);
+    });
+    row.appendChild(l); row.appendChild(a); m.appendChild(row);
   });
-  d.appendChild(a); n.appendChild(d);
+  n.appendChild(m);
+}
+function choices(list){
+  menu([["", list.map(function(x){ return [x[0], x[1], false, x[2]]; })]]);
 }
 
 function stubEl(A){
@@ -676,63 +797,29 @@ function take(k){
 /* ---------- 移動と会話 ---------- */
 function drawNav(){
   if(S.done){ $("nav").replaceChildren(); return; }
-  var n=$("nav"); n.replaceChildren();
+  var rows=[];
 
   if(S.place==="cha"){
     var pend=Object.keys(S.noted).filter(function(k){ return !S.bought[k]; });
-    if(pend.length){
-      var q=document.createElement("div");
-      q.className="map";
-      q.innerHTML='<div class="map-l">訊きたいこと</div><div class="acts"></div>';
-      pend.forEach(function(k){
-        var b=document.createElement("button");
-        b.type="button"; b.textContent="「"+ASKS[k].phrase+"」のこと";
-        b.addEventListener("click",function(){ offer(k); });
-        q.querySelector(".acts").appendChild(b);
-      });
-      n.appendChild(q);
-    }
+    rows.push(["訊きたいこと", pend.map(function(k){
+      return ["「"+ASKS[k].phrase+"」のこと", function(){ offer(k); }];
+    })]);
   }
-  var talks=TALK.filter(function(t){ return t.place===S.place && !S.talked[t.k]; });
-  if(talks.length){
-    var d=document.createElement("div");
-    d.className="map";
-    d.innerHTML='<div class="map-l">線香を一本使って</div><div class="acts"></div>';
-    talks.forEach(function(t){
-      var b=document.createElement("button");
-      b.type="button"; b.textContent=t.label;
-      b.addEventListener("click",function(){
+  rows.push(["線香を一本", TALK.filter(function(t){ return t.place===S.place && !S.talked[t.k]; })
+    .map(function(t){
+      return [t.label, function(){
         S.talked[t.k]=true;
         say([{t:t.text}], function(){ if(!burn()) drawNav(); });
-      });
-      d.querySelector(".acts").appendChild(b);
-    });
-    n.appendChild(d);
-  }
-  var e=document.createElement("div");
-  e.className="map";
-  e.innerHTML='<div class="map-l">夜を終える</div><div class="acts"></div>';
-  var eb=document.createElement("button");
-  eb.type="button";
-  eb.textContent = S.incense>1 ? "線香が尽きるまで、座っている" : "夜明けを待つ";
-  eb.addEventListener("click",function(){
+      }];
+    })]);
+  rows.push(["歩く", PLACES.map(function(p){
+    return [p.name, function(){ enter(p.k); }, p.k===S.place];
+  })]);
+  rows.push(["夜を終える", [[S.incense>1 ? "線香が尽きるまで、座っている" : "夜明けを待つ", function(){
     S.incense=0; drawSticks();
     say([{t:"仏間の隅に座った。線香を継ぎ足しながら、朝までそうしていた。",cls:"aside"}], dawn);
-  });
-  e.querySelector(".acts").appendChild(eb);
-  n.appendChild(e);
-
-  var m=document.createElement("div");
-  m.className="map";
-  m.innerHTML='<div class="map-l">歩く（線香は減りません）</div><div class="acts"></div>';
-  PLACES.forEach(function(p){
-    var b=document.createElement("button");
-    b.type="button"; b.textContent=p.name;
-    if(p.k===S.place) b.className="here";
-    b.addEventListener("click",function(){ enter(p.k); });
-    m.querySelector(".acts").appendChild(b);
-  });
-  n.appendChild(m);
+  }]]]);
+  menu(rows);
 }
 
 /* ---------- 夜明けと扉 ---------- */
@@ -740,6 +827,7 @@ function dawn(){
   S.done=true; S.lastAsk=true;
   $("card").replaceChildren();
   S.place="cha";
+  setArt("cha");
   chapTitle("第六章　夜明け前");
   var q=CH["6"].order.map(function(id){ return { t:chText("6",id), src:"6", id:id }; });
   say(q, corridor);
@@ -747,28 +835,15 @@ function dawn(){
 
 // 廊下。帳場さんはまだ机にいる。最後の機会。訊けるのはひとつだけ。
 function corridor(){
-  var n=$("nav"); n.replaceChildren();
   var pend = S.paid===0 ? [] : Object.keys(S.noted).filter(function(k){ return !S.bought[k]; });
+  var rows=[];
   if(pend.length && S.lastAsk){
-    var q=document.createElement("div");
-    q.className="map";
-    q.innerHTML='<div class="map-l">「もう、帳を閉じますので。ひとつだけ」</div><div class="acts"></div>';
-    pend.forEach(function(k){
-      var b=document.createElement("button");
-      b.type="button"; b.textContent="「"+ASKS[k].phrase+"」のこと";
-      b.addEventListener("click",function(){ offer(k); });
-      q.querySelector(".acts").appendChild(b);
-    });
-    n.appendChild(q);
+    rows.push(["ひとつだけ", pend.map(function(k){
+      return ["「"+ASKS[k].phrase+"」のこと", function(){ offer(k); }];
+    })]);
   }
-  var g2=document.createElement("div");
-  g2.className="map";
-  g2.innerHTML='<div class="map-l">朝まで、あと少し</div><div class="acts"></div>';
-  var b2=document.createElement("button");
-  b2.type="button"; b2.textContent="目を閉じる";
-  b2.addEventListener("click",function(){ n.replaceChildren(); morning(); });
-  g2.querySelector(".acts").appendChild(b2);
-  n.appendChild(g2);
+  rows.push(["朝まで", [["目を閉じる", function(){ $("nav").replaceChildren(); morning(); }]]]);
+  menu(rows);
 }
 
 /* ---------- 朝 ---------- */
@@ -890,6 +965,7 @@ function morning(){
   var st=ch7state(); S.st=st;
   $("nav").replaceChildren(); $("card").replaceChildren();
   $("place").textContent="出棺";
+  setArt("asa");
   chapTitle("第七章　出棺");
   var q=build7(st).map(function(it){
     return it.slip ? { card:function(){ return slipEl(st); } } : { t:it.t, cls:it.cls };
@@ -899,6 +975,98 @@ function morning(){
     choices([["最初から", function(){ location.reload(); }]]);
   });
 }
+
+
+/* ---------- 絵 ----------
+   ASSETS.md のとおり、受け取るのは「完成イラスト（＝帯5）」「シルエット」「顔の座標」の三つだけ。
+   帯1〜4はここで作る。img/ にファイルを置けばそれを使い、無ければ仮の絵で構図だけ示す。
+   顔の座標は画像内のピクセル。cover で敷くので、画面上の位置は毎回計算し直す。 */
+var ART={
+  genkan:{ bg:"img/bg_genkan.webp",
+           ph:{ sky:["#1B2530","#0B1116"], horizon:.60, hue:34,
+                sh:[["rect",0,.60,1,.40,"#0C1216"],["rect",.04,.28,.34,.34,"#16202A"],
+                    ["rect",.09,.35,.06,.11,"#6B5A32"],["ell",.70,.44,.07,.11,"#121A21"],
+                    ["rect",.55,.46,.30,.16,"#141D25"]] } },
+  butsu: { bg:"img/bg_butsu.webp",
+           ph:{ sky:["#241F1B","#0F0D0C"], horizon:.74, hue:28,
+                sh:[["rect",0,.74,1,.26,"#0D0C0B"],["rect",.28,.14,.44,.60,"#1B1815"],
+                    ["rect",.42,.26,.16,.32,"#26221C"],["ell",.50,.64,.035,.055,"#8A6A2E"],
+                    ["rect",.12,.40,.10,.24,"#171512"]] } },
+  minato:{ bg:"img/bg_minato.webp",
+           ph:{ sky:["#152634","#070E14"], horizon:.48, hue:40,
+                sh:[["rect",0,.48,1,.52,"#0A131A"],["rect",.12,.30,.36,.19,"#101C25"],
+                    ["rect",.29,.12,.022,.20,"#101C25"],["ell",.78,.46,.12,.035,"#0E1720"],
+                    ["rect",.60,.34,.26,.13,"#0F1922"]] } },
+  cha:   { bg:"img/bg_cha.webp",
+           ph:{ sky:["#2B241A","#12100C"], horizon:.68, hue:26,
+                sh:[["rect",0,.68,1,.32,"#100E0A"],["rect",.16,.20,.68,.48,"#221C13"],
+                    ["ell",.34,.62,.055,.035,"#4A3E24"],["rect",.54,.50,.24,.16,"#282013"],
+                    ["rect",.20,.30,.13,.20,"#1B1610"]] } },
+  ishi:  { bg:"img/bg_ishi.webp",
+           ph:{ sky:["#181F27","#090C10"], horizon:.64, hue:32,
+                sh:[["rect",0,.64,1,.36,"#0A0E12"],["rect",.60,.16,.34,.48,"#131A21"],
+                    ["rect",.05,.38,.16,.26,"#101519"],["ell",.42,.50,.05,.07,"#151C23"]] } },
+  asa:   { bg:"img/bg_asa.webp",
+           ph:{ sky:["#4A4638","#1A1E20"], horizon:.52, hue:46,
+                sh:[["rect",0,.52,1,.48,"#141A1D"],["rect",.06,.38,.88,.15,"#1D2427"],
+                    ["ell",.50,.26,.08,.08,"#6B6448"],["rect",.30,.44,.40,.10,"#222A2D"]] } }
+};
+
+/* 仮の絵。構図の当たりだけ。img/ に実物を置けば使われない。 */
+function phUrl(k){
+  var P=ART[k].ph, W=1280, H=720;
+  var o='<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">'+
+    '<stop offset="0" stop-color="'+P.sky[0]+'"/><stop offset="1" stop-color="'+P.sky[1]+'"/></linearGradient></defs>'+
+    '<rect width="'+W+'" height="'+H+'" fill="url(#g)"/>'+
+    '<ellipse cx="'+(W*.5)+'" cy="'+(H*P.horizon)+'" rx="'+(W*.72)+'" ry="'+(H*.24)+
+    '" fill="hsl('+P.hue+',42%,52%)" opacity=".14"/>';
+  P.sh.forEach(function(s){
+    if(s[0]==="rect") o+='<rect x="'+(s[1]*W)+'" y="'+(s[2]*H)+'" width="'+(s[3]*W)+'" height="'+(s[4]*H)+'" fill="'+s[5]+'"/>';
+    else o+='<ellipse cx="'+(s[1]*W)+'" cy="'+(s[2]*H)+'" rx="'+(s[3]*W)+'" ry="'+(s[4]*H)+'" fill="'+s[5]+'"/>';
+  });
+  o+='<text x="'+(W-20)+'" y="28" text-anchor="end" font-family="monospace" '+
+     'font-size="14" fill="#FFFFFF" opacity=".26">仮の絵</text>';
+  return 'url("data:image/svg+xml;utf8,'+
+    encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+
+    '" viewBox="0 0 '+W+' '+H+'">'+o+'</svg>')+'")';
+}
+
+/* ファイルがあればそれ、無ければ仮の絵。判定は一度だけ。 */
+var ARTOK={};
+function bgUrl(k,cb){
+  if(ARTOK[k]!==undefined){ cb(ARTOK[k]); return; }
+  var src=ART[k].bg, im=new Image();
+  im.onload =function(){ ARTOK[k]='url("'+src+'")'; cb(ARTOK[k]); };
+  im.onerror=function(){ ARTOK[k]=phUrl(k); cb(ARTOK[k]); };
+  im.src=src;
+}
+
+/* 人物。立ち絵が届くまで空。顔は帯4まで隠す（ASSETS.md 1）。 */
+function setChar(c){
+  S.char=c||null;
+  $("artChar").style.backgroundImage    = c ? 'url("'+c.body+'")' : "none";
+  $("artCharSil").style.backgroundImage = c ? 'url("'+c.sil+'")'  : "none";
+  placeFace();
+}
+
+/* cover の拡大率と余白から、顔の円の画面上の位置を出す。 */
+function placeFace(){
+  var c=S.char, el=$("artFace");
+  if(!c || !c.face){ el.style.width="0"; el.style.height="0"; return; }
+  var f=c.face, W=f.w||1400, H=f.h||2000;
+  var vh=innerHeight, s=vh*.92/H, ox=(innerWidth-W*s)/2, oy=vh-H*s, r=f.r*s*1.3;
+  el.style.left=(ox+f.x*s-r)+"px"; el.style.top=(oy+f.y*s-r)+"px";
+  el.style.width=(r*2)+"px"; el.style.height=(r*2)+"px";
+}
+
+function setArt(k){
+  if(!ART[k]) k="genkan";
+  S.art=k;
+  bgUrl(k,function(u){ if(S.art===k) $("artBg").style.backgroundImage=u; });
+  $("art").className="b"+(S.band+1);
+  placeFace();
+}
+addEventListener("resize",placeFace);
 
 /* ---------- 検証モード ----------
    本編には出ない。制作側が中の状態を見て、任意の局面に飛ぶための口。
@@ -975,6 +1143,8 @@ window.__dev = {
   },
 
   log: function(){ return S.log.slice(); },
+  auto: function(v){ setAuto(v); }, skip: function(v){ setSkip(v); },
+  seen: function(){ return SEEN.size; },
 
   /* いまの帯で、その章の全行と、指せる語句の位置。書き換えで語句が消えていないかを見る。 */
   chapter: function(src){
