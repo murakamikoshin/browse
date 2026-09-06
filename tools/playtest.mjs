@@ -44,6 +44,7 @@ for (const idx of AMOUNTS) {
         out.steps = n;
 
         /* ここが壊れていたら、遊ぶ人には必ず見える */
+        if (s.place === 'cha') out.desk = true;
         if (s.incense < 0) W('線香が負になった');
         if (s.balance < 0) W('残高が負になった ' + s.balance);
         if (s.balance > paid) W('残高が持参より多い');
@@ -130,6 +131,8 @@ for (const idx of AMOUNTS) {
     if (r.name === '（ED名は未執筆）') note(`${tag}　ED名が無い`);
     if (r.chap < 2) note(`${tag}　章の札が ${r.chap} 章分しか出ていない`);
     r.warn.forEach(w => note(`${tag}　${w}`));
+    /* 金を包んだ人は、買えることを知らないまま朝を迎えてはいけない */
+    if (r.paid >= 10000 && !r.desk) note(`${tag}　帳場の机を一度も通らずに朝になった`);
     const bare = r.lines ? (r.bare / r.lines).toFixed(1) : '-';
     console.log(`  ${tag.padEnd(22)} ED-${String(r.ed || 0).padStart(2, '0')} ${(r.name || '').padEnd(9)}` +
       ` 開封${r.seals} 話${r.talked} 一手${r.acts||0} 内引¥${(r.spent||0).toLocaleString()} 章${r.chap} 手${r.steps} 素の漢字/行 ${bare}`);

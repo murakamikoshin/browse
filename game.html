@@ -815,6 +815,8 @@ var PLACES=[
      まだ兄の顔を見ていない人が「あの日の海」の話を先に読むことになって、順番が壊れる。
      凪さんが「港、行ってらっしゃい」と言うのは仏間の終わりなので、そこに合わせる。 */
   { k:"minato", name:"港",         ch:"通夜　港",         src:"3", need:"2" },
+  /* 章4は机へ戻ってくる場面。仏間を通っていれば、いつ寄ってもいい。
+     金を包んだ人は、ここを通らずに朝へ出られない（lastStop / askDawn） */
   { k:"cha",    name:"帳場の奥",   ch:"通夜　帳場の奥",   src:"4", need:"2", opens:true },
   { k:"ishi",   name:"玄関の外",   ch:"通夜　玄関の外",   src:"5", need:"2" }
 ];
@@ -1327,7 +1329,15 @@ function ashLine(){
               : "線香が、一本尽きた。", cls:"aside" };
 }
 function burn(){ if(S.done) return false; S.incense--; drawSticks(); auSE("ko");
-  if(S.incense<=0){ nightEnd(dawn); return true; } return false; }
+  if(S.incense<=0){ lastStop(function(){ nightEnd(dawn); }); return true; } return false; }
+
+/* 金を包んだ人が、帳場の机を一度も通らずに朝を迎える道が実際にあった。
+   買えることを知らないまま終わるので、朝へ渡す前に一度だけ通す。
+   歩くのに線香は要らないという規則のままなので、夜は減らない。 */
+function lastStop(after){
+  if(S.paid<PAYFROM || S.readCh["4"]){ after(); return; }
+  enter("cha", after);
+}
 
 /* ---------- 本文 ---------- */
 function chText(src,id){
@@ -1803,7 +1813,7 @@ function chapTitle(s){
   c.classList.remove("in"); void c.offsetWidth; c.classList.add("in");
 }
 
-function enter(k){
+function enter(k, done){
   S.place=k;
   var P=PLACES.filter(function(p){return p.k===k;})[0];
   $("place").textContent=P.name;
@@ -1812,8 +1822,9 @@ function enter(k){
   /* 一度通した章は、戻ってきても最初から流さない。
      戸を開け直したり、名前を書き直したりすることになって、進み具合と食い違うため。
      読み直したい人には、選択肢の一番下に「もう一度読む」を置く。 */
-  if(S.readCh[P.src]){ chapTitle(P.ch); drawNav(); return; }
-  chapCard(P.ch, function(){ say(chapQueue(P, true), function(){ S.readCh[P.src]=true; drawNav(); }); });
+  var then = done || drawNav;
+  if(S.readCh[P.src]){ chapTitle(P.ch); then(); return; }
+  chapCard(P.ch, function(){ say(chapQueue(P, true), function(){ S.readCh[P.src]=true; then(); }); });
 }
 
 /* 章の行を並べる。first のときだけ、手を動かすところと立ち止まりを混ぜる */
@@ -2004,6 +2015,16 @@ function walkMenu(){
 
 /* 朝は戻れない。押し間違いで夜が終わらないように、残りを見せてから訊く。 */
 function askDawn(){
+  /* 机を一度も通っていない人には、先にそちらを見せる。強くは止めない */
+  if(S.paid>=PAYFROM && !S.readCh["4"]){
+    menu([["", [["帳場の机へ寄る", function(){ enter("cha"); }]]],
+          ["", [["いいえ、まだ起きている", drawNav]], "sub"],
+          ["", [["それでも朝まで横になる", toDawn]], "faint"]]);
+    var h2=document.createElement("div"); h2.className="menu-h warn";
+    h2.textContent="帳場さんは、朝まで机においでです。まだ一度も、寄っていません。";
+    $("nav").querySelector(".menu").prepend(h2);
+    return;
+  }
   if(S.incense<=1){ toDawn(); return; }
   menu([["", [["いいえ、まだ起きている", drawNav]]],
         ["", [["はい、朝まで横になる", toDawn]], "faint"]]);
@@ -2013,6 +2034,7 @@ function askDawn(){
 }
 function toDawn(){
   S.incense=0; drawSticks();
+  /* ここは自分で決めて横になった人。askDawn で机への道は見せてある */
   say([{t:"仏間の隅に座った。線香を継ぎ足しながら、朝までそうしていた。",cls:"aside"}],
       function(){ nightEnd(dawn); });
 }
