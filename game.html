@@ -43,7 +43,7 @@ body::before{
 /* 題 */
 #title.on{ height:100dvh; display:flex; align-items:center; justify-content:center; }
 /* 真ん中に置くと下が余って見えるので、少し上に寄せる */
-.ti-in{ text-align:center; width:100%; transform:translateY(-5vh); }
+.ti-in{ text-align:center; width:100%; transform:translateY(-8vh); }
 .ti-t{ font-size:clamp(3.4rem,17vw,6.4rem); font-weight:900; letter-spacing:.34em;
   text-indent:.34em; margin:14px 0 0; line-height:1.1; }
 /* 題のロゴ。焼き込みは tools/build_logo.py。素材が無ければ字のまま出す */
@@ -376,7 +376,7 @@ p.l.fin{ margin-top:2.4em; }
   border:1px solid rgba(120,132,128,.26);
   box-shadow:0 -2px 40px rgba(0,0,0,.5), inset 0 1px 0 rgba(220,225,221,.06);
   backdrop-filter:blur(10px);
-  padding:20px clamp(15px,3vw,26px) 22px; }
+  padding:30px clamp(15px,3vw,26px) 22px; }   /* 名札にふりがなが隠れないように上を空ける */
 .win-who{ position:absolute; top:0; left:clamp(15px,3vw,26px); transform:translateY(-50%);
   font-family:var(--mincho); font-size:1rem; font-weight:700; letter-spacing:.22em;
   color:var(--fg); background:var(--ink); border:1px solid var(--accent);
@@ -387,6 +387,7 @@ p.l.fin{ margin-top:2.4em; }
   scrollbar-width:none; -webkit-text-size-adjust:100%; }
 .win-t::-webkit-scrollbar{ display:none; }
 .win-t i.c{ font-style:normal; }
+.win-t i.qg{ display:inline-block; width:.8em; }
 ruby{ ruby-align:center; }
 /* 本文が枠に入り切らないと winFit が字を詰める。そのとき比率のままだと
    ふりがなが 5px まで落ちて、消えたようにしか見えない。下限を切っておく */
@@ -564,7 +565,7 @@ rt{ font-size:max(.46em,10px); font-weight:400; line-height:1; letter-spacing:.0
   #lower.picking .win-in{ padding-bottom:14px; }
   /* 選んでいるあいだ、窓は直前の二行だけ残す。全部残すと下の段が画面の外に出る */
   .win{ --winh:216px; }
-  .win-in{ padding:16px 14px 18px; }
+  .win-in{ padding:26px 14px 18px; }
   #lower.picking .win{ --winh:64px; }
   #lower.picking .win-who{ margin-bottom:.35em; }
   .win-who{ font-size:.94rem; padding:3px 13px 4px; }
@@ -846,7 +847,7 @@ var MARK={"1": {"L023": "omo", "L031": "kage", "L036": "omo", "L038": "kage", "L
 
 var S = { idx:0, paid:0, band:0, spent:0, incense:INCENSE, place:"genkan", noted:{}, lastAsk:false,
           opened:false, bought:{}, talked:{}, shown:0, done:false, log:[], art:null, char:null,
-          seenChap:{}, navSeen:false, altDone:{}, readCh:{}, warned:false, warn:false,
+          seenChap:{}, navSeen:0, altDone:{}, readCh:{}, warned:false, warn:false,
           ended:false, logMk:true };
 
 var $=function(i){ return document.getElementById(i); };
@@ -1288,7 +1289,9 @@ function prologue(done){
     { t:"また、間。" },
     { gap:1500 }
   ];
-  if(S.paid>0) q.push({ t:"「"+kin(S.paid)+"」", who:"帳場さん" });
+  /* ここで額を読んでしまうと、道中で使った人の朝と食い違う（朝に読まれるのは残った額）。
+     額の手前で切る。読まれるのは明日、という約束だけが残る。 */
+  if(S.paid>0) q.push({ t:"帳場さんの目が、次の行で止まった。" });
   else         q.push({ t:"帳場さんは、次の行に目を落とさなかった。" });
   q.push({ t:"——これは、明日の朝のことだ。", cls:"aside" });
   q.push({ t:"わたしが駅に降りたのは、その前の晩だった。", cls:"aside" });
@@ -1438,6 +1441,10 @@ function glIndex(){
   Object.keys(GLIX).forEach(function(c){ GLIX[c].sort(function(a,b){ return b.length-a.length; }); });
   return GLIX;
 }
+/* 「…」のあとに地の文が続く行が六つある。詰めて出すと一続きに読めてしまうので、
+   字と字のあいだを少し空ける。文そのものは変えない（記録も数えも動かさない）。 */
+function qgap(html){ return html.replace(/」(?![」』、。）\s]|$)/g, '」<i class="qg"></i>'); }
+
 function addGloss(html){
   var ix=glIndex(), parts=html.split(/(<[^>]*>)/), out="", depth=0;
   for(var p=0;p<parts.length;p++){
@@ -1539,7 +1546,7 @@ function nextLine(){
   logPush(it); markSeen(it.t);
   var html=esc(it.t);
   if(it.id) html=markAsks(it.src,it.id,html);
-  type(addRuby(addGloss(html)));
+  type(addRuby(addGloss(qgap(html))));
 }
 
 /* 一字ずつ出す。字を <i> に割ってから透かす。指せる語句の span は壊さない。 */
@@ -1608,16 +1615,22 @@ addEventListener("pagehide",function(){
 var AUTO=false, SKIP=false, autoT=null;
 function stopAuto(){ clearTimeout(autoT); autoT=null; }
 function setAuto(v){ AUTO=v; $("bauto").classList.toggle("on",v); if(!v) stopAuto(); else afterLine(); }
-function setSkip(v){ SKIP=v; $("bskip").classList.toggle("on",v); if(!v) stopAuto(); else afterLine(); }
+/* 前は「まだ読んでいない行」で勝手に止まっていた。押した本人には、
+   ただ効かない場面があるようにしか見えない。読んだかどうかに関わらず送る。
+   止まるのは、選ぶところと、札（領収書・精算書・結末）だけ。 */
+function setSkip(v){
+  SKIP=v; $("bskip").classList.toggle("on",v);
+  if(!v){ stopAuto(); return; }
+  toast("早送り　押すと止まります");
+  if(chapSkip()) return;                     // 章の札が出ていたら、まずそれを飛ばす
+  afterLine();
+}
 
 /* 行が出切ったあと。オートなら間を置いて、スキップなら既読のあいだだけ即座に送る。 */
 function afterLine(){
   stopAuto();
   if(Q.hold) return;
   if(SKIP){
-    if(Q.i<Q.list.length && Q.list[Q.i] && !Q.list[Q.i].card && !SEEN.has(seenKey(Q.list[Q.i].t))){
-      setSkip(false); return;                    // 未読に着いたら止まる
-    }
     autoT=setTimeout(function(){ if(SKIP) nextLine(); },18);
     return;
   }
@@ -1661,6 +1674,7 @@ document.addEventListener("keydown",function(e){
 /* 指す。その場では買えない。帳場さんは玄関の机から動かない。 */
 function point(el){
   if(S.done && !S.lastAsk) return;
+  if(OFFING) return;                       // 訊いている最中は、次を指せない
   var k=el.dataset.k;
   if(S.place==="cha"){ offer(k); return; }
   if(S.noted[k]) return;
@@ -1761,7 +1775,7 @@ $("bruby").addEventListener("click",function(){
   if(it && it.t!==undefined){
     var html=esc(it.t);
     if(it.id) html=markAsks(it.src,it.id,html);
-    $("wt").innerHTML=addRuby(addGloss(html)); winFit();
+    $("wt").innerHTML=addRuby(addGloss(qgap(html))); winFit();
   }
 });
 drawRuby(true);
@@ -1803,7 +1817,7 @@ function chapCard(s, cb){
     setTimeout(function(){ el.classList.remove("on"); }, 900);
     cb();
   };
-  CARD.t.push(setTimeout(function(){ if(CARD.go) CARD.go(); }, 4600));
+  CARD.t.push(setTimeout(function(){ if(CARD.go) CARD.go(); }, SKIP?200:4600));
 }
 function chapSkip(){ if(CARD.go){ CARD.go(); return true; } return false; }
 $("chapcard").addEventListener("click",function(e){ e.stopPropagation(); chapSkip(); });
@@ -1889,9 +1903,21 @@ function stubEl(A){
   return w;
 }
 
-/* ---------- 訊く ---------- */
+/* ---------- 訊く ----------
+   訊くのは章の途中でも起きる。終わったあと drawNav に落としていたので、
+   その章の残りが捨てられ、もう一度その場へ入ると最初から流れ直していた。
+   入る前の列を覚えておいて、続きへ戻す。 */
+var OBACK=null, OFFING=false;
+function afterOffer(){
+  OFFING=false;
+  if(OBACK){ var b=OBACK; OBACK=null; Q.list=b.list; Q.i=b.i; Q.end=b.end; nextLine(); return; }
+  S.done ? corridor() : drawNav();
+}
 function offer(k){
+  if(OFFING) return;                      // 訊いている最中に、次を重ねない
+  OFFING=true;
   var A=ASKS[k], price=priceOf(A.tier);
+  OBACK = (Q.list.length && Q.i<Q.list.length) ? { list:Q.list, i:Q.i, end:Q.end } : null;
 
   /* ¥0 には購入UIを一切出さない。値も、買うか否かの選択肢も、買えないという表示も出さない。
      帳場さんが一言だけ言って帳を閉じる。帯1の本文はこれを気遣いとして受け取る。 */
@@ -1899,7 +1925,7 @@ function offer(k){
     say([{t:"「お持ちでないようで」", who:"帳場さん"}], function(){
       delete S.noted[k];
       document.querySelectorAll('.ask[data-k="'+k+'"]').forEach(function(e2){ e2.classList.add("used"); });
-      S.done ? corridor() : drawNav();
+      afterOffer();
     });
     return;
   }
@@ -1907,7 +1933,7 @@ function offer(k){
   say([{t:A.say, who:"帳場さん"}], function(){
     choices([
       ["訊く", function(){ take(k); }, balance()>=price],
-      ["やめておく", function(){ S.done ? corridor() : drawNav(); }]
+      ["やめておく", afterOffer]
     ]);
   });
 }
@@ -1930,8 +1956,8 @@ function take(k){
   }
   say(q, function(){
     $("card").replaceChildren();
-    if(burn()) return;                       // 線香が尽きたら夜が明ける
-    S.done ? corridor() : drawNav();
+    if(burn()){ OBACK=null; OFFING=false; return; }   // 線香が尽きたら夜が明ける
+    afterOffer();                            // 買ったあとも、その場の続きへ戻る
   });
 }
 
@@ -1939,6 +1965,15 @@ function take(k){
 /* 選択肢の段を三つに分ける。重さの違うものを同じ形で並べない。
    上：線香を使うもの（戻せない）／中：歩く（線香は要らない、戻せる）／
    下：閉じる。夜を終える手は仏間にしか置かない（横になる、という一手にする）。 */
+/* その場の話が終わっていないうちは、手を出させない。
+   途中で歩くと、戻ったときに最初から流れ直して、同じ行を二度読むことになる。
+   途中で夜を終えると、その場面ごと落ちる。場面は必ず終わるので、行き止まりにはならない。 */
+function reading(){
+  if(S.done) return false;
+  var P=PLACES.filter(function(p){ return p.k===S.place; })[0];
+  return !!(P && !S.readCh[P.src]);
+}
+
 function drawNav(){
   if(S.done){ $("nav").replaceChildren(); return; }
   var rows=[];
@@ -1949,16 +1984,22 @@ function drawNav(){
       return ["「"+ASKS[k].phrase+"」のこと", function(){ offer(k); }];
     })]);
   }
-  rows.push(["話す\n線香を一本", TALK.filter(function(t){ return t.place===S.place && !S.talked[t.k]; })
-    .map(function(t){
-      return [t.label, function(){
-        S.talked[t.k]=true;
-        say(talkLines(t).concat([ashLine()]), function(){ if(!burn()) drawNav(); });
-      }];
-    })]);
+  var here=TALK.filter(function(t){ return t.place===S.place && !S.talked[t.k]; });
+  var mk1=function(t){
+    return [t.label, function(){
+      S.talked[t.k]=true;
+      say(talkLines(t).concat([ashLine()]), function(){ if(!burn()) drawNav(); });
+    }];
+  };
+  /* 人に訊くのと、自分で見るのを分ける。同じ段に七つ並べると、何の場面か見えなくなる */
+  rows.push(["人に訊く\n線香を一本", here.filter(function(t){ return t.who; }).map(mk1)]);
+  rows.push(["自分で見る\n線香を一本", here.filter(function(t){ return !t.who; }).map(mk1)]);
   /* 行き先は一段奥に置く。ここに五つ並べると、何を選ぶ場面なのかが見えなくなる。
-     いま居る場所へは歩けないので、そもそも出さない。 */
-  rows.push(["", [["ほかの場所へ", walkMenu]], "sub"]);
+     いま居る場所へは歩けないので、そもそも出さない。
+     **その場の話が終わっていないうちは歩かせない。** 途中で出ると、戻ったときに
+     その場が最初から流れ直して、一度読んだ行をもう一度読むことになる。 */
+  var mid=reading();
+  if(!mid) rows.push(["", [["ほかの場所へ", walkMenu]], "sub"]);
   /* 夜を終える手はどこからでも届かないと、行き止まりが作れてしまう。
      ただし段は一番下に置いて、話すや歩くと同じ形にはしない。 */
   var P0=PLACES.filter(function(p){return p.k===S.place;})[0];
@@ -1989,10 +2030,20 @@ function drawNav(){
     menuHead(e2);
   }
 
-  if(!S.navSeen){                                    // 初めてここに来た人にだけ
-    S.navSeen=true;
+  if(mid){
+    var rh=document.createElement("div"); rh.className="menu-h";
+    rh.textContent="この場は、まだ終わっていません。読み終えると、次を選べます。";
+    menuHead(rh);
+  }
+
+  /* この夜が何をする夜なのかを、最初のうちだけ言う。
+     言わないと、何のために聞き回っているのかが分からないまま線香が減る。 */
+  S.navSeen=(S.navSeen||0)+1;
+  if(S.navSeen<=3){
     var h=document.createElement("div"); h.className="menu-h";
-    h.textContent="線香が一本尽きるごとに夜が進みます。全部はできません。歩くのに線香は要りません。";
+    h.textContent = S.navSeen===1
+      ? "朝までに、兄のことをどれだけ知るか。それだけの夜です。線香が一本尽きるごとに夜が進み、全部はできません。歩くのに線香は要りません。"
+      : "朝までに、兄のことをどれだけ知るか。";
     menuHead(h);
   }
 }
@@ -2003,8 +2054,15 @@ function walkMenu(){
   var open=PLACES.filter(function(p){
     return p.k!==S.place && (!p.need || S.readCh[p.need]);
   });
+  /* どこに何が残っているかを、数だけ出す。中身は言わない。
+     分からないまま行き来するのが、この夜でいちばん疲れるところだった。 */
+  var left=function(p){
+    if(!S.readCh[p.src]) return "まだ";
+    var n=TALK.filter(function(t){ return t.place===p.k && !S.talked[t.k]; }).length;
+    return n ? kan(n) : "なし";
+  };
   menu([["歩く\n線香は要らない",
-          open.map(function(p){ return [p.name, function(){ enter(p.k); }]; })],
+          open.map(function(p){ return [p.name+"（"+left(p)+"）", function(){ enter(p.k); }]; })],
         ["", [["やめる", drawNav]], "faint"]]);
   if(open.length < PLACES.length-1){
     var h=document.createElement("div"); h.className="menu-h";
@@ -2151,7 +2209,8 @@ var ORDER7=["zero","paid","short","noshort","seal0","seal1","all"];
 function fill(t,st){
   if(!t || t.indexOf("[")<0) return t;
   return t.replace(/\[(額|不足|持参|内引|残|次封)\]/g, function(_,k){
-    if(k==="額"||k==="持参") return kin(S.paid);
+    if(k==="額")   return kin(st.bal);   // 朝に読まれるのは、残った額
+    if(k==="持参") return kin(S.paid);
     if(k==="不足")  return st.sf!==null ? kin(st.sf) : "";
     if(k==="内引")  return kin(S.spent);
     if(k==="残")    return kin(st.bal);
@@ -2577,8 +2636,9 @@ window.__dev = {
   },
 
   nav: function(label){
-    var b=Array.prototype.filter.call(document.querySelectorAll("#nav button"),
-      function(x){ return x.textContent===label; })[0];
+    var all=Array.prototype.slice.call(document.querySelectorAll("#nav button"));
+    var b=all.filter(function(x){ return x.textContent===label; })[0]
+        || all.filter(function(x){ return x.textContent.indexOf(label)===0; })[0];
     if(!b) throw new Error("選択肢が無い: "+label+" ／ ある: "+
       Array.prototype.map.call(document.querySelectorAll("#nav button"),function(x){return x.textContent;}).join("|"));
     if(b.disabled) throw new Error("選べない: "+label);

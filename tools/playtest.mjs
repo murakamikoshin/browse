@@ -75,7 +75,7 @@ for (const idx of AMOUNTS) {
         /* 選べるものが一つも無ければ行き止まり */
         const has = (re) => nav.filter(b => re.test(b.t)).map(b => b.t);
         /* 手を動かすところ。半分は「やめる」ほうを選んで、戻ってこられるか見る */
-        const PLACE = /^(玄関・帳場|仏間|港|帳場の奥|玄関の外)$/;
+        const PLACE = /^(玄関・帳場|仏間|港|帳場の奥|玄関の外)(（[^）]*）)?$/;
         const UI = /^(閉じる|やめる|ほかの場所へ|もう一度読む|夜を終える|横になる|読み進める|はい|いいえ|最初から)$/;
         if (nav.length <= 2 && !nav.some(b => PLACE.test(b.t) || UI.test(b.t))) {
           out.acts = (out.acts || 0) + 1;
@@ -102,7 +102,7 @@ for (const idx of AMOUNTS) {
         const yes = has(/^はい/); if (yes.length) { D.nav(yes[0]); continue; }
 
         /* 行き先の札が開いていれば、そこから歩く */
-        const walk = has(/^(玄関・帳場|仏間|港|帳場の奥|玄関の外)$/);
+        const walk = has(/^(玄関・帳場|仏間|港|帳場の奥|玄関の外)(（[^）]*）)?$/);
         if (walk.length) {
           const to = walk[out.steps % walk.length];
           out.went = (out.went || []); if (!out.went.includes(to)) out.went.push(to);
