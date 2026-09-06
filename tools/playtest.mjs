@@ -48,6 +48,9 @@ for (const idx of AMOUNTS) {
         if (s.balance < 0) W('残高が負になった ' + s.balance);
         if (s.balance > paid) W('残高が持参より多い');
         const q = s.line && s.line.charAt(0) === '「';
+        /* 原稿の差し込み（[額] [不足] など）が置き換わらずに出ていないか。
+           一度これで、読み上げの一行がそのまま「[額]」と出ていた */
+        if (/\[(額|不足|持参|内引|残|次封)\]/.test(s.line || '')) W('差し込みが残っている: ' + s.line.slice(0, 24));
         if (q && !s.who && !s.done) W('台詞に名札が無い: ' + s.line.slice(0, 14));
         if (!q && s.who) W('地の文に名札が出ている: ' + s.line.slice(0, 14));
         out.bare += s.kanjiBare; out.lines++;
