@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@400;600&family=Zen+Old+Mincho:wght@400;500;700;900&display=swap">
 <style>
 :root{
+  --mincho:"Zen Old Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
   --ink:#080C0E; --ink2:#0E1417; --edge:#1C2527;
   --fg:#DCE1DD; --fg-dim:#7E8A86; --fg-faint:#485351;
   --accent:#6E7673; --soft:rgba(110,118,115,.12); --glow:0;
@@ -19,7 +20,7 @@
 html,body{ margin:0; padding:0; min-height:100%; }
 body{
   background:var(--ink); color:var(--fg);
-  font-family:"Zen Old Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  font-family:var(--mincho);
   font-weight:500;
   font-size:16px; line-height:2.25; -webkit-font-smoothing:antialiased;
 }
@@ -59,7 +60,7 @@ h1.t{ font-size:2.4rem; font-weight:900; letter-spacing:.3em; margin:16px 0 6px;
   #pay .inner{ padding:40px 0; }
   .note{ font-size:.68rem; }
 }
-.amt{ font-family:"Zen Old Mincho",serif; font-size:2.5rem; letter-spacing:.06em;
+.amt{ font-family:var(--mincho); font-size:2.5rem; letter-spacing:.06em;
       min-width:6.1em; display:inline-block; font-weight:500; color:var(--accent); line-height:1.1; transition:color .8s ease; }
 .pm{ display:flex; gap:8px; }
 .pm button{ width:48px; height:48px; background:transparent; border:1px solid var(--edge);
@@ -67,12 +68,12 @@ h1.t{ font-size:2.4rem; font-weight:900; letter-spacing:.3em; margin:16px 0 6px;
   transition:border-color .2s,color .2s; }
 .pm button:hover:not(:disabled){ border-color:var(--accent); color:var(--fg); }
 .pm button:disabled{ opacity:.25; cursor:not-allowed; }
-.unit{ font-family:"Zen Old Mincho",serif; font-size:.78rem; letter-spacing:.06em; color:var(--fg-faint); }
-.real{ font-family:"Zen Old Mincho",serif; font-size:.92rem; letter-spacing:.06em; color:var(--fg-dim);
+.unit{ font-family:var(--mincho); font-size:.78rem; letter-spacing:.06em; color:var(--fg-faint); }
+.real{ font-family:var(--mincho); font-size:.92rem; letter-spacing:.06em; color:var(--fg-dim);
        margin-left:auto; }
 .real b{ font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
          font-size:1.15rem; color:var(--accent); font-weight:500; margin-left:.4em; }
-.real.free b{ font-family:"Zen Old Mincho",serif; font-size:1rem; color:var(--fg-dim); }
+.real.free b{ font-family:var(--mincho); font-size:1rem; color:var(--fg-dim); }
 .confirm b{ font-family:"IBM Plex Mono",monospace; color:var(--accent); font-weight:500; }
 .terms b{ color:var(--fg); font-weight:500; }
 .unit b{ color:var(--fg-dim); font-weight:500; }
@@ -93,7 +94,7 @@ button.go:focus-visible, .pm button:focus-visible{ outline:2px solid var(--accen
   color:var(--fg-dim); font-family:inherit; font-size:.9rem; cursor:pointer; }
 .confirm button:hover{ border-color:var(--accent); color:var(--fg); }
 .terms2{ margin-top:-24px; margin-bottom:44px; }
-.terms-h{ font-family:"Zen Old Mincho",serif; font-size:.72rem; letter-spacing:.28em;
+.terms-h{ font-family:var(--mincho); font-size:.72rem; letter-spacing:.28em;
           color:var(--fg-faint); padding-bottom:6px; }
 .terms span{ min-width:3.2em; }
 .note b{ color:var(--fg-dim); font-weight:500; }
@@ -104,7 +105,7 @@ button.go:focus-visible, .pm button:focus-visible{ outline:2px solid var(--accen
       border-bottom:1px solid var(--edge); backdrop-filter:blur(9px); }
 .hud-in{ max-width:40em; margin:0 auto; padding:12px clamp(16px,4vw,26px);
          display:flex; align-items:center; gap:15px; flex-wrap:wrap; }
-.hud-lab{ font-family:"Zen Old Mincho",serif; font-size:.58rem; letter-spacing:.24em;
+.hud-lab{ font-family:var(--mincho); font-size:.58rem; letter-spacing:.24em;
           text-transform:uppercase; color:var(--fg-faint); }
 .sticks{ display:flex; gap:8px; align-items:flex-end; height:28px; }
 .stick{ width:2px; height:26px; background:#333C3A; position:relative; transition:height .6s ease,background .6s ease; }
@@ -113,13 +114,13 @@ button.go:focus-visible, .pm button:focus-visible{ outline:2px solid var(--accen
   border-radius:50%; background:var(--ember); filter:blur(2px); animation:gl 2.4s ease-in-out infinite; }
 @keyframes gl{ 0%,100%{opacity:.5} 50%{opacity:1} }
 .stick.spent{ height:4px; background:#333C3A; } .stick.spent::after{ display:none; }
-.note-n{ font-family:"Zen Old Mincho",serif; font-size:.74rem; letter-spacing:.08em;
+.note-n{ font-family:var(--mincho); font-size:.74rem; letter-spacing:.08em;
   color:var(--accent); border:1px solid var(--accent); padding:3px 9px; }
-.place{ margin-left:auto; margin-right:4px; font-family:"Zen Old Mincho",serif; font-size:.62rem;
+.place{ margin-left:auto; margin-right:4px; font-family:var(--mincho); font-size:.62rem;
         letter-spacing:.18em; color:var(--fg-dim); }
 
 /* 本文 */
-.chap{ font-family:"Zen Old Mincho",serif; font-size:.7rem; letter-spacing:.5em;
+.chap{ font-family:var(--mincho); font-size:.7rem; letter-spacing:.5em;
        color:var(--fg-faint); padding:44px 0 6px; }
 
 /* 章の札。真ん中に出て、しばらく置いて、消える。二度目からは上の一行だけ */
@@ -130,17 +131,17 @@ button.go:focus-visible, .pm button:focus-visible{ outline:2px solid var(--accen
 #chapcard.in{ opacity:1; }
 .cc-in{ text-align:center; transform:translateY(6px); transition:transform 1.6s ease; }
 #chapcard.in .cc-in{ transform:none; }
-.cc-n{ font-family:"Zen Old Mincho",serif; font-size:.86rem; letter-spacing:.62em;
+.cc-n{ font-family:var(--mincho); font-size:.86rem; letter-spacing:.62em;
        color:var(--fg-faint); text-indent:.62em; }
 .cc-r{ width:2.6em; height:1px; background:rgba(120,132,128,.34); margin:20px auto; }
-.cc-t{ font-family:"Zen Old Mincho",serif; font-weight:700; font-size:2.1rem;
+.cc-t{ font-family:var(--mincho); font-weight:700; font-size:2.1rem;
        letter-spacing:.44em; color:var(--fg); text-indent:.44em; }
 @media (max-width:520px){ .cc-t{ font-size:1.6rem; } }
 h2.ct{ font-size:1.4rem; font-weight:800; letter-spacing:.16em; margin:0 0 38px; }
 p.l{ margin:0 0 1.3em; animation:fu .5s ease-out; }
 @keyframes fu{ from{opacity:0;transform:translateY(3px)} to{opacity:1;transform:none} }
 .more{ margin:18px 0 40px; }
-.more button{ background:none; border:none; color:var(--fg-faint); font-family:"Zen Old Mincho",serif;
+.more button{ background:none; border:none; color:var(--fg-faint); font-family:var(--mincho);
   font-size:.68rem; letter-spacing:.2em; cursor:pointer; padding:10px 0; }
 .more button:hover{ color:var(--fg-dim); }
 .ask{ cursor:inherit; }
@@ -152,7 +153,7 @@ p.l{ margin:0 0 1.3em; animation:fu .5s ease-out; }
 
 /* 帳場さん */
 .cb{ margin:26px 0; border-left:2px solid var(--accent); padding:15px 0 15px 18px; animation:fu .45s ease-out; }
-.cb .who{ font-family:"Zen Old Mincho",serif; font-size:.6rem; letter-spacing:.2em;
+.cb .who{ font-family:var(--mincho); font-size:.6rem; letter-spacing:.2em;
           color:var(--accent); margin-bottom:.5em; }
 .cb p{ margin:0 0 13px; }
 .acts{ display:flex; gap:9px; flex-wrap:wrap; }
@@ -168,11 +169,11 @@ p.l{ margin:0 0 1.3em; animation:fu .5s ease-out; }
 .stub-in .amt2{ letter-spacing:.4em; color:#6A6558; }
 /* 買うたび、自分の行の横に線が一本増える。額は伏せたまま、減っていることだけを見せる */
 .stub-in .tally{ margin-top:7px; padding-top:6px; border-top:1px dashed #98918255;
-  font-family:"Zen Old Mincho",serif; font-size:.9rem; letter-spacing:.34em; color:#8C1F1F; }
+  font-family:var(--mincho); font-size:.9rem; letter-spacing:.34em; color:#8C1F1F; }
 
 /* 地図 */
 .map{ margin:34px 0 0; padding-top:26px; border-top:1px solid var(--edge); }
-.map-l{ font-family:"Zen Old Mincho",serif; font-size:.6rem; letter-spacing:.24em;
+.map-l{ font-family:var(--mincho); font-size:.6rem; letter-spacing:.24em;
         text-transform:uppercase; color:var(--fg-faint); margin-bottom:14px; }
 .map .acts button.here{ border-color:var(--accent); color:var(--accent); }
 
@@ -195,7 +196,7 @@ p.l{ margin:0 0 1.3em; animation:fu .5s ease-out; }
        font-size:1.45rem; color:var(--short); font-weight:500; }
 .slip{ margin:32px 0; opacity:0; animation:fu .7s ease-out .6s forwards; }
 .slip-in{ display:inline-block; min-width:min(320px,100%); background:var(--paper); color:#1C1A16;
-  font-family:"Shippori Mincho","Hiragino Mincho ProN",serif; font-variant-numeric:tabular-nums; font-size:.74rem;
+  font-family:"Shippori Mincho","Hiragino Mincho ProN",serif;  /* 紙は別の書体のまま */ font-variant-numeric:tabular-nums; font-size:.74rem;
   line-height:1.85; padding:22px 20px 27px; box-shadow:0 18px 44px rgba(0,0,0,.6);
   clip-path:polygon(0 0,100% 0,100% calc(100% - 7px),92% 100%,84% calc(100% - 7px),76% 100%,68% calc(100% - 7px),60% 100%,52% calc(100% - 7px),44% 100%,36% calc(100% - 7px),28% 100%,20% calc(100% - 7px),12% 100%,4% calc(100% - 7px),0 100%); }
 .slip-h{ text-align:center; letter-spacing:.2em; font-size:.64rem; padding-bottom:11px; border-bottom:1px dashed #98918255; }
@@ -296,7 +297,7 @@ p.l.fin{ margin-top:2.4em; }
   backdrop-filter:blur(10px);
   padding:20px clamp(15px,3vw,26px) 22px; }
 .win-who{ position:absolute; top:0; left:clamp(15px,3vw,26px); transform:translateY(-50%);
-  font-family:"Zen Old Mincho",serif; font-size:.74rem; letter-spacing:.22em;
+  font-family:var(--mincho); font-size:.74rem; letter-spacing:.22em;
   color:var(--accent); background:var(--ink); border:1px solid rgba(212,166,58,.34);
   padding:3px 12px 4px; }
 .win-t{ margin:0; font-size:1.12rem; line-height:2.45; letter-spacing:.02em;
@@ -328,7 +329,7 @@ rt{ font-size:.46em; font-weight:400; line-height:1; letter-spacing:.01em;
 #nav .row{ display:flex; gap:12px; align-items:baseline; padding:5px 0; }
 #nav .menu.plain .acts{ justify-content:center; }
 #nav .row + .row{ border-top:1px solid rgba(120,132,128,.13); }
-#nav .row-l{ flex:0 0 auto; width:8.2em; font-family:"Zen Old Mincho",serif;
+#nav .row-l{ flex:0 0 auto; width:8.2em; font-family:var(--mincho);
   font-size:.82rem; letter-spacing:.1em; color:var(--fg-dim); padding-top:.55em; line-height:1.5; }
 .row-l small{ display:block; font-size:.66rem; letter-spacing:.06em; color:var(--fg-faint); }
 #nav .acts{ flex:1 1 auto; display:flex; gap:6px; flex-wrap:wrap; }
@@ -407,7 +408,7 @@ rt{ font-size:.46em; font-weight:400; line-height:1; letter-spacing:.01em;
 }
 .hud button.on{ color:var(--accent); border-color:var(--accent); }
 .hud button.off{ opacity:.42; }
-.menu-h{ font-family:"Zen Old Mincho",serif; font-size:.8rem; color:var(--fg-faint);
+.menu-h{ font-family:var(--mincho); font-size:.8rem; color:var(--fg-faint);
          padding:2px 0 14px; letter-spacing:.04em; }
 .menu-h.warn{ color:#D28C79; }
 /* 段。歩くのは戻せるので細く、閉じる・横になるはさらに引く */
@@ -418,8 +419,11 @@ rt{ font-size:.46em; font-weight:400; line-height:1; letter-spacing:.01em;
 #nav .row.faint .acts button{ font-size:.78rem; padding:6px 2px; border:none;
   color:var(--fg-faint); margin-right:16px; }
 #nav .row.faint .acts button:hover{ color:var(--fg-dim); }
-.hud .hbar button{ font-family:"Zen Old Mincho",serif; font-size:.72rem; letter-spacing:.1em; }
+.hud .hbar button{ font-family:var(--mincho); font-size:.72rem; letter-spacing:.1em; }
 </style>
+
+<!-- 書体 ここから -->
+<!-- 書体 ここまで -->
 </head>
 <body>
 
