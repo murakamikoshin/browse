@@ -97,8 +97,10 @@ h1.t{ font-size:2.4rem; font-weight:900; letter-spacing:.3em; margin:16px 0 6px;
 .terms{ border-top:1px solid var(--edge); border-bottom:1px solid var(--edge);
         padding:20px 0; margin:0 0 44px; display:flex; flex-direction:column; gap:9px; }
 .terms div{ font-size:.85rem; color:var(--fg-dim); display:flex; gap:12px; }
-.terms span{ font-family:"IBM Plex Mono",monospace; font-size:.62rem; color:var(--fg-faint);
-             letter-spacing:.1em; min-width:2.4em; padding-top:.35em; }
+.terms > div > span:first-child{ font-family:"IBM Plex Mono",monospace; font-size:.62rem;
+  color:var(--fg-faint); letter-spacing:.1em; min-width:2.4em; padding-top:.35em; flex:0 0 auto; }
+/* 本文は一つの欄にまとめる。ここを分けると、中の <b> が別の欄になって変な位置で折れる */
+.terms > div > span.d{ flex:1 1 auto; }
 .amtrow{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
 @media (max-width:680px){
   .amt{ font-size:1.9rem; min-width:0; flex:1 1 100%; }
@@ -109,7 +111,7 @@ h1.t{ font-size:2.4rem; font-weight:900; letter-spacing:.3em; margin:16px 0 6px;
   h1.t{ font-size:1.9rem; }
   .sub{ font-size:.82rem; margin-bottom:30px; }
   .terms div{ font-size:.8rem; }
-  .terms span{ min-width:2.8em; }
+  .terms > div > span:first-child{ min-width:2.8em; }
   .terms2{ margin-top:-14px; margin-bottom:30px; }
   #pay .inner{ padding:40px 0; }
   .note{ font-size:.68rem; }
@@ -150,7 +152,7 @@ button.go:focus-visible, .pm button:focus-visible{ outline:2px solid var(--accen
 .terms2{ margin-top:-24px; margin-bottom:44px; }
 .terms-h{ font-family:var(--mincho); font-size:.72rem; letter-spacing:.28em;
           color:var(--fg-faint); padding-bottom:6px; }
-.terms span{ min-width:3.2em; }
+.terms > div > span:first-child{ min-width:3.2em; }
 .note b{ color:var(--fg-dim); font-weight:500; }
 .note{ margin-top:34px; font-size:.72rem; line-height:1.9; color:var(--fg-faint); }
 
@@ -1140,12 +1142,13 @@ var INTRO=[
     ["線香","一本尽きるごとに夜が進みます。尽きたら朝が来て、通夜は終わります。"],
     ["歩く","家と港のあいだは自由に行き来できます。歩くのにも、読み直すのにも線香は要りません。"],
     ["話す","人と話すと線香を一本使います。お金はかかりません。"],
-    ["朝","線香を残したままでも、仏間で横になれば朝が来ます。夜には戻れません。"]
+    ["朝","線香を残したままでも、仏間で横になれば朝が来ます。夜には戻れません。"],
+    ["選ぶ","できることより、線香のほうが少なくしてあります。<b>全部はできません。</b>"],
+    ["夜","何をして、何をしなかったか。それであなたの夜が決まります。"]
   ]},
   { t:"読むときのこと", rows:[
     ["ふりがな","漢字にふりがなが付きます。上の「ふりがな」で消せます。"],
     ["語注","<b>破線の引いてある語</b>は、押すと意味が出ます。"],
-    ["全部は","用意した行動より、線香のほうが少なくしてあります。<b>全部はできません。</b>何をして何をしなかったかで、あなたの夜が決まります。"],
     ["試作","これは制作中の試作です。実際の決済は行われません。"]
   ]}
 ];
@@ -1154,7 +1157,7 @@ function drawIntro(){
   var pg=INTRO[IP];
   $("ititle").textContent=pg.t;
   $("ibody").innerHTML=pg.rows.map(function(r){
-    return "<div><span>"+r[0]+"</span>"+r[1]+"</div>";
+    return '<div><span>'+r[0]+'</span><span class="d">'+r[1]+'</span></div>';
   }).join("")+'<div class="ipage">'+(IP+1)+" / "+INTRO.length+"</div>";
   var nav=$("inav"); nav.replaceChildren();
   var mk=function(label,fn){
