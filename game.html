@@ -44,8 +44,23 @@ h1.t{ font-size:2.4rem; font-weight:900; letter-spacing:.3em; margin:16px 0 6px;
 .terms div{ font-size:.85rem; color:var(--fg-dim); display:flex; gap:12px; }
 .terms span{ font-family:"IBM Plex Mono",monospace; font-size:.62rem; color:var(--fg-faint);
              letter-spacing:.1em; min-width:2.4em; padding-top:.35em; }
-.amtrow{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; margin-bottom:14px; }
-.amt{ font-family:"Zen Old Mincho",serif; font-size:2.5rem; letter-spacing:.06em; font-weight:500; color:var(--accent); line-height:1.1; transition:color .8s ease; }
+.amtrow{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
+@media (max-width:680px){
+  .amt{ font-size:1.9rem; min-width:0; flex:1 1 100%; }
+  .amtrow{ gap:10px; }
+  .pm button{ width:56px; height:56px; }        /* 指で押せる大きさ */
+  .real{ margin-left:0; }
+  .unit{ order:3; flex:1 1 100%; }
+  h1.t{ font-size:1.9rem; }
+  .sub{ font-size:.82rem; margin-bottom:30px; }
+  .terms div{ font-size:.8rem; }
+  .terms span{ min-width:2.8em; }
+  .terms2{ margin-top:-14px; margin-bottom:30px; }
+  #pay .inner{ padding:40px 0; }
+  .note{ font-size:.68rem; }
+}
+.amt{ font-family:"Zen Old Mincho",serif; font-size:2.5rem; letter-spacing:.06em;
+      min-width:6.1em; display:inline-block; font-weight:500; color:var(--accent); line-height:1.1; transition:color .8s ease; }
 .pm{ display:flex; gap:8px; }
 .pm button{ width:48px; height:48px; background:transparent; border:1px solid var(--edge);
   color:var(--fg-dim); font-size:1.2rem; cursor:pointer; font-family:"IBM Plex Mono",monospace;
@@ -269,14 +284,25 @@ p.l.fin{ margin-top:2.4em; }
 /* 下段。文章が上、選択肢がその下。まとめて画面の下に貼る（ASSETS.md 3 の下25%） */
 #lower{ position:absolute; z-index:4; left:0; right:0; bottom:0;
         padding:0 clamp(16px,5vw,30px) calc(env(safe-area-inset-bottom,0px) + 16px); }
-.win{ visibility:hidden; cursor:pointer; min-height:max(22vh, 8.6em);
-      display:flex; align-items:flex-end; }
+/* 文の枠。高さを決めて、中の字がはみ出さないようにする。
+   行の長さは中央値24字・最長123字と開きがあるので、入り切らない行は字を詰める（winFit）。
+   枠の高さが動かないので、行ごとに画面が跳ねない。 */
+.win{ visibility:hidden; cursor:pointer; display:flex; align-items:flex-end; --winh:184px; }
 .win.on{ visibility:visible; }
-.win-in{ position:relative; width:min(46em,100%); margin:0 auto; padding-bottom:14px; }
-.win-who{ font-family:"Zen Old Mincho",serif; font-size:.72rem; letter-spacing:.22em;
-          color:var(--accent); margin-bottom:.6em; text-shadow:0 1px 10px rgba(0,0,0,.9); }
-.win-t{ margin:0; font-size:1.12rem; line-height:2.45; letter-spacing:.02em; min-height:4em;
-        text-shadow:0 1px 14px rgba(0,0,0,.95), 0 0 34px rgba(0,0,0,.7); }
+.win-in{ position:relative; width:min(46em,100%); margin:0 auto;
+  background:linear-gradient(180deg, rgba(6,9,10,.60), rgba(6,9,10,.86));
+  border:1px solid rgba(120,132,128,.26);
+  box-shadow:0 -2px 40px rgba(0,0,0,.5), inset 0 1px 0 rgba(220,225,221,.06);
+  backdrop-filter:blur(10px);
+  padding:20px clamp(15px,3vw,26px) 22px; }
+.win-who{ position:absolute; top:0; left:clamp(15px,3vw,26px); transform:translateY(-50%);
+  font-family:"Zen Old Mincho",serif; font-size:.74rem; letter-spacing:.22em;
+  color:var(--accent); background:var(--ink); border:1px solid rgba(212,166,58,.34);
+  padding:3px 12px 4px; }
+.win-t{ margin:0; font-size:1.12rem; line-height:2.45; letter-spacing:.02em;
+  height:var(--winh); overflow-y:auto; overflow-x:hidden; overflow-wrap:anywhere;
+  scrollbar-width:none; -webkit-text-size-adjust:100%; }
+.win-t::-webkit-scrollbar{ display:none; }
 .win-t i.c{ font-style:normal; }
 ruby{ ruby-align:center; }
 rt{ font-size:.46em; font-weight:400; line-height:1; letter-spacing:.01em;
@@ -286,7 +312,7 @@ rt{ font-size:.46em; font-weight:400; line-height:1; letter-spacing:.01em;
 .win-t.fin{ color:var(--accent); }
 .win-t.seal-t{ color:#D5DAD4; }
 .win-t.aside{ color:var(--fg-dim); font-size:1.02rem; }
-.win-tri{ position:absolute; right:0; bottom:0; width:0; height:0; opacity:0;
+.win-tri{ position:absolute; right:clamp(13px,2.4vw,20px); bottom:8px; width:0; height:0; opacity:0;
   border-left:5px solid transparent; border-right:5px solid transparent;
   border-top:7px solid rgba(220,225,221,.55); }
 .win-tri.on{ animation:tri 1.3s ease-in-out infinite; }
@@ -355,11 +381,11 @@ rt{ font-size:.46em; font-weight:400; line-height:1; letter-spacing:.01em;
   /* 選択肢が出ているあいだは、窓を縮めて選択肢に場所を渡す。
      狭い画面では、下の段が画面の外に出て押せなくなっていた */
   #nav{ max-height:calc(100vh - 190px); }
-  #lower.picking .win{ min-height:0; }
-  #lower.picking .win-in{ padding-bottom:8px; }
+  #lower.picking .win-in{ padding-bottom:14px; }
   /* 選んでいるあいだ、窓は直前の二行だけ残す。全部残すと下の段が画面の外に出る */
-  #lower.picking .win-t{ min-height:0; font-size:.98rem; line-height:2.1;
-    max-height:4.2em; overflow:hidden; }
+  .win{ --winh:190px; }
+  .win-in{ padding:16px 14px 18px; }
+  #lower.picking .win{ --winh:64px; }
   #lower.picking .win-who{ margin-bottom:.35em; }
   #nav .menu{ padding:9px 11px 11px; }
   #nav .row{ gap:8px; }
@@ -1113,6 +1139,17 @@ function nextLine(){
 }
 
 /* 一字ずつ出す。字を <i> に割ってから透かす。指せる語句の span は壊さない。 */
+/* 枠に入り切らない行は、入るところまで字を詰める。それでも溢れるときだけ中で送る */
+function winFit(){
+  var el=$("wt");
+  el.style.fontSize="";
+  var s=[1.12,1.04,.97,.90,.84,.78,.72];
+  for(var i=0;i<s.length;i++){
+    el.style.fontSize=s[i]+"rem";
+    if(el.scrollHeight<=el.clientHeight+1) return;
+  }
+}
+
 function type(html){
   var el=$("wt"); el.innerHTML=html;
   (function split(n){
@@ -1132,6 +1169,7 @@ function type(html){
       }
     }
   })(el);
+  winFit();
   Q.chars=Array.prototype.slice.call(el.querySelectorAll("i.c")); Q.k=0;
   clearInterval(Q.tid); Q.tid=null;
   $("tri").classList.remove("on");
@@ -1240,8 +1278,10 @@ $("logbox").addEventListener("click",closeLog);      // 紙のどこを押して
 /* 選択肢が出ているかどうかを下の段に伝える。狭い画面で窓を縮めるため */
 (function(){
   var n=$("nav"), lo=$("lower");
-  new MutationObserver(function(){ lo.classList.toggle("picking", !!n.firstChild); })
-    .observe(n,{childList:true});
+  new MutationObserver(function(){
+    lo.classList.toggle("picking", !!n.firstChild);
+    winFit();                                    // 枠の高さが変わるので字を当て直す
+  }).observe(n,{childList:true});
 })();
 
 $("bmore").addEventListener("click",function(e){
@@ -1273,7 +1313,7 @@ auDraw();
   if(it && it.t!==undefined){
     var html=esc(it.t);
     if(it.id) html=markAsks(it.src,it.id,html);
-    $("wt").innerHTML=addRuby(html);
+    $("wt").innerHTML=addRuby(html); winFit();
   }
 });
 drawRuby();
@@ -1856,6 +1896,7 @@ window.__dev = {
              line:$("wt").textContent, who:$("who").hidden?null:$("who").textContent,
              card:$("card").textContent||null, log:S.log.length,
              chapcard:!!CARD.go, chapSeen:Object.keys(S.seenChap),
+             hamidashi:(function(){ var w=$("wt"); return w?Math.max(0,w.scrollHeight-w.clientHeight):0; })(),
              kanjiBare:(function(){        // ふりがなの付いていない漢字を数える
                var w=$("wt"), n=0;
                if(!RUBYON||!w) return 0;

@@ -51,6 +51,8 @@ for (const idx of AMOUNTS) {
         if (q && !s.who && !s.done) W('台詞に名札が無い: ' + s.line.slice(0, 14));
         if (!q && s.who) W('地の文に名札が出ている: ' + s.line.slice(0, 14));
         out.bare += s.kanjiBare; out.lines++;
+        if (s.hamidashi > 0) { out.over = Math.max(out.over || 0, s.hamidashi);
+          if ((out.over || 0) === s.hamidashi) W('枠から字がはみ出した ' + s.hamidashi + 'px: ' + (s.line||'').slice(0,16)); }
 
         if (s.done && document.querySelector('.slip-ed')) return finish(out, s);
         if (s.chapcard) { D.flush(4); continue; }          // 章の札は送る
