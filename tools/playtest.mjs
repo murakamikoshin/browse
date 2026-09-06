@@ -35,6 +35,7 @@ for (const idx of AMOUNTS) {
     const r = await page.evaluate(([idx, way]) => {
       const D = window.__dev, out = { steps: 0, talked: 0, bought: 0, bare: 0, lines: 0, warn: [] };
       const W = (m) => { if (out.warn.length < 6) out.warn.push(m); };
+      D.fast(true);
       D.begin(idx);
       const paid = D.state().paid;
 
