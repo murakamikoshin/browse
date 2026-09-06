@@ -32,8 +32,11 @@ if __name__ == "__main__":
         print("NG  大きすぎます"); sys.exit(1)
 
     # 素材が入ったときだけ、字のほうを引っ込める。無ければ「帳場」の字がそのまま出る
+    # 素材が入ったときだけ、字のほうを引っ込める。無ければ「帳場」の字がそのまま出る。
+    # font-size を落とさないと、透明にした字の高さが残って aspect-ratio が効かない
     css = ('<style>.ti-t{ letter-spacing:0; text-indent:0; margin-top:6px; }'
-           '.ti-logo{ color:transparent; aspect-ratio:%d/%d;'
+           '.ti-logo{ color:transparent; font-size:0; line-height:0;'
+           ' aspect-ratio:%d/%d;'
            ' background-image:url(data:image/webp;base64,%s); }</style>'
            % (w, h, base64.b64encode(d).decode()))
     g = io.open(DST, encoding="utf-8").read()
