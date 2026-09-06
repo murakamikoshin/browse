@@ -70,7 +70,8 @@
 | `tools/build_speakers.py` | 話者表を流し込む |
 | `tools/build_ruby.py` | ふりがなの辞書を作る。`--report` で読みの割れを出す |
 | `tools/build_audio.py` | `audio/` の音声を data URI で焼き込む |
-| `tools/verify.mjs` | 全体を機械で舐める。エンディング85組を実際に通す |
+| `tools/verify.mjs` | データが揃っているかを見る。エンディング85組を実際に通す |
+| `tools/playtest.mjs` | **遊ぶ人の側から見る。**10の支払額 × 4つの遊び方（無口／話し好き／買い手／せっかち）で通しで遊び、行き止まり・名札の付け間違い・ふりがなの抜け・線香や残高が負になることを毎手検査する。画面の操作（どうする・記録・ふりがな・音・章の札）も触って確かめる。`--quick` で額を三つだけ |
 
 `index.html` `door.html` `stage.html` `ask.html` `read.html` は仕組みを確かめるための旧試作。
 
