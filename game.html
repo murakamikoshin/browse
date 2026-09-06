@@ -334,7 +334,38 @@ rt{ font-size:.46em; font-weight:400; line-height:1; letter-spacing:.01em;
 .dev{ position:fixed; z-index:41; right:12px; bottom:auto; top:calc(100% - 30px);
       font-size:.58rem; color:var(--fg-faint); opacity:.5; }
 .dev:hover{ opacity:1 }
-.hbar{ display:flex; gap:5px; }
+.hbar{ display:flex; gap:5px; align-items:center; }
+.hud .hbar button{ white-space:nowrap; }
+#bmore{ display:none; }
+/* 狭い画面。六つ並べると二段になって章題を隠す。「どうする」だけ残して畳む */
+@media (max-width:680px){
+  .hud-in{ gap:9px; padding:9px clamp(10px,3vw,16px); }
+  .hud-lab{ display:none; }
+  .sticks{ gap:5px; height:22px; }
+  .stick{ height:20px; }
+  .stick.spent{ height:3px; }
+  .hud .hbar button{ font-size:.68rem; padding:5px 8px; letter-spacing:.02em; }
+  #bmore{ display:inline-block; }
+  .hbar > button:not(#bnav):not(#bmore){ display:none; }
+  .hbar.open{ position:absolute; top:calc(100% + 6px); right:clamp(10px,3vw,16px);
+              flex-direction:column; align-items:stretch; gap:4px;
+              background:rgba(8,12,14,.96); border:1px solid var(--edge); padding:7px; }
+  .hbar.open > button{ display:block !important; width:100%; text-align:center; }
+  .place{ font-size:.64rem; }
+  /* 選択肢が出ているあいだは、窓を縮めて選択肢に場所を渡す。
+     狭い画面では、下の段が画面の外に出て押せなくなっていた */
+  #nav{ max-height:calc(100vh - 190px); }
+  #lower.picking .win{ min-height:0; }
+  #lower.picking .win-in{ padding-bottom:8px; }
+  /* 選んでいるあいだ、窓は直前の二行だけ残す。全部残すと下の段が画面の外に出る */
+  #lower.picking .win-t{ min-height:0; font-size:.98rem; line-height:2.1;
+    max-height:4.2em; overflow:hidden; }
+  #lower.picking .win-who{ margin-bottom:.35em; }
+  #nav .menu{ padding:9px 11px 11px; }
+  #nav .row{ gap:8px; }
+  .row-l{ width:5.6em; font-size:.76rem; }
+  #nav .acts button{ font-size:.84rem; padding:8px 12px; }
+}
 .hud button.on{ color:var(--accent); border-color:var(--accent); }
 .hud button.off{ opacity:.42; }
 .menu-h{ font-family:"Zen Old Mincho",serif; font-size:.8rem; color:var(--fg-faint);
@@ -365,6 +396,7 @@ rt{ font-size:.46em; font-weight:400; line-height:1; letter-spacing:.01em;
       <button type="button" id="blog">記録</button>
       <button type="button" id="bau">音</button>
       <button type="button" id="bruby">ふりがな</button>
+      <button type="button" id="bmore" aria-label="ほかの操作">⋯</button>
       <button type="button" id="bnav">どうする</button>
     </span>
   </div>
@@ -1205,6 +1237,21 @@ function closeLog(){ $("logbox").classList.remove("on"); $("logclose").hidden=tr
 $("blog").addEventListener("click",function(){ $("logbox").classList.contains("on")?closeLog():openLog(); });
 $("logclose").addEventListener("click",closeLog);
 $("logbox").addEventListener("click",closeLog);      // 紙のどこを押しても閉じる
+/* 選択肢が出ているかどうかを下の段に伝える。狭い画面で窓を縮めるため */
+(function(){
+  var n=$("nav"), lo=$("lower");
+  new MutationObserver(function(){ lo.classList.toggle("picking", !!n.firstChild); })
+    .observe(n,{childList:true});
+})();
+
+$("bmore").addEventListener("click",function(e){
+  e.stopPropagation();
+  $("hud").querySelector(".hbar").classList.toggle("open");
+});
+document.addEventListener("click",function(e){          // 外を押したら畳む
+  var h=$("hud").querySelector(".hbar");
+  if(h.classList.contains("open") && !e.target.closest(".hbar")) h.classList.remove("open");
+});
 $("bnav").addEventListener("click",function(){
   if(S.done) return;
   if($("nav").firstChild) $("nav").replaceChildren(); else drawNav();   // 押したら閉じる
