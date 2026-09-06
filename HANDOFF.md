@@ -50,6 +50,9 @@ scenario/step9_choba.md を直す  →  python3 tools/build_choba.py  →  game.
 | 話者 | `tools/build_speakers.py` |
 | ふりがな | `tools/build_ruby.py`（`--report` で読みの割れ） |
 | 帳場さんの帳 | `tools/build_choba.py` |
+| 語注 | `tools/build_gloss.py` |
+| 音の付く行 | `tools/build_marks.py` |
+| 題のロゴ | `tools/build_logo.py` |
 | 書体 | `tools/build_font.py`（`--check` で不足字） |
 | 音声ファイルを置いたとき | `tools/build_audio.py` |
 
@@ -89,7 +92,8 @@ NODE_PATH=/opt/node22/lib/node_modules node tools/playtest.mjs   # 遊ぶ側か�
    「書き換わった行」は終わったあとに**位置だけ**光り、中身は出さない。
    帳も、どの額で何番のEDが出るかは書かない
 7. **数字は隠さない。**「八十五」は見せる。隠すのは対応関係だけ
-8. **語注は辞書の意味だけ。** その語がこの話で何を指すかを書いた時点で、封と同じものになる
+8. **語注は辞書の意味だけ。** その語がこの話で何を指すかを書いた時点で、封と同じものになる。
+   人の名前と重なる語に注意（凪）。呼びかけが続くときは出さないようにしてある
 9. **夜の五つの場所に章番号を付けない。** 歩いた順で番号が前後すると辻褄が合わない
 
 新しい層（台詞・封・帳場さんの帳など）を足すときは、

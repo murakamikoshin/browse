@@ -16,6 +16,10 @@ TAIL = "/* 語注 ここまで */"
 # 意味が物語の側で決まる語。辞書の説明を付けると、封で売っているものと衝突する
 NG = ["内引", "帳", "封", "帯", "残高", "精算書", "控え", "指す"]
 
+# 人の名前と重なる語。呼びかけ（さん・様）が続くときは game.html 側でも出さないが、
+# 呼びかけ無しでも名前として読める語は、そもそも入れない
+NAMES = ["汐里", "美波", "貝原", "巽", "田上", "魚政", "しおり"]
+
 
 def load():
     d, order = {}, []
@@ -64,6 +68,8 @@ if __name__ == "__main__":
     for w in order:
         if w in NG:
             bad.append((w, "物語の側で意味が決まる語")); continue
+        if w in NAMES:
+            bad.append((w, "人の名前と重なる")); continue
         hit = [p for p in phr if w in p or p in w]
         if hit:
             bad.append((w, "買える語句と重なる: " + hit[0])); continue
