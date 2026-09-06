@@ -204,7 +204,7 @@ p.l{ margin:0 0 1.3em; animation:fu .5s ease-out; }
       <div class="ladder" id="ladder"></div>
       <button class="go" type="button" id="decide">この額で包む</button>
       <div id="confirmSlot"></div>
-      <p class="note">指した語句は、その場では買えません。帳場さんは玄関の机から動かないので、訊きたいことを控えて、帳場の奥に戻ってから訊きます。移動に線香は要りません。<br>これは制作中の試作です。実際の決済は行われません。第一章から第五章まで本文が入っています。第五章の帯2〜5は未執筆のため、そこだけどの金額でも同じ文になります。</p>
+      <p class="note">¥0 を選ぶと、襖の前に立ちません。封の値段も不足額も表示されず、四つあったという事実だけが精算書に残ります。<br>指した語句は、その場では買えません。帳場さんは玄関の机から動かないので、訊きたいことを控えて、帳場の奥に戻ってから訊きます。移動に線香は要りません。<br>これは制作中の試作です。実際の決済は行われません。第一章から第五章まで本文が入っています。第五章の帯2〜5は未執筆のため、そこだけどの金額でも同じ文になります。</p>
     </div>
   </section>
 
@@ -491,6 +491,22 @@ function drawNav(){
     });
     n.appendChild(d);
   }
+  var e=document.createElement("div");
+  e.className="map";
+  e.innerHTML='<div class="map-l">夜を終える</div><div class="acts"></div>';
+  var eb=document.createElement("button");
+  eb.type="button";
+  eb.textContent = S.incense>1 ? "線香が尽きるまで、座っている" : "夜明けを待つ";
+  eb.addEventListener("click",function(){
+    var p=document.createElement("p");
+    p.className="l"; p.style.color="var(--fg-dim)";
+    p.textContent="仏間の隅に座った。線香を継ぎ足しながら、朝までそうしていた。";
+    $("story").appendChild(p);
+    S.incense=0; drawSticks(); dawn();
+  });
+  e.querySelector(".acts").appendChild(eb);
+  n.appendChild(e);
+
   var m=document.createElement("div");
   m.className="map";
   m.innerHTML='<div class="map-l">歩く（線香は減りません）</div><div class="acts"></div>';
@@ -509,16 +525,20 @@ function dawn(){
   S.done=true;
   $("nav").replaceChildren();
   $("slot").replaceChildren();
+  var zero = S.paid===0;
   var d=document.createElement("div");
   d.className="dawn";
-  d.innerHTML="<b>線香が尽きた</b>東の空が白んできた。廊下の奥に、四重の封がかかった襖がある。"+
-              "<br>凪さんが言った。「残った分だけ、開けていいって帳場さんが」";
+  d.innerHTML = zero
+    ? "<b>線香が尽きた</b>東の空が白んできた。凪さんが、廊下の奥から出てきた。"+
+      "<br>「少し、眠れた？」<br>眠っていなかった。それでも、頷いた。"
+    : "<b>線香が尽きた</b>東の空が白んできた。廊下の奥に、四重の封がかかった襖がある。"+
+      "<br>凪さんが言った。「残った分だけ、開けていいって帳場さんが」";
   $("story").appendChild(d);
   var go=document.createElement("div");
   go.className="acts"; go.style.marginBottom="30px";
   var b=document.createElement("button");
-  b.type="button"; b.textContent="襖の前に立つ";
-  b.addEventListener("click",function(){ go.remove(); door(); });
+  b.type="button"; b.textContent = zero ? "朝を迎える" : "襖の前に立つ";
+  b.addEventListener("click",function(){ go.remove(); zero ? endZero() : door(); });
   go.appendChild(b);
   $("story").appendChild(go);
   b.scrollIntoView({behavior:"smooth",block:"center"});
@@ -526,6 +546,42 @@ function dawn(){
 
 function maxSeals(v){ var n=0; SEALS.forEach(function(s){ if(v>=s.p) n++; }); return n; }
 function edNumber(i,op){ var n=0; for(var j=0;j<i;j++) n+=maxSeals(STEPS[j])+1; return n+op+1; }
+
+function slipOf(host, opened, sf, bal){
+  var items=Object.keys(S.bought).map(function(k){
+    return { name:ASKS[k].phrase, price:priceOf(ASKS[k].tier) };
+  });
+  var rows=items.map(function(it){
+    return '<div class="slip-r"><span>'+it.name+'</span><span>−'+yen(it.price)+'</span></div>';
+  }).join("");
+  var sl=document.createElement("div");
+  sl.className="slip";
+  sl.innerHTML='<div class="slip-in">'+
+    '<div class="slip-h">芳名帳　精算</div><div style="height:11px"></div>'+
+    '<div class="slip-r"><span>ご持参</span><span>'+yen(S.paid)+'</span></div>'+
+    (rows?'<div class="slip-rule"></div>'+rows:'')+
+    '<div class="slip-rule"></div>'+
+    '<div class="slip-r"><span>読み上げ</span><span>'+yen(bal)+'</span></div>'+
+    (sf!==null?'<div class="slip-r slip-s"><span>不足</span><span>'+yen(sf)+'</span></div>':'')+
+    '<div class="slip-r"><span>開封</span><span>'+opened+' / '+SEALS.length+'</span></div>'+
+    '<div class="slip-rule"></div>'+
+    '<div class="slip-ed"><div class="no">ED-'+String(edNumber(S.idx,opened)).padStart(2,"0")+
+    '</div><div class="nm">（最終行は未執筆）</div></div></div>';
+  host.appendChild(sl);
+  return items;
+}
+
+// ¥0：襖の前に立たない。封の値段も不足額も見えない。
+function endZero(){
+  var host=$("slot"); host.replaceChildren();
+  var e=document.createElement("div");
+  e.className="dawn";
+  e.innerHTML="<b>第七章は未執筆</b>出棺。帳場さんが芳名帳を読み上げる。"+
+              "汐里の名前が最後に読まれ、額は読まれない。";
+  host.appendChild(e);
+  slipOf(host, 0, null, 0);
+  host.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
 
 function door(){
   var bal=balance(), opened=0, sf=null;
@@ -547,28 +603,9 @@ function door(){
       e.innerHTML='<span>次の封まで、あと</span><b>'+yen(sf)+'</b>';
       host.appendChild(e);
     }
-    var items=Object.keys(S.bought).map(function(k){
-      return { name:ASKS[k].phrase, price:priceOf(ASKS[k].tier) };
-    });
+    var items=slipOf(host, opened, sf, bal);
     var culprit=null;
     if(sf!==null) items.forEach(function(it){ if(it.price>=sf && (!culprit||it.price<culprit.price)) culprit=it; });
-
-    var rows=items.map(function(it){
-      return '<div class="slip-r"><span>'+it.name+'</span><span>−'+yen(it.price)+'</span></div>';
-    }).join("");
-    var sl=document.createElement("div");
-    sl.className="slip";
-    sl.innerHTML='<div class="slip-in">'+
-      '<div class="slip-h">芳名帳　精算</div><div style="height:11px"></div>'+
-      '<div class="slip-r"><span>ご持参</span><span>'+yen(S.paid)+'</span></div>'+
-      (rows?'<div class="slip-rule"></div>'+rows:'')+
-      '<div class="slip-rule"></div>'+
-      '<div class="slip-r"><span>読み上げ</span><span>'+yen(bal)+'</span></div>'+
-      (sf!==null?'<div class="slip-r slip-s"><span>不足</span><span>'+yen(sf)+'</span></div>':'')+
-      '<div class="slip-rule"></div>'+
-      '<div class="slip-ed"><div class="no">ED-'+String(edNumber(S.idx,opened)).padStart(2,"0")+
-      '</div><div class="nm">（最終行は未執筆）</div></div></div>';
-    host.appendChild(sl);
 
     if(culprit){
       var c=document.createElement("div");
