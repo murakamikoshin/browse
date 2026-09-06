@@ -106,6 +106,35 @@ if (want('band')) {
   }
 }
 
+/* ---------- 3. 夜。選ばせるだけの行動が用意されているか ---------- */
+if (want('night')) {
+  console.log('');
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await D('begin', 0);
+  const n = await D('night');
+  console.log(`夜の行動 ${n.talks} 本（${n.lines}行） 線香 ${n.incense} 本`);
+  Object.keys(n.byPlace).forEach(k => console.log(`   ${k} ${n.byPlace[k]}`));
+  /* 用意した行動が線香以下なら、全部やっても余る。誰がやっても同じ夜になり、
+     無料のプレイヤーには選ぶところが一つも無くなる（SPEC 3.5 B）。 */
+  if (n.talks <= n.incense)
+    ng(`行動 ${n.talks} 本に対し線香 ${n.incense} 本。全部できてしまうので夜が選択にならない`);
+  const places = ['genkan','butsu','minato','cha'];
+  places.forEach(k => { if (!n.byPlace[k]) ng(`${k} に行動が一つも無い`); });
+}
+
+/* ---------- 4. 絵。場面の割り当てに穴が無いか ---------- */
+if (want('art')) {
+  console.log('');
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await D('begin', 0);
+  const a = await D('art');
+  a.missing.forEach(m => ng('場面の割り当て先が無い: ' + m));
+  const unused = a.scenes.filter(s => !s.used);
+  console.log(`場面 ${a.scenes.length} 枚（使用 ${a.scenes.length - unused.length}／実画像 ${a.real.length}）`);
+  unused.forEach(s => console.log(`   未使用 ${s.k}　${s.name}`));
+  a.scenes.filter(s => s.used).forEach(s => console.log(`   ${s.k}　${s.name}`));
+}
+
 console.log(`\n不備 ${bad.length} 件`);
 await browser.close();
 process.exit(bad.length ? 1 : 0);

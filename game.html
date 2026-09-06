@@ -211,8 +211,8 @@ p.l.fin{ margin-top:2.4em; }
 #scrim{ position:absolute; inset:0; z-index:1; pointer-events:none;
   background:
     linear-gradient(180deg, rgba(6,9,11,.74) 0, rgba(6,9,11,.26) 8%, rgba(6,9,11,0) 20%,
-                            rgba(6,9,11,0) 62%, rgba(6,9,11,.34) 74%,
-                            rgba(6,9,11,.86) 88%, rgba(6,9,11,.95) 100%),
+                            rgba(6,9,11,0) 55%, rgba(6,9,11,.34) 68%,
+                            rgba(6,9,11,.84) 84%, rgba(6,9,11,.95) 100%),
     radial-gradient(120% 70% at 50% 108%, var(--soft), transparent 66%);
   transition:background 1.4s ease; }
 
@@ -233,13 +233,13 @@ p.l.fin{ margin-top:2.4em; }
   width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent;
   border-top:7px solid rgba(220,225,221,.5); animation:tri 1.3s ease-in-out infinite; }
 
-/* 窓。下から25%（ASSETS.md 3）。枠で囲わず、幕の上に字だけ置く */
-.win{ position:absolute; z-index:4; left:0; right:0; bottom:0;
-      height:max(25%, 9.6em); visibility:hidden; cursor:pointer;
-      padding:0 clamp(16px,5vw,30px) calc(env(safe-area-inset-bottom,0px) + 18px);
+/* 下段。文章が上、選択肢がその下。まとめて画面の下に貼る（ASSETS.md 3 の下25%） */
+#lower{ position:absolute; z-index:4; left:0; right:0; bottom:0;
+        padding:0 clamp(16px,5vw,30px) calc(env(safe-area-inset-bottom,0px) + 16px); }
+.win{ visibility:hidden; cursor:pointer; min-height:max(22vh, 8.6em);
       display:flex; align-items:flex-end; }
 .win.on{ visibility:visible; }
-.win-in{ position:relative; width:min(46em,100%); margin:0 auto; }
+.win-in{ position:relative; width:min(46em,100%); margin:0 auto; padding-bottom:14px; }
 .win-who{ font-family:"IBM Plex Mono",monospace; font-size:.6rem; letter-spacing:.2em;
           color:var(--accent); margin-bottom:.6em; text-shadow:0 1px 10px rgba(0,0,0,.9); }
 .win-t{ margin:0; font-size:1.04rem; line-height:2; min-height:4em;
@@ -248,16 +248,14 @@ p.l.fin{ margin-top:2.4em; }
 .win-t.fin{ color:var(--accent); }
 .win-t.seal-t{ color:#D5DAD4; }
 .win-t.aside{ color:var(--fg-dim); font-size:.95rem; }
-.win-tri{ position:absolute; right:0; bottom:1px; width:0; height:0; opacity:0;
+.win-tri{ position:absolute; right:0; bottom:0; width:0; height:0; opacity:0;
   border-left:5px solid transparent; border-right:5px solid transparent;
   border-top:7px solid rgba(220,225,221,.55); }
 .win-tri.on{ animation:tri 1.3s ease-in-out infinite; }
 @keyframes tri{ 0%,100%{opacity:.3;transform:translateY(0)} 50%{opacity:1;transform:translateY(2px)} }
 
 /* 選択肢。窓のすぐ上。出ているあいだだけ絵に重なる */
-#nav{ position:absolute; z-index:7; left:0; right:0; bottom:max(25%, 9.6em);
-      display:flex; justify-content:center; max-height:52vh; overflow-y:auto;
-      padding:0 clamp(16px,5vw,30px) 12px; }
+#nav{ display:flex; justify-content:center; max-height:46vh; overflow-y:auto; }
 #nav:empty{ display:none; }
 #nav .menu{ width:min(46em,100%); border:1px solid rgba(120,132,128,.22);
   background:rgba(8,12,14,.74); backdrop-filter:blur(14px); padding:11px 15px 13px; }
@@ -358,12 +356,14 @@ p.l.fin{ margin-top:2.4em; }
     <div id="scrim"></div>
     <div id="chap"></div>
     <div id="card"></div>
-    <div id="nav"></div>
-    <div class="win" id="win"><div class="win-in">
-      <div class="win-who" id="who" hidden></div>
-      <p class="win-t" id="wt"></p>
-      <div class="win-tri" id="tri"></div>
-    </div></div>
+    <div id="lower">
+      <div class="win" id="win"><div class="win-in">
+        <div class="win-who" id="who" hidden></div>
+        <p class="win-t" id="wt"></p>
+        <div class="win-tri" id="tri"></div>
+      </div></div>
+      <div id="nav"></div>
+    </div>
     <div class="dev" id="dev" hidden>
       <label><input type="checkbox" id="mk"> 検証用：指せる語句を光らせる</label>
       <button type="button" id="again">最初から</button>
@@ -450,18 +450,24 @@ var PLACES=[
   { k:"ishi",   name:"玄関の外",   ch:"第五章　東京の三年", src:"5" }
 ];
 
+/* 夜の行動。一本につき線香一本。香典はかからない。
+   用意した数より線香を少なくしておかないと、誰がやっても同じ夜になる（SPEC 3.5 B）。
+   原稿は scenario/step6_talks.md、流し込みは tools/build_talks.py。 */
 var TALK=[
-  { k:"nagi", place:"butsu", label:"凪さんに、美波のことを訊く",
-    text:"凪さんは少しだけ笑った。「よく喋るようになったのよ。あの人に似て、肝心なことは言わないけど」" },
-  { k:"town", place:"minato", label:"おじさんに、船のことを訊く",
-    text:"おじさんは、しおり丸のほうを見たまま言った。「あれだけは、最後まで手を入れとったな」" },
-  { k:"old",  place:"cha", label:"帳場さんと、父のときの話をする",
-    text:"帳場さんは湯呑みを置いて、少しだけ笑った。「お父さんのときも、こうしてお茶をお出ししました」" },
-  { k:"gen",  place:"genkan", label:"芳名帳をもう一度見る",
-    text:"名前が並んでいる。どの行も、字の大きさが揃っていた。書き慣れた人が、順番に書かせたのだと思った。" }
+  { k:"nagi", place:"butsu", who:"凪さん", label:"凪さんに、美波のことを訊く",
+    lines:["凪さんは少しだけ笑った。","「よく喋るようになったのよ。あの人に似て、肝心なことは言わないけど」"] },
+  { k:"town", place:"minato", who:"隣のおじさん", label:"おじさんに、船のことを訊く",
+    lines:["おじさんは、しおり丸のほうを見たまま言った。","「あれだけは、最後まで手を入れとったな」"] },
+  { k:"old",  place:"cha", who:"帳場さん", label:"帳場さんと、父のときの話をする",
+    lines:["帳場さんは湯呑みを置いて、少しだけ笑った。","「お父さんのときも、こうしてお茶をお出ししました」"] },
+  { k:"gen",  place:"genkan", who:null, label:"芳名帳をもう一度見る",
+    lines:["名前が並んでいる。どの行も、字の大きさが揃っていた。書き慣れた人が、順番に書かせたのだと思った。"] }
 ];
 
-var S = { idx:0, paid:0, band:0, spent:0, incense:8, place:"genkan", noted:{}, lastAsk:false,
+/* 夜に灯る線香の数。用意した行動より少なくする。 */
+var INCENSE=14;
+
+var S = { idx:0, paid:0, band:0, spent:0, incense:INCENSE, place:"genkan", noted:{}, lastAsk:false,
           opened:false, bought:{}, talked:{}, shown:0, done:false, log:[], art:null, char:null };
 
 var $=function(i){ return document.getElementById(i); };
@@ -578,6 +584,7 @@ function nextLine(){
   $("win").classList.add("on");
   var w=$("who");
   if(it.who){ w.textContent=it.who; w.hidden=false; } else { w.hidden=true; }
+  if(it.bg) setArt(it.bg);
   $("wt").className="win-t"+(it.cls?" "+it.cls:"");
   logPush(it); markSeen(it.t);
   var html=esc(it.t);
@@ -704,6 +711,15 @@ $("blog").addEventListener("click",openLog);
 $("logclose").addEventListener("click",closeLog);
 $("bnav").addEventListener("click",function(){ if(!S.done) drawNav(); });
 
+/* 会話の本文。帯の書き換えは章と同じ当て方をする。 */
+function talkLines(t){
+  return t.lines.map(function(txt,i){
+    var o=t.ov && t.ov[String(i)];
+    if(o) for(var lv=2; lv<=S.band+1; lv++) if(o[String(lv)]!==undefined) txt=o[String(lv)];
+    return { t:txt, who:(i===0? t.who : null) };
+  });
+}
+
 function chapTitle(s){
   var c=$("chap"); c.textContent=s;
   c.classList.remove("in"); void c.offsetWidth; c.classList.add("in");
@@ -714,12 +730,13 @@ function enter(k){
   var P=PLACES.filter(function(p){return p.k===k;})[0];
   $("place").textContent=P.name;
   $("card").replaceChildren();
-  setArt(k);
+  setArt(PLACEBG[k]);
   chapTitle(P.ch);
   var hint = P.opens && !S.opened;
   if(P.opens) S.opened=true;
+  var at=BGAT[P.src]||{};
   var q=(CH[P.src]||{order:[]}).order.map(function(id){
-    return { t:chText(P.src,id), src:P.src, id:id };
+    return { t:chText(P.src,id), src:P.src, id:id, bg:at[id] };
   });
   /* 仕組みの開示は場所ではなく行動。茶を飲んだ時点で一度だけ（SPEC 3.5 A）。 */
   if(hint) q.push({t:"「何か、気になるものはございましたか」", who:"帳場さん"});
@@ -809,7 +826,7 @@ function drawNav(){
     .map(function(t){
       return [t.label, function(){
         S.talked[t.k]=true;
-        say([{t:t.text}], function(){ if(!burn()) drawNav(); });
+        say(talkLines(t), function(){ if(!burn()) drawNav(); });
       }];
     })]);
   rows.push(["歩く", PLACES.map(function(p){
@@ -827,9 +844,9 @@ function dawn(){
   S.done=true; S.lastAsk=true;
   $("card").replaceChildren();
   S.place="cha";
-  setArt("cha");
   chapTitle("第六章　夜明け前");
-  var q=CH["6"].order.map(function(id){ return { t:chText("6",id), src:"6", id:id }; });
+  var at6=BGAT["6"];
+  var q=CH["6"].order.map(function(id){ return { t:chText("6",id), src:"6", id:id, bg:at6[id] }; });
   say(q, corridor);
 }
 
@@ -948,7 +965,7 @@ function build7(st){
     var x=ch7Text(id,st);
     if(x===null || x.indexOf("（ここから")===0) return;
     if(!st.zero && id==="L051"){ out.push({slip:true}); return; }
-    out.push({t:x});
+    out.push({t:x, id:id});
   });
   for(var i=0;i<st.opened;i++){
     var s=SEALTEXT[i];
@@ -965,10 +982,11 @@ function morning(){
   var st=ch7state(); S.st=st;
   $("nav").replaceChildren(); $("card").replaceChildren();
   $("place").textContent="出棺";
-  setArt("asa");
   chapTitle("第七章　出棺");
+  var at7=BGAT["7"];
   var q=build7(st).map(function(it){
-    return it.slip ? { card:function(){ return slipEl(st); } } : { t:it.t, cls:it.cls };
+    return it.slip ? { card:function(){ return slipEl(st); } }
+                   : { t:it.t, cls:it.cls, bg:it.id?at7[it.id]:undefined };
   });
   say(q, function(){
     $("card").replaceChildren(edCard(st));
@@ -981,36 +999,70 @@ function morning(){
    ASSETS.md のとおり、受け取るのは「完成イラスト（＝帯5）」「シルエット」「顔の座標」の三つだけ。
    帯1〜4はここで作る。img/ にファイルを置けばそれを使い、無ければ仮の絵で構図だけ示す。
    顔の座標は画像内のピクセル。cover で敷くので、画面上の位置は毎回計算し直す。 */
-var ART={
-  genkan:{ bg:"img/bg_genkan.webp",
-           ph:{ sky:["#1B2530","#0B1116"], horizon:.60, hue:34,
-                sh:[["rect",0,.60,1,.40,"#0C1216"],["rect",.04,.28,.34,.34,"#16202A"],
-                    ["rect",.09,.35,.06,.11,"#6B5A32"],["ell",.70,.44,.07,.11,"#121A21"],
-                    ["rect",.55,.46,.30,.16,"#141D25"]] } },
-  butsu: { bg:"img/bg_butsu.webp",
-           ph:{ sky:["#241F1B","#0F0D0C"], horizon:.74, hue:28,
-                sh:[["rect",0,.74,1,.26,"#0D0C0B"],["rect",.28,.14,.44,.60,"#1B1815"],
-                    ["rect",.42,.26,.16,.32,"#26221C"],["ell",.50,.64,.035,.055,"#8A6A2E"],
-                    ["rect",.12,.40,.10,.24,"#171512"]] } },
-  minato:{ bg:"img/bg_minato.webp",
-           ph:{ sky:["#152634","#070E14"], horizon:.48, hue:40,
-                sh:[["rect",0,.48,1,.52,"#0A131A"],["rect",.12,.30,.36,.19,"#101C25"],
-                    ["rect",.29,.12,.022,.20,"#101C25"],["ell",.78,.46,.12,.035,"#0E1720"],
-                    ["rect",.60,.34,.26,.13,"#0F1922"]] } },
-  cha:   { bg:"img/bg_cha.webp",
-           ph:{ sky:["#2B241A","#12100C"], horizon:.68, hue:26,
-                sh:[["rect",0,.68,1,.32,"#100E0A"],["rect",.16,.20,.68,.48,"#221C13"],
-                    ["ell",.34,.62,.055,.035,"#4A3E24"],["rect",.54,.50,.24,.16,"#282013"],
-                    ["rect",.20,.30,.13,.20,"#1B1610"]] } },
-  ishi:  { bg:"img/bg_ishi.webp",
-           ph:{ sky:["#181F27","#090C10"], horizon:.64, hue:32,
-                sh:[["rect",0,.64,1,.36,"#0A0E12"],["rect",.60,.16,.34,.48,"#131A21"],
-                    ["rect",.05,.38,.16,.26,"#101519"],["ell",.42,.50,.05,.07,"#151C23"]] } },
-  asa:   { bg:"img/bg_asa.webp",
-           ph:{ sky:["#4A4638","#1A1E20"], horizon:.52, hue:46,
-                sh:[["rect",0,.52,1,.48,"#141A1D"],["rect",.06,.38,.88,.15,"#1D2427"],
-                    ["ell",.50,.26,.08,.08,"#6B6448"],["rect",.30,.44,.40,.10,"#222A2D"]] } }
+var ART={};
+/* 場面。key はファイル名でもある。img/<key>.webp を置けばそれが使われる。
+   ph は仮の絵の当たり（空の色 / 水平線 / 色相 / 図形）。実物が入れば使わない。 */
+[
+ ["bg_eki_night",      "駅前・夜",           ["#16202B","#080D11"],.66,34,
+   [["r",0,.66,1,.34,"#0A1015"],["r",.70,.28,.10,.38,"#131C24"],["e",.74,.30,.014,.02,"#8A7A46"],["r",0,.40,.34,.26,"#0D141A"]]],
+ ["bg_saka_night",     "坂道・夜",           ["#141D27","#080C10"],.58,32,
+   [["r",0,.58,1,.42,"#090E13"],["r",.02,.24,.36,.40,"#111922"],["r",.62,.20,.36,.44,"#101822"],["e",.50,.62,.30,.06,"#5A4C28"]]],
+ ["bg_genkan_night",   "玄関と帳場・夜",     ["#1E2630","#0B1116"],.60,34,
+   [["r",0,.60,1,.40,"#0C1216"],["r",.04,.26,.34,.36,"#18222C"],["r",.09,.34,.06,.12,"#7A6538"],["r",.52,.44,.34,.18,"#151F27"],["e",.70,.42,.07,.11,"#131C23"]]],
+ ["bg_butsuma_night",  "仏間・夜",           ["#241F1B","#0F0D0C"],.74,26,
+   [["r",0,.74,1,.26,"#0D0C0B"],["r",.26,.12,.48,.62,"#1C1916"],["r",.40,.24,.20,.34,"#28231C"],["e",.46,.60,.016,.05,"#C89A3A"],["e",.56,.60,.016,.05,"#C89A3A"]]],
+ ["bg_minato_night",   "港・夜",             ["#152634","#070E14"],.48,40,
+   [["r",0,.48,1,.52,"#0A131A"],["r",.10,.30,.38,.19,"#101C25"],["r",.28,.10,.02,.22,"#101C25"],["e",.76,.45,.13,.035,"#0E1720"],["r",.58,.33,.28,.14,"#0F1922"]]],
+ ["bg_sendo_night",    "操舵室の中・夜",     ["#1B1F1E","#0A0D0D"],.70,44,
+   [["r",0,.70,1,.30,"#0B0E0E"],["r",.14,.16,.72,.44,"#141918"],["r",.30,.52,.30,.14,"#1E2422"],["e",.45,.55,.07,.03,"#2A2F2B"]]],
+ ["bg_teibou_night",   "堤防の先・夜",       ["#101C28","#05090D"],.42,38,
+   [["r",0,.42,1,.58,"#070C11"],["r",0,.36,.62,.10,"#0C141B"],["e",.30,.70,.40,.10,"#091016"]]],
+ ["bg_chouba_night",   "帳場の机・夜",       ["#2B241A","#12100C"],.68,26,
+   [["r",0,.68,1,.32,"#100E0A"],["r",.14,.20,.72,.48,"#241D14"],["e",.32,.62,.055,.035,"#4E4126"],["r",.52,.50,.26,.16,"#2A2114"],["r",.18,.30,.14,.20,"#1C1710"]]],
+ ["bg_ishidan_night",  "玄関の石段・夜",     ["#181F27","#090C10"],.64,32,
+   [["r",0,.64,1,.36,"#0A0E12"],["r",.58,.14,.38,.50,"#131A21"],["r",.04,.36,.18,.28,"#101519"],["e",.42,.72,.06,.03,"#243040"]]],
+ ["bg_tokyo_room",     "東京の部屋・回想",   ["#20232A","#0C0E12"],.72,220,
+   [["r",0,.72,1,.28,"#0D0F13"],["r",.10,.18,.36,.50,"#171B22"],["r",.60,.24,.30,.40,"#151920"]]],
+ ["bg_butsuma_dawn",   "仏間・夜明け前",     ["#2A2A2E","#131315"],.72,210,
+   [["r",0,.72,1,.28,"#111112"],["r",.26,.12,.48,.62,"#1F1F22"],["e",.46,.60,.014,.045,"#B08A34"],["r",.74,.14,.22,.44,"#2C2F35"]]],
+ ["bg_fusuma_night",   "襖と四枚の封・夜",   ["#1D1B17","#0C0B09"],.80,30,
+   [["r",0,.80,1,.20,"#0A0908"],["r",.16,.10,.68,.70,"#221F19"],
+    ["r",.34,.20,.055,.44,"#D8D2C2"],["r",.44,.20,.055,.44,"#D8D2C2"],
+    ["r",.54,.20,.055,.44,"#D8D2C2"],["r",.64,.20,.055,.44,"#D8D2C2"]]],
+ ["bg_rouka_dawn",     "廊下の窓・朝",       ["#3A3E42","#15181A"],.66,200,
+   [["r",0,.66,1,.34,"#131618"],["r",.56,.10,.34,.52,"#8E9AA0"],["r",.04,.16,.30,.50,"#1B1F22"]]],
+ ["bg_michi_morning",  "玄関前の道・朝",     ["#4A4C46","#191D1F"],.56,46,
+   [["r",0,.56,1,.44,"#1A1E20"],["r",.02,.24,.30,.34,"#232829"],["r",.70,.22,.28,.36,"#212627"],["e",.50,.60,.34,.05,"#2B3132"]]],
+ ["bg_kaizoi_morning", "海沿いの道・朝",     ["#565A50","#1D2426"],.50,48,
+   [["r",0,.50,1,.50,"#1E2527"],["e",.50,.52,.60,.06,"#3A4344"],["r",.40,.42,.20,.10,"#2A3133"]]],
+ ["bg_minato_morning", "港・朝",             ["#5E6154","#20282A"],.46,50,
+   [["r",0,.46,1,.54,"#212A2D"],["r",.08,.28,.40,.20,"#2C3538"],["r",.26,.08,.02,.22,"#2C3538"],["e",.74,.44,.14,.04,"#39434A"]]],
+ ["bg_butsuma_after",  "片付いた仏間・朝",   ["#43423E","#171818"],.72,44,
+   [["r",0,.72,1,.28,"#151616"],["r",.24,.12,.52,.62,"#232320"],["r",.36,.66,.28,.10,"#2E2E29"]]],
+ ["bg_fusuma_morning", "襖・朝",             ["#4A463C","#1A1917"],.80,40,
+   [["r",0,.80,1,.20,"#181715"],["r",.16,.10,.68,.70,"#2E2A22"],
+    ["r",.34,.20,.055,.44,"#E6E0D0"],["r",.44,.20,.055,.44,"#E6E0D0"],
+    ["r",.54,.20,.055,.44,"#E6E0D0"],["r",.64,.20,.055,.44,"#E6E0D0"]]]
+].forEach(function(x){
+  ART[x[0]]={ name:x[1], bg:"img/"+x[0]+".webp",
+              ph:{ sky:x[2], horizon:x[3], hue:x[4],
+                   sh:x[5].map(function(s){ return [s[0]==="r"?"rect":"ell",s[1],s[2],s[3],s[4],s[5]]; }) } };
+});
+
+/* 章のどの行で場面が変わるか。本文を読んで置いた対応表で、本文そのものではない。 */
+var BGAT={
+  "1":{ L001:"bg_eki_night", L005:"bg_saka_night", L014:"bg_genkan_night" },
+  "2":{ L001:"bg_butsuma_night" },
+  "3":{ L001:"bg_minato_night", L026:"bg_sendo_night", L034:"bg_teibou_night", L048:"bg_minato_night" },
+  "4":{ L001:"bg_chouba_night" },
+  "5":{ L001:"bg_ishidan_night", L019:"bg_tokyo_room", L041:"bg_ishidan_night" },
+  "6":{ L001:"bg_butsuma_dawn", L030:"bg_fusuma_night" },
+  "7":{ L001:"bg_rouka_dawn", L005:"bg_michi_morning", L034:"bg_kaizoi_morning",
+        L036:"bg_minato_morning", L043:"bg_rouka_dawn", L049:"bg_fusuma_morning",
+        L050:"bg_butsuma_after", L070:"bg_fusuma_morning" }
 };
+var PLACEBG={ genkan:"bg_genkan_night", butsu:"bg_butsuma_night", minato:"bg_minato_night",
+              cha:"bg_chouba_night", ishi:"bg_ishidan_night" };
 
 /* 仮の絵。構図の当たりだけ。img/ に実物を置けば使われない。 */
 function phUrl(k){
@@ -1025,7 +1077,7 @@ function phUrl(k){
     else o+='<ellipse cx="'+(s[1]*W)+'" cy="'+(s[2]*H)+'" rx="'+(s[3]*W)+'" ry="'+(s[4]*H)+'" fill="'+s[5]+'"/>';
   });
   o+='<text x="'+(W-20)+'" y="28" text-anchor="end" font-family="monospace" '+
-     'font-size="14" fill="#FFFFFF" opacity=".26">仮の絵</text>';
+     'font-size="13" fill="#FFFFFF" opacity=".24">仮の絵　'+esc(ART[k].name)+'</text>';
   return 'url("data:image/svg+xml;utf8,'+
     encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+
     '" viewBox="0 0 '+W+' '+H+'">'+o+'</svg>')+'")';
@@ -1060,7 +1112,7 @@ function placeFace(){
 }
 
 function setArt(k){
-  if(!ART[k]) k="genkan";
+  if(!ART[k]) return;
   S.art=k;
   bgUrl(k,function(u){ if(S.art===k) $("artBg").style.backgroundImage=u; });
   $("art").className="b"+(S.band+1);
@@ -1083,6 +1135,7 @@ window.__dev = {
              seals:st.opened, short:st.sf, ed:S.done?edNumber(S.idx,st.opened):null,
              line:$("wt").textContent, who:$("who").hidden?null:$("who").textContent,
              card:$("card").textContent||null, log:S.log.length,
+             scene:S.art, sceneName:(ART[S.art]||{}).name||null,
              nav:Array.prototype.map.call(document.querySelectorAll("#nav button"),
                  function(b){ return { t:b.textContent, off:b.disabled }; }) };
   },
@@ -1144,7 +1197,23 @@ window.__dev = {
 
   log: function(){ return S.log.slice(); },
   auto: function(v){ setAuto(v); }, skip: function(v){ setSkip(v); },
+  step: function(){ if(Q.tid) revealAll(); else if(Q.hold) tap(null); else nextLine(); },
   seen: function(){ return SEEN.size; },
+  art: function(){
+    var used={}, miss=[];
+    Object.keys(BGAT).forEach(function(c){ Object.keys(BGAT[c]).forEach(function(l){
+      var k=BGAT[c][l]; used[k]=1; if(!ART[k]) miss.push(c+"/"+l+" → "+k); }); });
+    Object.keys(PLACEBG).forEach(function(p){
+      var k=PLACEBG[p]; used[k]=1; if(!ART[k]) miss.push("場所 "+p+" → "+k); });
+    return { scenes:Object.keys(ART).map(function(k){ return {k:k, name:ART[k].name, used:!!used[k]}; }),
+             missing:miss, real:Object.keys(ARTOK).filter(function(k){ return ARTOK[k].indexOf("data:")<0; }) };
+  },
+  night: function(){
+    var by={};
+    TALK.forEach(function(t){ by[t.place]=(by[t.place]||0)+1; });
+    return { incense:INCENSE, talks:TALK.length, byPlace:by,
+             lines:TALK.reduce(function(a,t){ return a+t.lines.length; },0) };
+  },
 
   /* いまの帯で、その章の全行と、指せる語句の位置。書き換えで語句が消えていないかを見る。 */
   chapter: function(src){
