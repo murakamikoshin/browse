@@ -154,6 +154,23 @@ await ui('行き先は一段奥にある', async () => { await page.click('#bnav
   return a === 1 && b === 1 && here === 0; });
 await ui('線香の本数が用意した数と合っている', async () =>
   await page.locator('#sticks .stick').count() === await page.evaluate(() => window.__dev.state().incense));
+await ui('選択肢が真ん中にある', async () => { await page.click('#bnav');
+  const sym = async () => page.evaluate(() => {
+    const m = document.querySelector('#nav .menu'); const bs = [...document.querySelectorAll('#nav button')];
+    if (!m || !bs.length) return null;
+    const mr = m.getBoundingClientRect();
+    const left = Math.min(...bs.map(b => b.getBoundingClientRect().left)) - mr.left;
+    const right = mr.right - Math.max(...bs.map(b => b.getBoundingClientRect().right));
+    const hasLabel = !!m.querySelector('.row-l:not([hidden])');
+    return { left: Math.round(left), right: Math.round(right), hasLabel,
+             page: Math.round((mr.left + mr.right) / 2 - window.innerWidth / 2) };
+  });
+  const a = await sym();                                   // 見出しのある札
+  await page.locator('#nav button', { hasText: /夜を終える|横になる/ }).click();
+  const c = await sym();                                   // 見出しの無い札（確認）
+  await page.locator('#nav button', { hasText: 'いいえ' }).click();
+  return a && c && Math.abs(a.page) <= 1 && Math.abs(c.page) <= 1 &&
+         a.hasLabel && !c.hasLabel && Math.abs(c.left - c.right) <= 2; });
 await ui('段が三つに分かれている', async () => { await page.click('#bnav');
   const c = await page.locator('#nav .row').evaluateAll(r => r.map(x => x.className));
   return c.some(x => x === 'row') && c.some(x => /sub/.test(x)) && c.some(x => /faint/.test(x)); });
