@@ -345,6 +345,16 @@ rt{ font-size:.46em; font-weight:400; line-height:1; letter-spacing:.01em;
 #logbox.on{ display:block; }
 #logbox .in{ max-width:40em; margin:0 auto; }
 #logbox p{ margin:0 0 1.25em; }
+.log-h{ border:1px solid var(--edge); padding:16px 18px; margin-bottom:34px;
+  background:rgba(20,27,29,.7); }
+.log-h p{ margin:0 0 12px; font-size:.92rem; color:var(--fg-dim); line-height:1.9; }
+.log-h b{ color:var(--accent); font-weight:500; }
+.log-h label{ display:flex; gap:9px; align-items:center; font-size:.88rem;
+  color:var(--fg-dim); cursor:pointer; }
+.log-h input{ accent-color:var(--accent); width:16px; height:16px; }
+.log-h .log-n{ margin:13px 0 0; font-size:.76rem; color:var(--fg-faint); }
+#logbox p.v{ border-left:2px solid var(--accent); padding-left:15px; margin-left:-17px;
+  background:linear-gradient(90deg, rgba(212,166,58,.075), transparent 62%); }
 #logbox p.w{ color:var(--accent); font-family:"IBM Plex Mono",monospace;
              font-size:.6rem; letter-spacing:.2em; margin-bottom:.4em; }
 #logclose{ position:fixed; z-index:63; top:12px; right:12px; padding:8px 16px;
@@ -618,7 +628,8 @@ var MARK={
 
 var S = { idx:0, paid:0, band:0, spent:0, incense:INCENSE, place:"genkan", noted:{}, lastAsk:false,
           opened:false, bought:{}, talked:{}, shown:0, done:false, log:[], art:null, char:null,
-          seenChap:{}, navSeen:false, altDone:{}, readCh:{}, warned:false, warn:false };
+          seenChap:{}, navSeen:false, altDone:{}, readCh:{}, warned:false, warn:false,
+          ended:false, logMk:true };
 
 var $=function(i){ return document.getElementById(i); };
 var yen=function(n){ return "¥"+n.toLocaleString("ja-JP"); };
@@ -1262,17 +1273,46 @@ function point(el){
 
 /* 読み返し。遡及の書き換えは、戻って読み直したときにだけ見える。 */
 function logPush(it){
-  S.log.push({t:it.t, who:it.who||null});
+  S.log.push({t:it.t, who:speakerOf(it), src:it.src||null, id:it.id||null});
   if(S.log.length>900) S.log.shift();
+}
+
+/* その行が、ほかの額では別の文になるか。
+   **どう変わるかは絶対に見せない。** 位置と数だけ。中身を見せると、
+   払わずに上の帯が読めてしまい、この作品の売り物が消える。 */
+function isVar(src,id){
+  if(!src||!id) return false;
+  if(src==="7"){
+    var v=CH7.lines[id]; if(!v) return false;
+    for(var k in v){ if(Object.keys(v[k]).length>1) return true; }
+    return false;
+  }
+  var C=CH[src]; return !!(C && C.ov && C.ov[id]);
 }
 function openLog(){
   var l=$("loglist"); l.replaceChildren();
+  var n=0, v=0;
+  S.log.forEach(function(x){ n++; if(isVar(x.src,x.id)) v++; });
+  /* 夜が明けて結末まで行った人にだけ、書き換わった行の位置を示す口を出す。
+     読んでいる最中に出すと、どこに仕掛けがあるかを先に教えてしまう。 */
+  if(S.ended && v){
+    var h=document.createElement("div"); h.className="log-h";
+    h.innerHTML='<p>この夜、あなたは'+kan(n)+'行を読みました。<br>'+
+      'そのうち<b>'+kan(v)+'行</b>は、ほかの額では別の文になります。</p>'+
+      '<label><input type="checkbox" id="logmk"'+(S.logMk?" checked":"")+'> その行に印を付ける</label>'+
+      '<p class="log-n">どう変わるかは、その額を包んだときにしか読めません。</p>';
+    l.appendChild(h);
+    h.querySelector("#logmk").addEventListener("click",function(e){ e.stopPropagation(); });
+    h.querySelector("#logmk").addEventListener("change",function(){ S.logMk=this.checked; openLog(); });
+    h.addEventListener("click",function(e){ e.stopPropagation(); });
+  }
   S.log.forEach(function(x){
-    if(x.who){ var w=document.createElement("p"); w.className="w"; w.textContent=x.who; l.appendChild(w); }
-    var p=document.createElement("p"); p.className="l"; p.textContent=x.t; l.appendChild(p);
+    var mk = S.ended && S.logMk && isVar(x.src,x.id);
+    if(x.who){ var w=document.createElement("p"); w.className="w"+(mk?" v":""); w.textContent=x.who; l.appendChild(w); }
+    var p=document.createElement("p"); p.className="l"+(mk?" v":""); p.textContent=x.t; l.appendChild(p);
   });
   $("logbox").classList.add("on"); $("logclose").hidden=false;
-  $("logbox").scrollTop=$("logbox").scrollHeight;
+  $("logbox").scrollTop = S.ended ? 0 : $("logbox").scrollHeight;   // 終わったあとは頭から
 }
 function closeLog(){ $("logbox").classList.remove("on"); $("logclose").hidden=true; }
 $("blog").addEventListener("click",function(){ $("logbox").classList.contains("on")?closeLog():openLog(); });
@@ -1758,6 +1798,7 @@ function tail7(){
   wait(1800, tail7b);                                 // 最終行を金の話で上書きしない
 }
 function tail7b(){
+  S.ended=true;                                  // ここから、記録に「書き換わった行」の口が出る
   $("card").replaceChildren(edCard(S.st));
   choices([["最初から", function(){ location.reload(); }]]);
 }
