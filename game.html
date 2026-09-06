@@ -313,6 +313,13 @@ rt{ font-size:.46em; font-weight:400; line-height:1; letter-spacing:.01em;
 .menu-h{ font-family:"Zen Old Mincho",serif; font-size:.8rem; color:var(--fg-faint);
          padding:2px 0 14px; letter-spacing:.04em; }
 .menu-h.warn{ color:#D28C79; }
+/* 段。歩くのは戻せるので細く、閉じる・横になるはさらに引く */
+#nav .row.sub{ border-top:1px solid rgba(120,132,128,.13); margin-top:7px; padding-top:11px; }
+#nav .row.sub .acts button{ font-size:.8rem; padding:6px 12px; border-color:rgba(120,132,128,.15); }
+#nav .row.faint{ padding-top:2px; }
+#nav .row.faint .acts button{ font-size:.78rem; padding:6px 2px; border:none;
+  color:var(--fg-faint); margin-right:16px; }
+#nav .row.faint .acts button:hover{ color:var(--fg-dim); }
 .hud .hbar button{ font-family:"Zen Old Mincho",serif; font-size:.72rem; letter-spacing:.1em; }
 </style>
 </head>
@@ -354,7 +361,7 @@ rt{ font-size:.46em; font-weight:400; line-height:1; letter-spacing:.01em;
         <div><span>線香</span>一本尽きるごとに夜が進みます。尽きたら朝が来て、通夜は終わります。</div>
         <div><span>歩く</span>家と港のあいだは自由に行き来できます。歩くのにも、読み直すのにも線香は要りません。</div>
         <div><span>話す</span>人と話すと線香を一本使います。お金はかかりません。</div>
-        <div><span>朝</span>線香を残したまま、朝を待つこともできます。</div>
+        <div><span>朝</span>線香を残したままでも、仏間で横になれば朝が来ます。夜には戻れません。</div>
       </div>
       <div class="amtrow">
         <div class="amt mono" id="pamt">¥0</div>
@@ -817,7 +824,7 @@ function nextLine(){
           if(!burn()){ Q.list=back; Q.i=bi; $("nav").replaceChildren(); nextLine(); }
         });
       }];
-    })], ["", [["読み進める", function(){ $("nav").replaceChildren(); nextLine(); }]]]]);
+    })], ["", [["読み進める", function(){ $("nav").replaceChildren(); nextLine(); }]], "sub"]]);
     return;
   }
   if(it.act){                                   // 一手だけの間。線香は減らない
@@ -1042,7 +1049,7 @@ function menu(rows){
   var m=document.createElement("div"); m.className="menu";
   rows.forEach(function(r){
     if(!r[1].length) return;
-    var row=document.createElement("div"); row.className="row";
+    var row=document.createElement("div"); row.className="row"+(r[2]?" "+r[2]:"");
     var l=document.createElement("div"); l.className="row-l";
     var lab=String(r[0]).split("\n");
     l.textContent=lab[0];
@@ -1108,13 +1115,16 @@ function take(k){
 }
 
 /* ---------- 移動と会話 ---------- */
+/* 選択肢の段を三つに分ける。重さの違うものを同じ形で並べない。
+   上：線香を使うもの（戻せない）／中：歩く（線香は要らない、戻せる）／
+   下：閉じる。夜を終える手は仏間にしか置かない（横になる、という一手にする）。 */
 function drawNav(){
   if(S.done){ $("nav").replaceChildren(); return; }
   var rows=[];
 
   if(S.place==="cha"){
     var pend=Object.keys(S.noted).filter(function(k){ return !S.bought[k]; });
-    rows.push(["訊きたいこと\n線香を一本と、帳に", pend.map(function(k){
+    rows.push(["訊く\n線香一本と、帳に", pend.map(function(k){
       return ["「"+ASKS[k].phrase+"」のこと", function(){ offer(k); }];
     })]);
   }
@@ -1125,15 +1135,19 @@ function drawNav(){
         say(talkLines(t), function(){ if(!burn()) drawNav(); });
       }];
     })]);
-  rows.push(["歩く\n線香は要らない", PLACES.map(function(p){
+  rows.push(["歩く", PLACES.map(function(p){
     return [p.name, function(){ enter(p.k); }, p.k===S.place];
-  })]);
-  rows.push(["", [["朝を待つ", askDawn], ["閉じる", function(){ $("nav").replaceChildren(); }]]]);
+  }), "sub"]);
+  /* 夜を終える手はどこからでも届かないと、行き止まりが作れてしまう。
+     ただし段は一番下に置いて、話すや歩くと同じ形にはしない。 */
+  var tail=[[S.place==="butsu" ? "横になる" : "夜を終える", askDawn],
+            ["閉じる", function(){ $("nav").replaceChildren(); }]];
+  rows.push(["", tail, "faint"]);
   menu(rows);
   if(!S.navSeen){                                    // 初めてここに来た人にだけ
     S.navSeen=true;
     var h=document.createElement("div"); h.className="menu-h";
-    h.textContent="線香が一本尽きるごとに夜が進みます。全部はできません。";
+    h.textContent="線香が一本尽きるごとに夜が進みます。全部はできません。歩くのに線香は要りません。";
     $("nav").querySelector(".menu").prepend(h);
   }
 }
@@ -1141,10 +1155,8 @@ function drawNav(){
 /* 朝は戻れない。押し間違いで夜が終わらないように、残りを見せてから訊く。 */
 function askDawn(){
   if(S.incense<=1){ toDawn(); return; }
-  menu([["", [
-    ["いいえ、まだ夜のうちに", drawNav],
-    ["はい、朝にする", toDawn]
-  ]]]);
+  menu([["", [["いいえ、まだ起きている", drawNav]]],
+        ["", [["はい、朝まで横になる", toDawn]], "faint"]]);
   var h=document.createElement("div"); h.className="menu-h warn";
   h.textContent="線香が"+kan(S.incense)+"本、残っています。朝になると、この夜には戻れません。";
   $("nav").querySelector(".menu").prepend(h);
@@ -1153,6 +1165,7 @@ function toDawn(){
   S.incense=0; drawSticks();
   say([{t:"仏間の隅に座った。線香を継ぎ足しながら、朝までそうしていた。",cls:"aside"}], dawn);
 }
+
 
 /* ---------- 夜明けと扉 ---------- */
 function dawn(){
