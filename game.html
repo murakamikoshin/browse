@@ -2157,9 +2157,8 @@ $("tobox").addEventListener("click",function(e){
 /* 題の「帳を見る」。一度も朝を見ていない人には押させない。
    まだ何も見ていない人に、八十五という数を先に見せない。 */
 function drawToLink(){
-  var got=edList(), b=$("tto");
-  b.disabled = !got.length;
-  b.textContent = got.length ? "帳を見る（"+kan(got.length)+"／八十五）" : "帳を見る";
+  /* 数は帳を開けば出る。題に出すと、押す前から数の話になる */
+  $("tto").disabled = !edList().length;
 }
 
 /* 設定。ふりがなと音だけ。読むのに関わるものしか置かない */
