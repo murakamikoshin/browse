@@ -23,6 +23,7 @@ const AMOUNTS = quick ? [0, 10, 37] : [0, 3, 9, 10, 18, 19, 27, 28, 36, 37];
 
 const bad = [];
 const note = (m) => bad.push(m);
+let top = 0, topN = 0, topSnag = 0;      // 引っかかりの段が、どこまで届いたか
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
@@ -55,6 +56,7 @@ for (const idx of AMOUNTS) {
           if (!s.read.includes('2')) W('仏間を読まずに帳場の奥へ入った');
         }
         out.snag = s.snag.length; out.snagT = s.snagT.length; out.tier1 = s.snagTiers[0] || 99;
+        out.tiers = s.snagTiers.length;
         if (s.incense < 0) W('線香が負になった');
         if (s.balance < 0) W('残高が負になった ' + s.balance);
         if (s.balance > paid) W('残高が持参より多い');
@@ -171,6 +173,9 @@ for (const idx of AMOUNTS) {
     if (!r.desk && !r.deskOffer) note(`${tag}　帳場の机への道を見せずに朝になった`);
     /* 一段目に届いたのに、並べ直す場面が一度も出ていない */
     if (r.snag >= r.tier1 && !r.snagT) note(`${tag}　引っかかり${r.snag}個で並べ直しが出ていない`);
+    /* 段を高く置きすぎると、いちばん強い並べ直しが誰にも出ない。
+       線香を全部使う遊び方で、いくつまで届いたかを覚えておく */
+    if (r.talked > 0) { top = Math.max(top, r.snagT); topN = r.tiers || topN; topSnag = Math.max(topSnag, r.snag); }
     /* 買って端数になったのに、夜のうちに何も言われないと、
        朝の読み上げで初めて気づくことになる。買った人には一度だけ言う */
     {
@@ -189,6 +194,12 @@ for (const idx of AMOUNTS) {
     console.log(`  ${tag.padEnd(22)} ED-${String(r.ed || 0).padStart(2, '0')} ${(r.name || '').padEnd(9)}` +
       ` 開封${r.seals} 話${r.talked} 一手${r.acts||0} 内引¥${(r.spent||0).toLocaleString()} 章${r.chap} 手${r.steps} 場面${(r.beats?[r.beats.mina&&'美',r.beats.nagi&&'凪',r.beats.press&&'帳'].filter(Boolean).join(''):'')||'—'} 素の漢字/行 ${bare}`);
   }
+}
+
+/* 引っかかりの段。高く置きすぎると、いちばん強い並べ直しが誰にも出ない */
+if (topN) {
+  console.log(`\n  引っかかりの段　線香を全部使う遊び方で ${top} / ${topN} 段（拾えた数 ${topSnag}）`);
+  if (top < topN - 1) note(`引っかかりの段が高すぎる。${topN}段のうち ${top} 段までしか出ない`);
 }
 
 /* 画面の操作。遊ぶ人が触るところが、触ったとおりに動くか */
