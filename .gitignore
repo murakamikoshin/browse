@@ -14,3 +14,7 @@ audio/*.mp3
 audio/*.ogg
 audio/*.m4a
 audio/*.wav
+
+# 道具の中間物
+__pycache__/
+*.pyc

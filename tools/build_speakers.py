@@ -49,6 +49,19 @@ if __name__ == "__main__":
         for lid in d[k]:
             if lid not in q.get(k, []):
                 bad.append("%s %s は「」の行ではない" % (k, lid))
+    # 話者表が無いまま「」の行を書くと、相手の台詞が汐里の名札で出る。
+    # 行動を足したときに落ちやすいので、機械で拾う。
+    import build_talks
+    for x in build_talks.parse():
+        who = x.get("who")
+        if not who: continue
+        qq = [i for i, l in enumerate(x["lines"]) if l.startswith("「")]
+        if not qq: continue
+        have = d.get(x["k"], {})
+        if not have:
+            bad.append("%s（%s）に話者表が無い。相手の台詞が汐里の名札で出る" % (x["k"], who))
+        elif who not in have.values():
+            bad.append("%s の話者表に %s が一行も無い" % (x["k"], who))
     for b in bad: print("NG  " + b)
     mine = sum(len([i for i in v if i not in d.get(k, {})]) for k, v in q.items())
     other = sum(len(v) for v in d.values())

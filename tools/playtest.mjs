@@ -428,12 +428,16 @@ await to('見ていない結末の名は出ていない', async () => {
 await to('額と開封の対応は帳に出ていない', async () => {
   const t = await page.locator('#tobox').innerText();
   return !/金[一二三四五六七八九十百千万]+円/.test(t) && t.indexOf('開封') < 0; });
-for (const [n, open] of [[4, 0], [5, 1], [15, 2], [30, 3], [50, 4], [85, 5]]) {
+/* 段は原稿側で増える。数を書き写さず、CHOBA から引く */
+const chobaN = JSON.parse((await import('fs')).readFileSync(path.join(ROOT, 'game.html'), 'utf8')
+  .match(/var CHOBA=(\[[\s\S]*?\]);/)[1]).map(s => s.n);
+for (const n of [chobaN[0] - 1, ...chobaN]) {
+  const open = chobaN.filter(x => x <= n).length;
   await to(`結末${n} で帳場さんの帳が${open}節`, async () => {
     await seed(n); await page.click('#tto');
     const o = await page.locator('#tobox .to-s.on').count();
     const lock = await page.locator('#tobox .to-s.lock').count();
-    return o === open && o + lock === 5; });
+    return o === open && o + lock === chobaN.length; });
 }
 await to('結末を押すと最後の一行が出る', async () => {
   await seed(40); await page.click('#tto');

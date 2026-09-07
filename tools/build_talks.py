@@ -18,6 +18,13 @@ import io, re, sys, json
 PLACE = {"玄関・帳場":"genkan", "仏間":"butsu", "港":"minato",
          "帳場の奥":"cha", "玄関の外":"ishi"}
 
+# 封と購入でしか出てこない事実。夜の行動に混ざったら、無料で渡すことになる。
+# 帯の書き換えも同じ線で見る（帯は自己認識まで。他人の秘密は封の側）。
+# 「自分で」のような普通の言い方まで止めないよう、封の言い回しごと並べてある。
+NG = ["七秒", "発信履歴", "内引", "うちびき", "堤防から落ちたら", "事故になりますか",
+      "胴衣を脱いだ", "四月十四日", "四月十九日", "保険金", "借入",
+      "自分で海", "自分で入", "自殺", "死のう", "帳を合わせ", "精算", "抜いた金"]
+
 def parse(path="scenario/step6_talks.md"):
     t = io.open(path, encoding="utf-8").read()
     out = []
@@ -73,8 +80,24 @@ def check(talks, incense):
         if len(early) > 9:
             bad.append("%s に、夜の初めから並ぶ手が %d 本ある。九本までにする（[線香] で後半へ回す）"
                        % (k, len(early)))
+    for t in talks:
+        texts = list(t["lines"]) + [v for d in (t.get("ov") or {}).values() for v in d.values()]
+        for s in texts:
+            for w in NG:
+                if w in s:
+                    bad.append("%s に封の語が入っている: %s" % (t["k"], w))
     if len(talks) <= incense:
         bad.append("行動 %d 本に対し線香 %d 本。全部できてしまい夜が選択にならない" % (len(talks), incense))
+    # 帯の段は夜の中でも上がる。ある帯だけ痩せていると、その額の段が
+    # 「払っても夜が変わらない段」になる。段差は機械で見る。
+    ov = {}
+    for t in talks:
+        for d in (t.get("ov") or {}).values():
+            for b in d: ov[b] = ov.get(b, 0) + 1
+    for b in ("2", "3", "4", "5"):
+        if ov.get(b, 0) * 2 < max(ov.values() or [0]):
+            bad.append("帯%s の書き換えが %d行しかない（いちばん多い帯の半分未満）。"
+                       "この額の段は、夜が変わらない段になる" % (b, ov.get(b, 0)))
     for k in ("genkan", "butsu", "minato", "cha"):
         if not by.get(k): bad.append("%s に行動が一つも無い" % k)
     return bad, by
@@ -92,6 +115,13 @@ if __name__ == "__main__":
     print("\n行動 %d 本（%d行） 線香 %d 本" % (talks and len(talks) or 0,
           sum(len(t["lines"]) for t in talks), incense))
     for k, v in by.items(): print("   %-7s %d" % (k, v))
+    ovn = {}
+    for t in talks:
+        for d in (t.get("ov") or {}).values():
+            for b in d: ovn[b] = ovn.get(b, 0) + 1
+    print("   帯の書き換え %s（書き分けを持つ行動 %d本）"
+          % ("／".join("帯%s %d行" % (b, ovn.get(b, 0)) for b in ("2", "3", "4", "5")),
+             sum(1 for t in talks if t.get("ov"))))
     print("不備 %d 件" % len(bad))
     if bad: sys.exit(1)
     blob = "var TALK=" + json.dumps(talks, ensure_ascii=False, separators=(",", ":")) + ";"
