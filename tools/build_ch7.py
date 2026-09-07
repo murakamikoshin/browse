@@ -49,6 +49,14 @@ def seals():
             if tag == "【買った人】": cur = "bought"; continue
             if tag == "【買わなかった人】": cur = "unbought"; continue
             if tag == "【共通】": cur = "common"; continue
+            # 〔見た キー〕… は、その引っかかりを夜に拾った人にだけ出す。
+            # 〔見ていない キー〕… はその逆。キーは | でいくつでも並べられ、
+            # 「どれか一つでも」で判定する。封が、あなたの夜を知っている。
+            m = re.match(r'^〔(見た|見ていない)\s+(\S+)〕\s*(.+)$', l)
+            if m:
+                s[cur].append({"t": m.group(3).strip(), "k": m.group(2).split("|"),
+                               "on": m.group(1) == "見た"})
+                continue
             s[cur].append(l)
         out.append(s)
     return {"seals": out, "close": close}
