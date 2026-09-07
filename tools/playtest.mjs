@@ -154,6 +154,7 @@ for (const idx of AMOUNTS) {
         o.ed = s.ed; o.seals = s.seals; o.paid = s.paid; o.spent = s.spent;
         o.name = (document.querySelector('.slip-ed .nm') || {}).textContent || null;
         o.chap = s.chapSeen.length;
+        o.beats = s.beats;                      // 夜のほうから動く三つが焚かれたか
         return o;
       }
     }, [idx, way]);
@@ -168,9 +169,15 @@ for (const idx of AMOUNTS) {
     if (!r.desk && !r.deskOffer) note(`${tag}　帳場の机への道を見せずに朝になった`);
     /* 一段目に届いたのに、並べ直す場面が一度も出ていない */
     if (r.snag >= r.tier1 && !r.snagT) note(`${tag}　引っかかり${r.snag}個で並べ直しが出ていない`);
+    /* 夜のほうから動く三つ。線香を使い切る遊び方なら、必ず全部通るはず。
+       ここが落ちると、中盤が「訊く」だけの平らな時間に戻る */
+    if (r.steps > 200 && r.beats) {
+      if (!r.beats.nagi)  note(`${tag}　凪さんが探しに来る場面が出ていない`);
+      if (!r.beats.press) note(`${tag}　夜の半ばの場面が出ていない`);
+    }
     const bare = r.lines ? (r.bare / r.lines).toFixed(1) : '-';
     console.log(`  ${tag.padEnd(22)} ED-${String(r.ed || 0).padStart(2, '0')} ${(r.name || '').padEnd(9)}` +
-      ` 開封${r.seals} 話${r.talked} 一手${r.acts||0} 内引¥${(r.spent||0).toLocaleString()} 章${r.chap} 手${r.steps} 素の漢字/行 ${bare}`);
+      ` 開封${r.seals} 話${r.talked} 一手${r.acts||0} 内引¥${(r.spent||0).toLocaleString()} 章${r.chap} 手${r.steps} 場面${(r.beats?[r.beats.mina&&'美',r.beats.nagi&&'凪',r.beats.press&&'帳'].filter(Boolean).join(''):'')||'—'} 素の漢字/行 ${bare}`);
   }
 }
 
@@ -446,6 +453,47 @@ await to('結末を押すと最後の一行が出る', async () => {
   return t.length > 20 && !/金[一二三四五六七八九十百千万]+円|¥|開封/.test(t); });
 await to('Escape で閉じる', async () => {
   await page.keyboard.press('Escape'); return await page.locator('#tobox.on').count() === 0; });
+
+/* 夜のほうから動く三つ。歩き方に頼ると、線香を使わない遊び方では一度も焚かれず、
+   壊れても気づけない。任意の場所と線香の残りから、直に焚いて見る。 */
+console.log('\n  夜のほうから動く場面');
+const beat = async (idx, steps) => {
+  await page.goto(URL);            // S は begin では戻らない。毎回読み直す
+  return await page.evaluate(([idx, steps]) => {
+  const D = window.__dev; D.fast(true); D.begin(idx); D.flush(400);
+  const out = [];
+  for (const [pl, inc] of steps) { const s = D.beat(pl, inc);
+    out.push({ pl, inc, beats: s.beats, nav: s.nav.map(b => b.t), line: s.line }); }
+  return { out, log: D.lines(400) };
+  }, [idx, steps]);
+};
+
+{
+  const r = await beat(20, [['butsu', 12], ['genkan', 9], ['cha', 3]]);
+  const [m, n, p2] = r.out;
+  await to('仏間で線香十二本なら、美波が起きてくる', async () => m.beats.mina && m.nav.length >= 3);
+  await to('美波の手は三つあり、どれも札に評価語が無い', async () =>
+    m.nav.filter(t => !/^(閉じる|やめる)$/.test(t)).length === 3);
+  await to('線香九本で、凪さんが探しに来る', async () => n.beats.nagi);
+  await to('線香四本で、帳場さんが来る', async () => p2.beats.press);
+}
+{
+  const r = await beat(20, [['minato', 9]]);
+  await to('港でも凪さんの場面は通る（凪は来ず、坂の上の灯りを見る）', async () =>
+    r.out[0].beats.nagi && !/凪さん「/.test(r.log.join('')) );
+}
+{
+  const r = await beat(20, [['genkan', 10]]);
+  await to('仏間へ戻らないままだと、一度だけ音で呼ぶ', async () => r.out[0].beats.call);
+}
+{
+  const r = await beat(0, [['genkan', 9], ['cha', 3]]);
+  const t0 = r.log.join('');
+  /* 章4の引きにも「お持ちの分」は出る（額は言っていない）。ここで見るのは
+     夜の半ばと凪さんの、包んだ人だけに出る行 */
+  await to('¥0 には、包んだ分の話をしない', async () =>
+    t0.indexOf('相応に、と昨夜') < 0 && t0.indexOf('寄ったのね') < 0);
+}
 
 /* 画面の並び。題 → 説明三枚 → 支払い。どの画面も一枚に収まって、頁が動かない */
 console.log('\n  画面の並び');

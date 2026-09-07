@@ -18,7 +18,7 @@ Koshin
 
 ## 書体
 クラフト明朝　アトリエこたつ
-Zen Old Mincho ／ Shippori Mincho ／ IBM Plex Mono
+そのほかは、お使いの端末の書体です
 
 ## 音
 すべて、その場で合成しています

@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     # 字割りだけあって輪郭が無い字がある。クラフト明朝は第二水準の多く（綺・柩・框・鋏・舫）が
     # これで、cmap には載っているので次の書体に落ちてくれない。**そのまま焼くと空白になる。**
-    # 削る前にここで外して、次の書体（Zen Old Mincho）に渡す。
+    # 削る前にここで外して、端末に入っている明朝へ渡す。
     blank = set()
     for c in want & have:
         g = cmap.get(ord(c))
@@ -80,9 +80,11 @@ if __name__ == "__main__":
             % base64.b64encode(b).decode())
     g = io.open("game.html", encoding="utf-8").read()
     a, z = g.index("<!-- 書体 ここから -->"), g.index("<!-- 書体 ここまで -->")
-    body = '\n:root{ --mincho:"Craft","Zen Old Mincho","Hiragino Mincho ProN",serif; }\n'
+    # 外から書体を取りに行かない（privacy.md「外部への通信を行いません」）。
+    # 焼き込んだ Craft に無い字は、端末に入っている明朝へ落とす。
+    body = '\n:root{ --mincho:"Craft","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif; }\n'
     if "--ruby" not in sys.argv:
-        body += 'rt{ font-family:"Zen Old Mincho","Hiragino Mincho ProN",serif; }\n'
+        body += 'rt{ font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif; }\n'
     io.open("game.html", "w", encoding="utf-8").write(
         g[:a] + "<!-- 書体 ここから -->\n<style>" + face + body + "</style>\n" + g[z:])
     print("game.html を更新")

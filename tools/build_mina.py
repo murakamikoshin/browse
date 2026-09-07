@@ -68,6 +68,7 @@ if __name__ == "__main__":
     if heads[0] != "入り": bad.append("最初は `## 入り`")
     if heads[-1] != "締め": bad.append("最後は `## 締め`")
     hands = [b for b in B if b["head"].startswith("手 ")]
+    calls = [b for b in B if b["head"].startswith("呼ぶ・")]
     if len(hands) != 3: bad.append("手が三つない（%d）" % len(hands))
 
     for b in B:
@@ -84,7 +85,14 @@ if __name__ == "__main__":
         for w in NG_LABEL:
             if w in lab: bad.append("札「%s」に評価語「%s」がある。正しい手を作らない" % (lab, w))
 
-    out = {"enter": None, "hands": [], "close": None}
+    # 呼ぶ一行は、仏間と港には出さない。仏間なら場面そのものが起きるし、
+    # 港からは家の中の音は聞こえない
+    for c in calls:
+        k = c["head"][3:].strip()
+        if k in ("butsu", "minato"): bad.append("呼ぶ・%s は作らない（仏間と港には出さない）" % k)
+        if len(c["base"]) != 1: bad.append("呼ぶ・%s は一行にする（%d行）" % (k, len(c["base"])))
+
+    out = {"enter": None, "hands": [], "close": None, "call": {}}
     def pack(b):
         return {"order": b["order"],
                 "base": {k: split_who(v) for k, v in b["base"].items()},
@@ -92,6 +100,7 @@ if __name__ == "__main__":
     for b in B:
         if b["head"] == "入り": out["enter"] = pack(b)
         elif b["head"] == "締め": out["close"] = pack(b)
+        elif b["head"].startswith("呼ぶ・"): out["call"][b["head"][3:].strip()] = pack(b)
         else: out["hands"].append(dict(pack(b), label=b["head"][2:].strip()))
 
     for x in bad: print("NG  " + x)
@@ -101,6 +110,7 @@ if __name__ == "__main__":
     print("   入り %d行" % len(out["enter"]["order"]))
     for h in out["hands"]: print("   手「%s」 %d行" % (h["label"], len(h["order"])))
     print("   締め %d行" % len(out["close"]["order"]))
+    print("   呼ぶ %s" % ("／".join(sorted(out["call"])) or "——"))
     print("不備 %d 件" % len(bad))
     if bad: sys.exit(1)
 

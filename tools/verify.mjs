@@ -149,16 +149,27 @@ if (want('art')) {
     try { return JSON.parse(src.slice(i + name.length + 5, j).replace(/;$/, '')); }
     catch (e) { return null; }
   };
-  const M = grab('MINA'), P = grab('PRESS'), T = grab('TALK'), Y = grab('YOMI');
+  const M = grab('MINA'), P = grab('PRESS'), N = grab('NAGI'), T = grab('TALK'), Y = grab('YOMI');
   const nh = (M && M.hands) ? M.hands.length : -1;
   const np = (P && P.body) ? P.body.length : -1;
+  const nn = (N && N.body) ? N.body.length : -1;
   const nt = Array.isArray(T) ? T.length : -1;
   const ny = (Y && Y.kaku) ? Object.keys(Y.kaku).filter(k => Y.kaku[k].mi).length : -1;
+  /* 外から何も取りに行かないこと。privacy.md に「外部への通信を行いません」と
+     書いてある。書体を一つ読みに行くだけで、その一行が嘘になる。 */
+  const ext = (src.match(/https?:\/\/[^"')\s]+/g) || []).filter(u => !/^https?:\/\/(www\.)?w3\.org/.test(u));
+  if (ext.length) ng(`外へ取りに行っている（${ext.length}件）: ${ext[0]}`);
   if (nh !== 3) ng(`美波の場面が入っていない（手 ${nh}）`);
   if (np < 5)   ng(`夜の半ばの場面が入っていない（本文 ${np}行）`);
+  if (nn < 5)   ng(`凪さんが探しに来る場面が入っていない（本文 ${nn}行）`);
   if (nt < 30)  ng(`夜の行動が少ない（${nt}本）`);
   if (ny < 7)   ng(`額の読みの「夜に見る一行」が足りない（${ny}）`);
-  console.log(`\n差し込んだ塊　美波の手 ${nh}／夜の半ば ${np}行／夜の行動 ${nt}本／額の読み（夜） ${ny}`);
+  /* 夜のほうから動く三つが、同じ線香で重ならないこと */
+  if (N && P && N.at <= P.at) ng(`凪さん（線香${N.at}）と帳場さんの圧（線香${P.at}）が前後している`);
+  if (N && N.enter && N.enter.minato && N.enter.minato.alone !== true)
+    ng('凪さんが港まで来てしまう（港の入りは単独でなければならない）');
+  console.log(`\n差し込んだ塊　美波の手 ${nh}／凪さん ${nn}行（線香${N ? N.at : '?'}）` +
+              `／夜の半ば ${np}行（線香${P ? P.at : '?'}）／夜の行動 ${nt}本／額の読み（夜） ${ny}`);
 }
 
 /* 集める側が完走できるか。帳に「聞いた数の形 N / 十」「町の並び N / 七」を
