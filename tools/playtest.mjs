@@ -302,6 +302,52 @@ await ui('夜の場所に章の番号が付いていない', async () => {
 /* 手を動かすところで畳んだら、同じ手がそのまま戻ること。
    出し直すときに手を作り直していた頃は、その場所の手に化けて、
    積んである行が捨てられ、次にそこへ入ると章が最初から流れ直していた。 */
+/* 線香が尽きたあと、朝へ通す机で買っても止まらないこと。
+   買ったあと burn() が true を返した時点で手を離していて、線香がもう0の机では
+   手も札も出ないまま固まっていた。いちばん買われる場所なので、いちばん痛い。 */
+await ui('線香が尽きたあとの机で買っても止まらない', async () => {
+  await page.goto(URL);
+  return await page.evaluate(() => {
+    const D = window.__dev;
+    const labs = () => [...document.querySelectorAll('#nav button')].map(b => b.textContent);
+    const step = () => { if (D.state().chapcard) D.flush(2); else D.step(); };
+    D.fast(true); D.begin(37);
+    /* 線香を使い切って、朝へ通す机まで出す */
+    for (let g = 0; g < 900 && D.state().incense > 0; g++) {
+      if (!labs().length) { step(); continue; }
+      const n = labs();
+      const t = n.find(x => !/^(夜を終える|横になる|閉じる|やめる|ほかの場所へ|もう一度読む|はい|いいえ)/.test(x));
+      if (t) { D.nav(t); continue; }
+      if (n.indexOf('ほかの場所へ') >= 0) {
+        D.nav('ほかの場所へ');
+        const sub = labs().filter(x => x !== 'やめる');
+        const go = sub.find(x => x.indexOf('（まだ）') >= 0) || sub.find(x => x.indexOf('（なし）') < 0);
+        if (go) { D.nav(go); continue; }
+        D.nav('やめる');
+      }
+      const e = n.find(x => /^(夜を終える|横になる)$/.test(x));
+      if (e) { D.nav(e); const y = labs().find(x => /^はい/.test(x)); if (y) D.nav(y); continue; }
+      break;
+    }
+    /* 机の場面のあいだに語句を指して、買う */
+    let bought = false;
+    for (let g = 0; g < 900 && !D.state().done; g++) {
+      const yy = document.querySelector('#card .cb [data-y]:not([disabled])');
+      if (yy) { yy.click(); bought = true; continue; }
+      const n = labs();
+      if (n.indexOf('訊く') >= 0) { D.nav('訊く'); continue; }
+      if (!n.length) {
+        if (!bought) for (const k of D.ASKS) if (D.point(k)) break;
+        step(); continue;
+      }
+      const t = n.find(x => !/^(閉じる|やめる|いいえ)/.test(x));
+      if (!t) break;
+      D.nav(t);
+    }
+    const s = D.state();
+    return bought && s.done && s.ed > 0;
+  }); });
+
 await ui('手を動かすところで畳んでも、同じ手が戻る', async () => {
   await page.goto(URL);
   const r = await page.evaluate(() => {

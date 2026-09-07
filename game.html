@@ -2143,7 +2143,9 @@ var OBACK=null, OFFING=false;
 function afterOffer(){
   OFFING=false;
   if(OBACK){ var b=OBACK; OBACK=null; Q.list=b.list; Q.i=b.i; Q.end=b.end; nextLine(); return; }
-  S.done ? corridor() : drawNav();
+  if(S.done){ corridor(); return; }
+  if(DAWNPEND){ DAWNPEND=false; lastStop(function(){ nightEnd(dawn); }); return; }
+  drawNav();
 }
 function offer(k){
   if(OFFING) return;                      // 訊いている最中に、次を重ねない
@@ -2188,7 +2190,9 @@ function take(k){
   }
   say(q, function(){
     $("card").replaceChildren();
-    if(burn()){ OBACK=null; OFFING=false; return; }   // 線香が尽きたら夜が明ける
+    /* 尽きても、ここで手を離さない。前は burn() が true を返した時点で投げていて、
+       朝へ通す机で買うと（線香はもう0なので）手も札も出ないまま止まっていた。 */
+    burnMid();
     afterOffer();                            // 買ったあとも、その場の続きへ戻る
   });
 }
