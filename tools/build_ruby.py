@@ -109,5 +109,13 @@ if __name__ == "__main__":
     a, b = g.index("/* ふりがな ここから */"), g.index("/* ふりがな ここまで */")
     io.open("game.html", "w", encoding="utf-8").write(
         g[:a] + "/* ふりがな ここから */\n" + blob + "\n" + g[b:])
+    # **読めない語を残さない。** 残すと、画面に読みの付かない漢字が出るか、
+    # 引っかかりの鍵のような画面に出ない語が辞書を汚す。どちらも直すべきもの。
+    # 直し方は scenario/ruby_fix.md に一行足すか、鍵の付け方を変えるか。
+    if miss:
+        print("NG  読めなかった語が %d 件ある。scenario/ruby_fix.md に足すこと" % len(miss))
+        for k, n in sorted(miss.items(), key=lambda x: -x[1])[:12]:
+            print("      %-10s %d回" % (k, n))
+        sys.exit(1)
     print("game.html を更新　ふりがな %d語（手当て %d／読めず %d／割れ %d）"
           % (len(d), len(fx), len(miss), len(split)))
