@@ -34,6 +34,7 @@ for (const idx of AMOUNTS) {
     await page.goto(URL);
     const r = await page.evaluate(([idx, way]) => {
       const D = window.__dev, out = { steps: 0, talked: 0, bought: 0, bare: 0, lines: 0, warn: [] };
+      const SNAGTX = new Set(D.texts().snag);   // 最後の段で並べ直す行は、二度出るのが正しい
       const W = (m) => { if (out.warn.length < 6) out.warn.push(m); };
       D.fast(true);
       D.begin(idx);
@@ -56,6 +57,14 @@ for (const idx of AMOUNTS) {
         if (q && !s.who && !s.done) W('台詞に名札が無い: ' + s.line.slice(0, 14));
         if (!q && s.who) W('地の文に名札が出ている: ' + s.line.slice(0, 14));
         out.bare += s.kanjiBare; out.lines++;
+        /* 一度読んだ行が、もう一度流れていないか。章を途中で切って戻ると、
+           その場所へ入り直したときに最初から流れ直して、同じやり取りが二度起きる。
+           短い相槌は本当に何度も出るので、長い行だけ見る。 */
+        if (s.line && s.line.length > 25 && !/^[「（]/.test(s.line) && !SNAGTX.has(s.line)) {
+          out.said = out.said || {};
+          if (out.said[s.line]) { if (!out.dup) { out.dup = s.line; W('同じ行が二度流れた: ' + s.line.slice(0, 22)); } }
+          else out.said[s.line] = 1;
+        }
         if (s.hamidashi > 0) { out.over = Math.max(out.over || 0, s.hamidashi);
           if ((out.over || 0) === s.hamidashi) W('枠から字がはみ出した ' + s.hamidashi + 'px: ' + (s.line||'').slice(0,16)); }
 
@@ -260,6 +269,28 @@ await ui('読んでいる途中に「どうする」で場面が飛ばない', a
     const q1 = D.queue().length;
     return !nav && q1 === q0 && D.state().line === before;
   }); });
+/* 手を動かすところで畳んだら、同じ手がそのまま戻ること。
+   出し直すときに手を作り直していた頃は、その場所の手に化けて、
+   積んである行が捨てられ、次にそこへ入ると章が最初から流れ直していた。 */
+await ui('手を動かすところで畳んでも、同じ手が戻る', async () => {
+  await page.goto(URL);
+  const r = await page.evaluate(() => {
+    const D = window.__dev;
+    const labs = () => [...document.querySelectorAll('#nav button')].map(b => b.textContent);
+    D.fast(true); D.begin(19);
+    D.nav('ほかの場所へ'); D.nav('仏間（まだ）');
+    for (let i = 0; i < 200 && !labs().length; i++) { if (D.state().chapcard) D.flush(2); else D.step(); }
+    const a = labs().join('|'); if (!a) return { err: '手が出ない' };
+    const q0 = D.queue().length, l0 = D.state().line;
+    document.getElementById('bnav').click();                 // 畳む
+    const folded = !document.getElementById('nav').firstChild;
+    document.getElementById('win').click();                  // 窓を押しても送らない
+    const moved = D.state().line !== l0 || D.queue().length !== q0;
+    document.getElementById('bnav').click();                 // 戻す
+    return { a, folded, moved, b: labs().join('|') };
+  });
+  return !r.err && r.folded && !r.moved && r.a === r.b; });
+
 await ui('夜の場所に章の番号が付いていない', async () => {
   const t = await page.evaluate(() => {
     const c = document.getElementById('chapcard');
