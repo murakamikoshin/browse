@@ -94,8 +94,8 @@ if __name__ == "__main__":
 
     blob = "var PRESS=" + json.dumps(out, ensure_ascii=False, separators=(",", ":")) + ";"
     g = io.open("game.html", encoding="utf-8").read()
-    a = g.index("/* 夜の半ば ここから */")
-    b = g.index("/* ここまで */", a)
+    HEAD, TAIL = "/* 夜の半ば ここから */", "/* 夜の半ば ここまで */"
+    a = g.index(HEAD); b = g.index(TAIL, a)
     io.open("game.html", "w", encoding="utf-8").write(
-        g[:a] + "/* 夜の半ば ここから */\n" + blob + "\n" + g[b:])
+        g[:a] + HEAD + "\n" + blob + "\n" + g[b:])
     print("game.html を更新")

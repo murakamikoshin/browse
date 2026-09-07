@@ -5,6 +5,7 @@
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import fs from 'fs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const only = process.argv.slice(2);
@@ -133,6 +134,31 @@ if (want('art')) {
   console.log(`場面 ${a.scenes.length} 枚（使用 ${a.scenes.length - unused.length}／実画像 ${a.real.length}）`);
   unused.forEach(s => console.log(`   未使用 ${s.k}　${s.name}`));
   a.scenes.filter(s => s.used).forEach(s => console.log(`   ${s.k}　${s.name}`));
+}
+
+/* 差し込んだ塊が、別の道具に巻き込まれて消えていないか。
+   一度、美波と夜の半ばの塊を帳場さんの帳の札の内側に置いてしまい、
+   build_choba.py を叩いた拍子に丸ごと消えた。落ちるのは実行時なので、
+   **ファイルの字面**で中身があることまで見る（本体は無名関数の中なので窓からは見えない）。 */
+{
+  const src = fs.readFileSync(path.join(ROOT, 'game.html'), 'utf8');
+  const grab = (name) => {
+    const i = src.indexOf('var ' + name + '=');
+    if (i < 0) return null;
+    const j = src.indexOf('\n', i);
+    try { return JSON.parse(src.slice(i + name.length + 5, j).replace(/;$/, '')); }
+    catch (e) { return null; }
+  };
+  const M = grab('MINA'), P = grab('PRESS'), T = grab('TALK'), Y = grab('YOMI');
+  const nh = (M && M.hands) ? M.hands.length : -1;
+  const np = (P && P.body) ? P.body.length : -1;
+  const nt = Array.isArray(T) ? T.length : -1;
+  const ny = (Y && Y.kaku) ? Object.keys(Y.kaku).filter(k => Y.kaku[k].mi).length : -1;
+  if (nh !== 3) ng(`美波の場面が入っていない（手 ${nh}）`);
+  if (np < 5)   ng(`夜の半ばの場面が入っていない（本文 ${np}行）`);
+  if (nt < 30)  ng(`夜の行動が少ない（${nt}本）`);
+  if (ny < 7)   ng(`額の読みの「夜に見る一行」が足りない（${ny}）`);
+  console.log(`\n差し込んだ塊　美波の手 ${nh}／夜の半ば ${np}行／夜の行動 ${nt}本／額の読み（夜） ${ny}`);
 }
 
 console.log(`\n不備 ${bad.length} 件`);
