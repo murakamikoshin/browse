@@ -45,7 +45,10 @@ for (const idx of AMOUNTS) {
         out.steps = n;
 
         /* ここが壊れていたら、遊ぶ人には必ず見える */
-        if (s.place === 'cha') {
+        /* 夜明け前も場所の札は 'cha' のままなので（dawn が置いている）、
+           夜のあいだ（まだ朝になっていないあいだ）だけ見る。ここを分けないと、
+           下の二つはどちらも「誰でも通った」ことになって、何も見なくなる。 */
+        if (s.place === 'cha' && !s.done) {
           out.desk = true;
           /* 机の場面は仏間の引き出しを指している。仏間を読まずにここへ来ると、
              読んでいないものを思い出すことになる。朝へ通す道も同じ順を守る。 */
@@ -86,6 +89,8 @@ for (const idx of AMOUNTS) {
         if (s.done && document.querySelector('.slip-ed')) return finish(out, s);
         if (s.chapcard) { D.flush(4); continue; }          // 章の札は送る
         const nav = s.nav.filter(b => !b.off);
+        /* 机へ寄る道を見せたか。断るのは遊ぶ人の自由だが、見せずに朝にしてはいけない */
+        if (nav.some(b => /帳場の机へ寄る/.test(b.t))) out.deskOffer = true;
         if (way.buy && !nav.length) {                      // 指せる語句を探しながら読む
           for (const k of D.ASKS) if (!s.bought.includes(k) && !s.noted.includes(k) && D.point(k)) { out.pointed = (out.pointed||0)+1; break; }
         }
@@ -159,7 +164,8 @@ for (const idx of AMOUNTS) {
     if (r.chap < 2) note(`${tag}　章の札が ${r.chap} 章分しか出ていない`);
     r.warn.forEach(w => note(`${tag}　${w}`));
     /* 買えることを知らないまま朝を迎えてはいけない。包まなかった人も机は通す */
-    if (!r.desk) note(`${tag}　帳場の机を一度も通らずに朝になった`);
+    /* 通らずに朝になるのは、道を見せたうえで断ったときだけ許す（SPEC 10） */
+    if (!r.desk && !r.deskOffer) note(`${tag}　帳場の机への道を見せずに朝になった`);
     /* 一段目に届いたのに、並べ直す場面が一度も出ていない */
     if (r.snag >= r.tier1 && !r.snagT) note(`${tag}　引っかかり${r.snag}個で並べ直しが出ていない`);
     const bare = r.lines ? (r.bare / r.lines).toFixed(1) : '-';

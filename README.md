@@ -92,6 +92,7 @@
 | | |
 |---|---|
 | `tools/check_asks.py` | 指せる語句が全帯に存在するかを検査する。実際に3回、消失を検出した |
+| `tools/build_ch.py` | 第1〜6章の本文を流し込む。`--check` で原稿と `game.html` の食い違いだけ出す |
 | `tools/build_ch7.py` | 第7章・封・最終行を流し込む |
 | `tools/build_acts.py` | 手を動かすところと、章の終わりの引きを流し込む |
 | `tools/build_ed.py` | ED名を流し込む。`--slots` で名前が要る85組を出す |

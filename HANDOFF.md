@@ -45,6 +45,7 @@ scenario/step9_choba.md を直す  →  python3 tools/build_choba.py  →  game.
 
 | 直したもの | 叩く道具 |
 |---|---|
+| 第1〜6章の本文 | `tools/build_ch.py`（`--check` で原稿との食い違いだけ出す） |
 | 第7章・封・最終行 | `tools/build_ch7.py` |
 | ED名 | `tools/build_ed.py`（`--slots` で未執筆の組を出す） |
 | 夜の行動 | `tools/build_talks.py` |
@@ -70,9 +71,11 @@ scenario/step9_choba.md を直す  →  python3 tools/build_choba.py  →  game.
 | 夜の順番（先出しの参照・未読の章のものを思い出していないか） | `tools/check_order.py` |
 | ふりがなの読み違い・数え方 | `tools/check_ruby.py` |
 
-第1〜6章の本文だけは、まだ `game.html` の `var CH` に直接入っています
-（`scenario/step1_*` `step2_*` からの流し込み道具が無い）。ここを大きく直すなら
-先に流し込み道具を書いたほうが安全です。
+第1〜6章も `scenario/step1_ch{1..6}_band1.md` と `step2_ch{1..6}_bands.md` が正典で、
+`tools/build_ch.py` が `game.html` の `var CH` を作ります。**`game.html` の本文を
+直接直すと、次に誰かが道具を叩いた瞬間に消えます**（実際に一度そうなりかけました。
+章4の「どの順で回っても通る言い方」への直しが `game.html` にしか入っていなかった）。
+`python3 tools/build_ch.py --check` が食い違いだけを出すので、迷ったらこれを叩く。
 
 直したら**必ず二つ通す**：
 
@@ -177,3 +180,10 @@ NODE_PATH=/opt/node22/lib/node_modules node tools/playtest.mjs   # 遊ぶ側か�
   夜の早いうちに分かる
 - 包まなかった人も、帳場の机を必ず通るようにした（`lastStop`）。買えないので
   値は出ないが、木箱の場面を見ずに終わる道は無くした
+- **開幕で「夜を終える」を選ぶ人**が、机への道を一度も見せられずに朝になっていた。
+  `askDawn` が机を勧めるのを金一万円（実額¥100）からに絞っていたためで、
+  それ未満でも包んだ額から封は開ける。額で分けるのをやめた（SPEC 10）
+- 通し試験の「机を通ったか」は、**夜のあいだだけ**見るようにした。夜明け前も
+  場所の札は `cha` のままなので、それまでは誰でも通ったことになっていて、
+  この検査は何も見ていなかった。「仏間を読まずに机へ入った」も同じ理由で
+  常に鳴っていた（つまり、鳴りっぱなしと鳴らずの二つが打ち消し合っていた）
