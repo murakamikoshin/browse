@@ -67,7 +67,7 @@ def check(shape, hasu, kaku):
     all_t = []
     for d, v in shape.items():
         if not v["uke"]: bad.append(("形 " + d, "受が無い"))
-        if len(v["yomi"]) < 2: bad.append(("形 " + d, "読が二行に足りない"))
+        if len(v["yomi"]) < 3: bad.append(("形 " + d, "読が三行に足りない"))
         all_t += [v["uke"] or ""] + v["yomi"]
     for k, v in kaku.items(): all_t += v["yomi"]
     if hasu: all_t += hasu["yomi"]

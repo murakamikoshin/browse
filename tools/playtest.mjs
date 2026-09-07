@@ -267,31 +267,30 @@ await ui('夜の場所に章の番号が付いていない', async () => {
   });
   return t.length > 0 && !/第.章/.test(t); });
 
-/* 隣り合う額で、朝の本文がはっきり違うか。
+/* 隣り合う額で、朝がはっきり違うか。
    帯は五つしかないので、同じ帯の中では最終行しか変わらなかった。
    額の読み（数の形・切りのよさ・町の額との並び）を入れて、一段動かすだけで
    朝の読み上げの直後が変わるようにした。ここが同じに戻ったら、それは退化。 */
 console.log('\n  隣り合う額');
 {
   await page.goto(URL);
-  const morn = (idx) => page.evaluate((idx) => {
-    const D = window.__dev; D.fast(true); D.jump(idx, []);
-    const txt = D.log().map(x => x.t || x);
-    const at = txt.findIndex((t, i) => i > 10 && /^「金.*円」$/.test(t));
-    return at < 0 ? '' : txt.slice(at, at + 6).join('');
-  }, idx);
-  let same = [];
-  const N = await page.evaluate(() => window.__dev.STEPS.length);
-  let prev = null;
-  for (let i = 1; i < N; i++) {                 // ¥0 は額を読まれないので 1 から
-    await page.goto(URL);
-    const cur = await morn(i);
-    if (prev !== null && cur === prev) same.push(i);
-    prev = cur;
-  }
-  const ok = same.length === 0;
-  console.log('    ' + (ok ? '\u25cb' : '\u00d7') + ' 三十八段のどの隣どうしも、朝の本文が違う');
-  if (!ok) note('隣り合う額: 同じ朝になる段 ' + same.join(','));
+  const r = await page.evaluate(() => {
+    const D = window.__dev, S = D.STEPS, same = [], empty = [];
+    for (let i = 0; i < S.length; i++) {
+      const cur = D.yomi(S[i]).join('');
+      if (S[i] > 0 && !cur) empty.push(S[i]);
+      if (i > 0 && S[i - 1] > 0 && cur === D.yomi(S[i - 1]).join('')) same.push(S[i]);
+    }
+    /* 買って端数になった額でも読みが変わるか */
+    const hasu = D.yomi(970000).join('') !== D.yomi(1000000).join('');
+    return { same, empty, hasu };
+  });
+  const ok1 = r.same.length === 0 && r.empty.length === 0;
+  console.log('    ' + (ok1 ? '\u25cb' : '\u00d7') + ' 三十八段のどの隣どうしも、朝の読みが違う');
+  if (r.same.length) note('隣り合う額: 同じ読みになる段 ' + r.same.join(','));
+  if (r.empty.length) note('隣り合う額: 読みが空の段 ' + r.empty.join(','));
+  console.log('    ' + (r.hasu ? '\u25cb' : '\u00d7') + ' 買って端数になると読みが変わる');
+  if (!r.hasu) note('隣り合う額: 端数でも読みが変わらない');
 }
 
 /* 帳。見た結末の数と、帳場さんの帳が段どおりに開くか */
