@@ -29,7 +29,7 @@ def parse(path="scenario/step6_talks.md"):
         tid, place, who, label = f[0], f[1], f[2], "　".join(f[3:])
         if place not in PLACE:
             raise SystemExit("%s 場所が違う: %s（%s のどれか）" % (tid, place, " / ".join(PLACE)))
-        lines, ov, order, band, need = {}, {}, [], None, None
+        lines, ov, order, band, need, late = {}, {}, [], None, None, None
         for l in body.split("\n"):
             l = l.rstrip()
             if not l.strip() or l.startswith(("（", ">", "---")): continue
@@ -37,6 +37,8 @@ def parse(path="scenario/step6_talks.md"):
             if m: band = int(m.group(1)); continue
             m = re.match(r"^\[あと\]\s*([1-7])\s*$", l)     # その章を読むまで出さない
             if m: need = m.group(1); continue
+            m = re.match(r"^\[線香\]\s*(\d+)\s*$", l)          # 夜が更けてから出る手
+            if m: late = int(m.group(1)); continue
             m = re.match(r"^\[(L\d+)\]\s*(.*)$", l)
             if not m: continue
             lid, txt = m.group(1), m.group(2).strip()
@@ -50,6 +52,7 @@ def parse(path="scenario/step6_talks.md"):
         out.append({"k": tid.lower(), "place": PLACE[place], "who": None if who == "—" else who,
                     "label": label, "lines": [lines[i] for i in order],
                     **({"need": need} if need else {}),
+                    **({"late": late} if late else {}),
                     **({"ov": ov} if ov else {})})
     return out
 
@@ -64,6 +67,12 @@ def check(talks, incense):
         n = sum(len(x) for x in t["lines"])
         if n < 60:  bad.append("%s 本文が短い（%d字）" % (t["k"], n))
         if n > 700: bad.append("%s 本文が長い（%d字）。250〜400字で" % (t["k"], n))
+    # 一画面に収める。ある時点でその場に並ぶ手が多すぎると、頁が動く
+    for k in by:
+        early = [t for t in talks if t["place"] == k and not t.get("late")]
+        if len(early) > 9:
+            bad.append("%s に、夜の初めから並ぶ手が %d 本ある。九本までにする（[線香] で後半へ回す）"
+                       % (k, len(early)))
     if len(talks) <= incense:
         bad.append("行動 %d 本に対し線香 %d 本。全部できてしまい夜が選択にならない" % (len(talks), incense))
     for k in ("genkan", "butsu", "minato", "cha"):
