@@ -59,11 +59,16 @@ for (const idx of AMOUNTS) {
         out.bare += s.kanjiBare; out.lines++;
         /* 一度読んだ行が、もう一度流れていないか。章を途中で切って戻ると、
            その場所へ入り直したときに最初から流れ直して、同じやり取りが二度起きる。
-           短い相槌は本当に何度も出るので、長い行だけ見る。 */
-        if (s.line && s.line.length > 25 && !/^[「（]/.test(s.line) && !SNAGTX.has(s.line)) {
-          out.said = out.said || {};
-          if (out.said[s.line]) { if (!out.dup) { out.dup = s.line; W('同じ行が二度流れた: ' + s.line.slice(0, 22)); } }
-          else out.said[s.line] = 1;
+           **窓に出たままの行は数えない。**行が入れ替わった瞬間だけ見る。
+           短い相槌は本当に何度も出るので、長い行だけ。
+           「もう一度読む」を選んだあとは、二度出るのが正しいので見ない。 */
+        if (s.line !== out.prev) {
+          out.prev = s.line;
+          if (!out.reread && s.line && s.line.length > 25 && !/^[「（]/.test(s.line) && !SNAGTX.has(s.line)) {
+            out.said = out.said || {};
+            if (out.said[s.line]) { if (!out.dup) { out.dup = s.line; W('同じ行が二度流れた: ' + s.line.slice(0, 22)); } }
+            else out.said[s.line] = 1;
+          }
         }
         if (s.hamidashi > 0) { out.over = Math.max(out.over || 0, s.hamidashi);
           if ((out.over || 0) === s.hamidashi) W('枠から字がはみ出した ' + s.hamidashi + 'px: ' + (s.line||'').slice(0,16)); }
@@ -108,6 +113,7 @@ for (const idx of AMOUNTS) {
           const tk = nav.filter(b => !PLACE.test(b.t) && !UI.test(b.t) && !/のこと$/.test(b.t)).map(b => b.t);
           if (tk.length) { D.nav(tk[0]); out.talked++; continue; }
         }
+        if (nav.some(b => b.t === 'もう一度読む')) { /* 選ばないが、押されたら数えない */ }
         const go = has(/読み進める/); if (go.length) { D.nav(go[0]); continue; }
         const yes = has(/^はい/); if (yes.length) { D.nav(yes[0]); continue; }
 
@@ -123,6 +129,7 @@ for (const idx of AMOUNTS) {
         if (end.length && (out.went || []).length >= 4) { D.nav(end[0]); continue; }
         const open = has(/^ほかの場所へ$/); if (open.length) { D.nav(open[0]); continue; }
         if (end.length) { D.nav(end[0]); continue; }
+        if (nav[0].t === 'もう一度読む') out.reread = true;
         D.nav(nav[0].t);
       }
       W('4000手で終わらなかった');
