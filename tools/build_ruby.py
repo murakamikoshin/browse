@@ -104,7 +104,10 @@ if __name__ == "__main__":
     d = {k: max(v.items(), key=lambda x: x[1])[0] for k, v in got.items()}
     d.update(fx)
     d = {k: v for k, v in d.items() if v and v != k}
-    blob = "var RUBY=" + json.dumps(d, ensure_ascii=False, separators=(",", ":")) + ";"
+    # 並びは辞書順に固定する。描くときは長い語から当てるので並びは効かないが、
+    # 固定しておかないと、叩き直すたびに差分が出て、直したのかどうか分からなくなる。
+    blob = "var RUBY=" + json.dumps(d, ensure_ascii=False, separators=(",", ":"),
+                                    sort_keys=True) + ";"
     g = io.open("game.html", encoding="utf-8").read()
     a, b = g.index("/* ふりがな ここから */"), g.index("/* ふりがな ここまで */")
     io.open("game.html", "w", encoding="utf-8").write(
