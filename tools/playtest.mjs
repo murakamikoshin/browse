@@ -329,23 +329,29 @@ await ui('線香が尽きたあとの机で買っても止まらない', async (
       if (e) { D.nav(e); const y = labs().find(x => /^はい/.test(x)); if (y) D.nav(y); continue; }
       break;
     }
-    /* 机の場面のあいだに語句を指して、買う */
-    let bought = false;
-    for (let g = 0; g < 900 && !D.state().done; g++) {
+    /* 机の場面のあいだに語句を指して、買う。
+       D.point(k) は、その語句を探して章を最後まで送ってしまうので、
+       **いま窓に出ているもの**（D.asks）だけを指す。でないと章が流れ切って朝になる。 */
+    /* 買えたかどうかは、押した札ではなく**帳に載ったか**で見る。
+       買う道は二つ（札の「はい」と、選択肢の「訊く」）あって、
+       札のほうだけ数えていたので、買えているのに落ちていた。 */
+    const got = () => D.state().bought.length > 0;
+    for (let g = 0; g < 3000 && !D.state().done; g++) {
       const yy = document.querySelector('#card .cb [data-y]:not([disabled])');
-      if (yy) { yy.click(); bought = true; continue; }
+      if (yy) { yy.click(); continue; }
       const n = labs();
       if (n.indexOf('訊く') >= 0) { D.nav('訊く'); continue; }
-      if (!n.length) {
-        if (!bought) for (const k of D.ASKS) if (D.point(k)) break;
-        step(); continue;
+      if (!got()) {
+        const a = D.asks().filter(x => !x.used)[0];
+        if (a) { D.point(a.k); continue; }
       }
+      if (!n.length) { step(); continue; }
       const t = n.find(x => !/^(閉じる|やめる|いいえ)/.test(x));
       if (!t) break;
       D.nav(t);
     }
     const s = D.state();
-    return bought && s.done && s.ed > 0;
+    return got() && s.spent > 0 && s.done && s.ed > 0;
   }); });
 
 await ui('手を動かすところで畳んでも、同じ手が戻る', async () => {
