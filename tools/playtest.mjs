@@ -147,11 +147,16 @@ console.log('\n  画面の操作');
 await page.goto(URL);
 await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });   // 覚えている設定を消してから
 await page.reload();
-await page.evaluate(() => { window.__dev.begin(20); document.getElementById('nav').replaceChildren(); });
-const reset = () => page.evaluate(() => { document.getElementById('nav').replaceChildren(); });
+await page.evaluate(() => { window.__dev.fast(true); window.__dev.begin(20); window.__dev.flush(200); });
+/* 手を畳むのは「どうする」で。nav を直に空にすると、畳んだ札が立たないので
+   「どうする」で戻せなくなる（読んでいる途中に手を作らせないための札） */
+const reset = () => page.evaluate(() => {
+  const n = document.getElementById('nav');
+  if (!n.firstChild) window.__dev.flush(60);
+  if (n.firstChild) document.getElementById('bnav').click(); });
 const ui = async (name, fn) => { await reset(); const r = await fn(); console.log('    ' + (r ? '○' : '×') + ' ' + name); if (!r) note('操作: ' + name); await reset(); };
 
-await ui('「どうする」で選択肢が出る', async () => { await page.click('#bnav'); return await page.locator('#nav .menu').count() === 1; });
+await ui('畳んだあと「どうする」で選択肢が戻る', async () => { await page.click('#bnav'); return await page.locator('#nav .menu').count() === 1; });
 await ui('もう一度押すと閉じる', async () => { await page.click('#bnav'); await page.click('#bnav'); return await page.locator('#nav .menu').count() === 0; });
 await ui('Escape でも閉じる', async () => { await page.click('#bnav'); await page.keyboard.press('Escape'); return await page.locator('#nav .menu').count() === 0; });
 await ui('「閉じる」で閉じる', async () => { await page.click('#bnav'); await page.locator('#nav button', { hasText: '閉じる' }).click(); return await page.locator('#nav .menu').count() === 0; });
