@@ -46,9 +46,15 @@ def parse():
     return blocks
 
 
-def voiced(who, lines):
-    """「」で始まる行にだけ名札を付ける。地の文には付けない"""
-    return [{"t": l, "who": who} if l.startswith("「") else {"t": l} for l in lines]
+def voiced(who, lines, src=None):
+    """「」で始まる行にだけ名札を付ける。地の文には付けない。
+    src を付けた行は、引っかかりが拾える（snagCatch が src+id で見ている）。"""
+    out = []
+    for i, l in enumerate(lines):
+        r = {"t": l, "who": who} if l.startswith("「") else {"t": l}
+        if src: r["src"] = src; r["id"] = "L%03d" % (i + 1)
+        out.append(r)
+    return out
 
 
 if __name__ == "__main__":
@@ -91,7 +97,7 @@ if __name__ == "__main__":
         "enter": {p: {"alone": B["入り・" + p]["alone"],
                       "lines": voiced(B["入り・" + p]["who"], B["入り・" + p]["lines"])}
                   for p in PLACES},
-        "body": voiced(B["本文"]["who"], B["本文"]["lines"]),
+        "body": voiced(B["本文"]["who"], B["本文"]["lines"], "凪"),
         "paid": voiced(B["包んだ人"]["who"], B["包んだ人"]["lines"]),
         "close": voiced(None, B["締め"]["lines"]),
     }

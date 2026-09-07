@@ -49,12 +49,19 @@ if __name__ == "__main__":
     CH = json.loads(re.search(r"\nvar CH = (\{.*?\});\n", html, re.S).group(1))
     TALK = json.loads(re.search(r"\nvar TALK=(\[.*?\]);\n", html, re.S).group(1))
     TK = dict((t["k"], t) for t in TALK)
+    # 夜の半ばに、夜のほうから動く場面。出どころ「凪」で指せる
+    mn = re.search(r"\nvar NAGI=(\{.*?\});\n", html, re.S)
+    NAGI = json.loads(mn.group(1)) if mn else {"body": []}
 
     bad = []
     for s in snags:
         if s["src"] in CH:
             if s["id"] not in CH[s["src"]]["order"]:
                 bad.append((s["k"], "章%s に %s が無い" % (s["src"], s["id"])))
+        elif s["src"] == "凪":
+            n = int(s["id"][1:])
+            if n < 1 or n > len(NAGI.get("body") or []):
+                bad.append((s["k"], "凪さんの場面に %s が無い" % s["id"]))
         elif s["src"] in TK:
             n = int(s["id"][1:])
             if n < 1 or n > len(TK[s["src"]]["lines"]):
