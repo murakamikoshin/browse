@@ -2404,6 +2404,12 @@ function drawNav(){
   var HEREMAX=8, hidden=Math.max(0, here.length-HEREMAX);
   if(hidden){
     var e0=here.filter(function(t){ return !t.late; });
+    /* **夜の初めから在るものを原稿の順に四本出すと、何周しても最初の四本が同じになる。**
+       見た朝の数だけ窓をずらす。減らすのではなく、ずらすだけなので、
+       夜が進めば隠れていたほうも出てくる。同じ人の二周目は、別の四本から始まる。
+       乱数は使わない（同じ額・同じ歩き方なら、同じ夜になるようにしておく）。 */
+    var rot=edList().length % Math.max(1, e0.length);
+    if(rot) e0=e0.slice(rot).concat(e0.slice(0,rot));
     var l0=here.filter(function(t){ return t.late; })
               .sort(function(a,b){ return b.late-a.late; });
     var half=HEREMAX/2;
