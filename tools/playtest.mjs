@@ -45,7 +45,12 @@ for (const idx of AMOUNTS) {
         out.steps = n;
 
         /* ここが壊れていたら、遊ぶ人には必ず見える */
-        if (s.place === 'cha') out.desk = true;
+        if (s.place === 'cha') {
+          out.desk = true;
+          /* 机の場面は仏間の引き出しを指している。仏間を読まずにここへ来ると、
+             読んでいないものを思い出すことになる。朝へ通す道も同じ順を守る。 */
+          if (!s.read.includes('2')) W('仏間を読まずに帳場の奥へ入った');
+        }
         out.snag = s.snag.length; out.snagT = s.snagT.length; out.tier1 = s.snagTiers[0] || 99;
         if (s.incense < 0) W('線香が負になった');
         if (s.balance < 0) W('残高が負になった ' + s.balance);
