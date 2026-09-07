@@ -29,12 +29,14 @@ def parse(path="scenario/step6_talks.md"):
         tid, place, who, label = f[0], f[1], f[2], "　".join(f[3:])
         if place not in PLACE:
             raise SystemExit("%s 場所が違う: %s（%s のどれか）" % (tid, place, " / ".join(PLACE)))
-        lines, ov, order, band = {}, {}, [], None
+        lines, ov, order, band, need = {}, {}, [], None, None
         for l in body.split("\n"):
             l = l.rstrip()
             if not l.strip() or l.startswith(("（", ">", "---")): continue
             m = re.match(r"^帯([2-5])\s*$", l.strip())
             if m: band = int(m.group(1)); continue
+            m = re.match(r"^\[あと\]\s*([1-7])\s*$", l)     # その章を読むまで出さない
+            if m: need = m.group(1); continue
             m = re.match(r"^\[(L\d+)\]\s*(.*)$", l)
             if not m: continue
             lid, txt = m.group(1), m.group(2).strip()
@@ -47,6 +49,7 @@ def parse(path="scenario/step6_talks.md"):
         if not order: raise SystemExit("%s に本文が無い" % tid)
         out.append({"k": tid.lower(), "place": PLACE[place], "who": None if who == "—" else who,
                     "label": label, "lines": [lines[i] for i in order],
+                    **({"need": need} if need else {}),
                     **({"ov": ov} if ov else {})})
     return out
 

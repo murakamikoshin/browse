@@ -132,8 +132,8 @@ for (const idx of AMOUNTS) {
     if (r.name === '（ED名は未執筆）') note(`${tag}　ED名が無い`);
     if (r.chap < 2) note(`${tag}　章の札が ${r.chap} 章分しか出ていない`);
     r.warn.forEach(w => note(`${tag}　${w}`));
-    /* 金を包んだ人は、買えることを知らないまま朝を迎えてはいけない */
-    if (r.paid >= 10000 && !r.desk) note(`${tag}　帳場の机を一度も通らずに朝になった`);
+    /* 買えることを知らないまま朝を迎えてはいけない。包まなかった人も机は通す */
+    if (!r.desk) note(`${tag}　帳場の机を一度も通らずに朝になった`);
     /* 一段目に届いたのに、並べ直す場面が一度も出ていない */
     if (r.snag >= r.tier1 && !r.snagT) note(`${tag}　引っかかり${r.snag}個で並べ直しが出ていない`);
     const bare = r.lines ? (r.bare / r.lines).toFixed(1) : '-';
@@ -266,6 +266,33 @@ await ui('夜の場所に章の番号が付いていない', async () => {
     return (c.querySelector('.cc-n').textContent || '') + (c.querySelector('.cc-t').textContent || '');
   });
   return t.length > 0 && !/第.章/.test(t); });
+
+/* 隣り合う額で、朝の本文がはっきり違うか。
+   帯は五つしかないので、同じ帯の中では最終行しか変わらなかった。
+   額の読み（数の形・切りのよさ・町の額との並び）を入れて、一段動かすだけで
+   朝の読み上げの直後が変わるようにした。ここが同じに戻ったら、それは退化。 */
+console.log('\n  隣り合う額');
+{
+  await page.goto(URL);
+  const morn = (idx) => page.evaluate((idx) => {
+    const D = window.__dev; D.fast(true); D.jump(idx, []);
+    const txt = D.log().map(x => x.t || x);
+    const at = txt.findIndex((t, i) => i > 10 && /^「金.*円」$/.test(t));
+    return at < 0 ? '' : txt.slice(at, at + 6).join('');
+  }, idx);
+  let same = [];
+  const N = await page.evaluate(() => window.__dev.STEPS.length);
+  let prev = null;
+  for (let i = 1; i < N; i++) {                 // ¥0 は額を読まれないので 1 から
+    await page.goto(URL);
+    const cur = await morn(i);
+    if (prev !== null && cur === prev) same.push(i);
+    prev = cur;
+  }
+  const ok = same.length === 0;
+  console.log('    ' + (ok ? '\u25cb' : '\u00d7') + ' 三十八段のどの隣どうしも、朝の本文が違う');
+  if (!ok) note('隣り合う額: 同じ朝になる段 ' + same.join(','));
+}
 
 /* 帳。見た結末の数と、帳場さんの帳が段どおりに開くか */
 console.log('\n  帳');
