@@ -269,6 +269,13 @@ await ui('読んでいる途中に「どうする」で場面が飛ばない', a
     const q1 = D.queue().length;
     return !nav && q1 === q0 && D.state().line === before;
   }); });
+await ui('夜の場所に章の番号が付いていない', async () => {
+  const t = await page.evaluate(() => {
+    const c = document.getElementById('chapcard');
+    return (c.querySelector('.cc-n').textContent || '') + (c.querySelector('.cc-t').textContent || '');
+  });
+  return t.length > 0 && !/第.章/.test(t); });
+
 /* 手を動かすところで畳んだら、同じ手がそのまま戻ること。
    出し直すときに手を作り直していた頃は、その場所の手に化けて、
    積んである行が捨てられ、次にそこへ入ると章が最初から流れ直していた。 */
@@ -291,12 +298,6 @@ await ui('手を動かすところで畳んでも、同じ手が戻る', async (
   });
   return !r.err && r.folded && !r.moved && r.a === r.b; });
 
-await ui('夜の場所に章の番号が付いていない', async () => {
-  const t = await page.evaluate(() => {
-    const c = document.getElementById('chapcard');
-    return (c.querySelector('.cc-n').textContent || '') + (c.querySelector('.cc-t').textContent || '');
-  });
-  return t.length > 0 && !/第.章/.test(t); });
 
 /* 隣り合う額で、朝がはっきり違うか。
    帯は五つしかないので、同じ帯の中では最終行しか変わらなかった。
