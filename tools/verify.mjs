@@ -164,6 +164,20 @@ if (want('art')) {
   if (nn < 5)   ng(`凪さんが探しに来る場面が入っていない（本文 ${nn}行）`);
   if (nt < 30)  ng(`夜の行動が少ない（${nt}本）`);
   if (ny < 7)   ng(`額の読みの「夜に見る一行」が足りない（${ny}）`);
+  /* 封が指している引っかかりの鍵が、実在すること。
+     打ち間違えると、その一行は誰にも出ない（出ないことに気づけない）。 */
+  {
+    const sm = src.match(/var SNAG=(\[[\s\S]*?\]);/);
+    if (sm) {
+      const snag = new Set([...sm[1].matchAll(/"k":\s*"([^"]+)"/g)].map(m => m[1]));
+      const keys = new Set();
+      for (const m of src.matchAll(/"k":\[([^\]]*)\]/g))
+        for (const k of m[1].matchAll(/"([^"]+)"/g)) keys.add(k[1]);
+      const miss = [...keys].filter(k => !snag.has(k));
+      if (miss.length) ng(`封が指している引っかかりの鍵が無い: ${miss.join('／')}`);
+      else console.log(`封が見ている引っかかり　${keys.size} / ${snag.size}`);
+    }
+  }
   /* 夜のほうから動く三つが、同じ線香で重ならないこと */
   if (N && P && N.at <= P.at) ng(`凪さん（線香${N.at}）と帳場さんの圧（線香${P.at}）が前後している`);
   if (N && N.enter && N.enter.minato && N.enter.minato.alone !== true)
