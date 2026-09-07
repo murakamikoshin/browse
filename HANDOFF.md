@@ -65,6 +65,19 @@ scenario/step9_choba.md を直す  →  python3 tools/build_choba.py  →  game.
 | スタッフロール | `tools/build_credits.py` |
 | 音声ファイルを置いたとき | `tools/build_audio.py` |
 
+周回の測り方：
+
+```
+NODE_PATH=/opt/node22/lib/node_modules node tools/sweep.mjs 60 777 > /tmp/s.json
+python3 tools/sweep_report.py /tmp/s.json
+```
+
+**何周目で新しい行が尽きるか**を測る道具。実測（六十周）は、
+1周目92%が初めて → 2〜10周は毎周50行前後 → 11〜25周は10行前後 →
+26周以降は数行、**49周目で95%読了**。異なり行が約1,300行しかないので、
+これは足し算であって不具合ではない。**何周でも新しくしたければ本文を増やすしかない。**
+行き止まり・落ちの発見にも使える（六十周で0件）。
+
 読み込み専用の検査（叩くと報告だけ出る）：
 
 | 見るもの | 道具 |
