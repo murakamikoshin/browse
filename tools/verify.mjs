@@ -161,6 +161,28 @@ if (want('art')) {
   console.log(`\n差し込んだ塊　美波の手 ${nh}／夜の半ば ${np}行／夜の行動 ${nt}本／額の読み（夜） ${ny}`);
 }
 
+/* 集める側が完走できるか。帳に「聞いた数の形 N / 十」「町の並び N / 七」を
+   出している以上、**全部に届かない数え方**を出してはいけない。
+   買えば端数が出て形が変わるので、買い物の組み合わせまで入れて数える。 */
+{
+  const S = await page.evaluate(() => window.__dev.STEPS);
+  const R = [3,3,3,8,8,8,20,20,45];                 // 安3 中8 高20 番外45（README）
+  const pct = new Set([0]);
+  for (const r of R) for (const x of [...pct]) if (x + r <= 100) pct.add(x + r);
+  const kata = v => /^1(0*)$/.test(String(v)) ? '切' : String(v)[0];
+  const kaku = v => v < 1000 ? '端金' : v < 10000 ? '下' : v < 30000 ? '並'
+                  : v < 100000 ? '上' : v < 1000000 ? '桁' : '外';
+  const sh = new Set(), ka = new Set(['無']);
+  for (const v of S) { if (!v) continue;
+    for (const q of pct) { const bal = v - (v / 100) * q;
+      if (bal <= 0 || bal !== Math.round(bal)) continue;
+      sh.add(kata(bal)); ka.add(kaku(bal)); } }
+  const wantSh = [...'123456789', '切'], wantKa = ['無','端金','下','並','上','桁','外'];
+  wantSh.filter(x => !sh.has(x)).forEach(x => ng(`数の形「${x}」に、どう包んでも届かない`));
+  wantKa.filter(x => !ka.has(x)).forEach(x => ng(`町の並び「${x}」に、どう包んでも届かない`));
+  console.log(`集められるか　数の形 ${sh.size}/${wantSh.length}／町の並び ${ka.size}/${wantKa.length}`);
+}
+
 console.log(`\n不備 ${bad.length} 件`);
 await browser.close();
 process.exit(bad.length ? 1 : 0);

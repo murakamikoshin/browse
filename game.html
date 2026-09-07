@@ -1934,13 +1934,19 @@ function snagDue(){
   SNAGT.forEach(function(t){ if(n>=t.n && !S.snagT[t.n]) got=t; });
   if(!got) return null;
   S.snagT[got.n]=true;
-  /* 途中の段は、前に並べたものを繰り返さない。最後の段だけ、頭から並べ直す */
+  /* 途中の段は、前に並べたものを繰り返さない。最後の段だけ、頭から並べ直す。
+     **途中の段は、気づいた順に並べる。**「頭に残っていた」ものなので、
+     並ぶ順はその人の夜の順になる。歩き方が違えば、ここが違う。
+     最後の段だけは原稿の順に戻す。本文がそう言っている（「今度は、順番に」）。 */
   var last = SNAGT.length && SNAGT[SNAGT.length-1].n===got.n;
   var q=[{ t:got.head, cls:"aside" }];
-  SNAG.forEach(function(x){
-    if(!S.snag[x.k]) return;
-    if(!last && S.snagShown[x.k]) return;
-    S.snagShown[x.k]=true;
+  var IX=snagIndex(), byK={};
+  SNAG.forEach(function(x){ byK[x.k]=x; });
+  var keys = last ? SNAG.map(function(x){ return x.k; }) : Object.keys(S.snag);
+  keys.forEach(function(k){
+    var x=byK[k]; if(!x || !S.snag[k]) return;
+    if(!last && S.snagShown[k]) return;
+    S.snagShown[k]=true;
     q.push({ t:x.t, cls:"aside" });
   });
   var lv=String(Math.min(5, S.band+1));
