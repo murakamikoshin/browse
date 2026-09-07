@@ -66,6 +66,8 @@ if __name__ == "__main__":
                 bad.append((where, "同じ一行が %s にもある: %s" % (seen[s], s[:24])))
             elif s not in seen: seen[s] = where
     keep = [(w, m) for w, m in bad if not (w in OK and m.startswith(OK[w]))]
-    print("見た行 %d（わざとそう書いてある行 %d を除く）" % (len(rows), len(OK)))
+    uniq = set(s for _, s in rows if len(s) > 3)
+    print("見た行 %d（相異なる %d行／約%s字）" % (len(rows), len(uniq),
+          format(sum(len(s) for s in uniq), ",")))
     for w, m in keep: print("   %-18s %s" % (w, m))
     print("\n気になるところ %d件" % len(keep))
