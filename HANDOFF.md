@@ -49,6 +49,7 @@ scenario/step9_choba.md を直す  →  python3 tools/build_choba.py  →  game.
 | 第7章・封・最終行 | `tools/build_ch7.py` |
 | ED名 | `tools/build_ed.py`（`--slots` で未執筆の組を出す） |
 | 夜の行動 | `tools/build_talks.py` |
+| 夜の半ばの一場面（圧） | `tools/build_press.py` |
 | 手を動かすところ・章の引き | `tools/build_acts.py` |
 | 話者 | `tools/build_speakers.py` |
 | ふりがな | `tools/build_ruby.py`（`--report` で読みの割れ） |
@@ -144,6 +145,11 @@ NODE_PATH=/opt/node22/lib/node_modules node tools/playtest.mjs   # 遊ぶ側か�
 - **場面の途中で線香が尽きても、その場面は読み終えてから朝にする**（`burnMid`）。
   途中で切ると章が読み終わらず、同じやり取りが二度起きる
 - **帳場さんの帳の段は 5 / 15 / 30 / 50 / 85**
+- **線香が四本になったら、一度だけ夜のほうから動く**（`PRESS` / `pressDue`）。
+  こちらから訊く以外に何も起きないと、中盤が平らになる。**場面の途中では焚かない。**
+  帳場さんは港まで来ないので、港だけは隣のおじさんが時間だけ言う（単独）
+- **指せる語句は、教わったあと最初の一つだけ一度光る**（`.ask.hint`）。
+  持続する印は付けない。SPEC 3.5 A の改訂として記録してある
 
 ## 書体と音の素材はリポジトリに無い
 
