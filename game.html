@@ -1894,9 +1894,16 @@ document.addEventListener("click",function(e){          // 外を押したら畳
   var h=$("hud").querySelector(".hbar");
   if(h.classList.contains("open") && !e.target.closest(".hbar")) h.classList.remove("open");
 });
+/* 「どうする」は、畳んだ手を出し直すためだけの口。
+   読んでいる途中にここで手を出すと、積んである行が捨てられて場面が飛ぶ。
+   自分で畳んだときだけ、出し直せるようにする。 */
+var NAVHID=false;
+function midLine(){ return !!(Q.tid || Q.hold || Q.i < Q.list.length); }
 $("bnav").addEventListener("click",function(){
   if(S.done) return;
-  if($("nav").firstChild) $("nav").replaceChildren(); else drawNav();   // 押したら閉じる
+  if($("nav").firstChild){ $("nav").replaceChildren(); NAVHID=true; return; }   // 畳む
+  if(!NAVHID || midLine()){ toast("読み終えると、次を選べます"); return; }
+  NAVHID=false; drawNav();
 });
 
 /* ふりがなの入り切り。切っても本文は変わらない（辞書を当てているだけなので） */
@@ -2122,6 +2129,7 @@ function reading(){
 }
 
 function drawNav(){
+  NAVHID=false;
   if(S.done){ $("nav").replaceChildren(); return; }
   var rows=[];
 
@@ -2156,7 +2164,7 @@ function drawNav(){
     say(chapQueue(P0, false), drawNav);          // 手を動かすところと立ち止まりは出さない
   }]);
   tail.push([S.place==="butsu" ? "横になる" : "夜を終える", askDawn]);
-  tail.push(["閉じる", function(){ $("nav").replaceChildren(); }]);
+  tail.push(["閉じる", function(){ $("nav").replaceChildren(); NAVHID=true; }]);
   rows.push(["", tail, "faint"]);
   menu(rows);
   saveNow();                                   // 場面の切れ目。ここだけを控える

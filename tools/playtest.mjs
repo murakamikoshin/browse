@@ -212,7 +212,9 @@ await ui('「音」で入り切りできる', async () => { const a = await page
   await page.click('#bau'); const c = await page.locator('#bau.off').count();
   return a !== b && a === c; });
 await ui('章の札は同じ章で二度出ない', async () => {
-  const openNav = () => page.evaluate(() => { if (!document.getElementById('nav').firstChild) document.getElementById('bnav').click(); });
+  const openNav = () => page.evaluate(() => { const n = document.getElementById('nav');
+    if (!n.firstChild) window.__dev.flush(60);                 // 読み残しを送ってから
+    if (!n.firstChild) document.getElementById('bnav').click(); });
   const go = async (to) => { await openNav(); await page.evaluate((to) => { window.__dev.nav('ほかの場所へ'); window.__dev.nav(to); window.__dev.flush(); }, to); };
   await go('仏間');
   const a = await page.evaluate(() => window.__dev.state().chapSeen.length);
@@ -239,6 +241,20 @@ await ui('切り替えると合図が出る', async () => {
   const t = await page.textContent('#toast');
   await page.click('#bruby');
   return a === 1 && /ふりがな/.test(t); });
+/* 「どうする」で場面を飛ばせてしまっていた。読んでいる途中に手を出すと、
+   積んである行が捨てられて、その場の残りが読めなくなる。 */
+await ui('読んでいる途中に「どうする」で場面が飛ばない', async () => {
+  await page.goto(URL);
+  return await page.evaluate(() => {
+    const D = window.__dev; D.fast(true); D.begin(0);
+    D.nav('ほかの場所へ'); D.nav('仏間（まだ）');       // 章を読み始める
+    D.step();                                        // 一行だけ送る
+    const before = D.state().line, q0 = D.queue().length;
+    document.getElementById('bnav').click();
+    const nav = document.getElementById('nav').firstChild;
+    const q1 = D.queue().length;
+    return !nav && q1 === q0 && D.state().line === before;
+  }); });
 await ui('夜の場所に章の番号が付いていない', async () => {
   const t = await page.evaluate(() => {
     const c = document.getElementById('chapcard');
