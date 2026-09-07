@@ -107,6 +107,7 @@
 | `tools/build_ed.py` | ED名を流し込む。`--slots` で名前が要る85組を出す |
 | `tools/build_talks.py` | 夜の行動を流し込む。線香より本数が少ないと落ちる |
 | `tools/build_press.py` | 夜の半ばの一場面を流し込む。封・値・解釈の語を機械で弾く |
+| `tools/build_mina.py` | 美波の場面を流し込む。札に評価語が入っていないか（＝正しい手を作っていないか）も見る |
 | `tools/build_yomi.py` | 額の読みを流し込む。形10／端／格7（うち夜に見る一行7） |
 | `tools/build_speakers.py` | 話者表を流し込む |
 | `tools/build_ruby.py` | ふりがなの辞書を作る。`--report` で読みの割れを出す |
