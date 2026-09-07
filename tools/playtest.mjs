@@ -155,6 +155,8 @@ for (const idx of AMOUNTS) {
         o.name = (document.querySelector('.slip-ed .nm') || {}).textContent || null;
         o.chap = s.chapSeen.length;
         o.beats = s.beats;                      // 夜のほうから動く三つが焚かれたか
+        /* 買えば、朝に読まれる数の形が変わる。それを夜のうちに一度だけ言う */
+        o.hasu = D.lines(4000).some(x => x.indexOf('切りのいい数ではない') >= 0);
         return o;
       }
     }, [idx, way]);
@@ -169,6 +171,14 @@ for (const idx of AMOUNTS) {
     if (!r.desk && !r.deskOffer) note(`${tag}　帳場の机への道を見せずに朝になった`);
     /* 一段目に届いたのに、並べ直す場面が一度も出ていない */
     if (r.snag >= r.tier1 && !r.snagT) note(`${tag}　引っかかり${r.snag}個で並べ直しが出ていない`);
+    /* 買って端数になったのに、夜のうちに何も言われないと、
+       朝の読み上げで初めて気づくことになる。買った人には一度だけ言う */
+    {
+      const bal = (r.paid || 0) - (r.spent || 0);
+      const round = /^[1-9]0*$/.test(String(bal));
+      if (r.spent > 0 && bal >= 1000 && !round && !r.hasu)
+        note(`${tag}　買って端数になったのに、夜のうちに何も言っていない`);
+    }
     /* 夜のほうから動く三つ。線香を使い切る遊び方なら、必ず全部通るはず。
        ここが落ちると、中盤が「訊く」だけの平らな時間に戻る */
     if (r.steps > 200 && r.beats) {

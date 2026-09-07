@@ -51,7 +51,7 @@ def parse(path=SRC):
             if d not in list("123456789") + ["切"]: raise SystemExit("形の数字が違う: " + d)
             shape[d] = {"uke": uke, "yomi": yomi}
         elif f[0] == "端":
-            hasu = {"yomi": yomi}
+            hasu = {"yomi": yomi, "mi": mi}
         elif f[0] == "格":
             k = f[1]
             if k not in KEYS + [ZERO]:
