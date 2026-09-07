@@ -30,6 +30,14 @@ def fixes():
         if m: d[m.group(1)] = m.group(2)
     return d
 
+# 引っかかりの札は、画面に出ない見出しである。読みはここから取らない。
+# （札そのものを消すのではない。同じ語が本文にも出る場合は、本文の読みを使う。）
+def snagkeys():
+    g = io.open("game.html", encoding="utf-8").read()
+    m = re.search(r"var SNAG=(\[.*?\]);\n", g, re.S)
+    if not m: return set()
+    return set(re.findall(r'"k":\s*"([^"]+)"', m.group(1)))
+
 def strings():
     """game.html の中の本文をぜんぶ集める。注釈と識別子は入れない。"""
     g = io.open("game.html", encoding="utf-8").read()
@@ -73,7 +81,9 @@ if __name__ == "__main__":
             yield t.surface, t.reading
         if buf: yield "".join(x for x, _ in buf), "".join(y for _, y in buf)
 
+    skip = snagkeys()
     for s in strings():
+        if s in skip: continue             # 札そのものは読まない
         for surface, reading in units(s):
             pairs = align(surface, reading)
             if pairs is None:
