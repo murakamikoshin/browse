@@ -23,8 +23,28 @@ def parse():
         out.append({"n": int(m.group(1)), "title": m.group(2), "lines": lines})
     return sorted(out, key=lambda x: x["n"])
 
+def numbers(d):
+    """帳場さんの帳が言う数と、実装の数が食い違っていないか。
+    線香の本数を変えたのに、帳場さんが古い数を言い続けていたことがある。"""
+    import re
+    g = io.open("game.html", encoding="utf-8").read()
+    inc = int(re.search(r"var INCENSE=(\d+);", g).group(1))
+    KAN = "〇一二三四五六七八九十"
+    def kan(n):
+        if n < 10: return KAN[n]
+        if n < 20: return "十" + (KAN[n % 10] if n % 10 else "")
+        return KAN[n // 10] + "十" + (KAN[n % 10] if n % 10 else "")
+    want = "線香は" + kan(inc) + "本"
+    body = "".join("".join(s["lines"]) for s in d)
+    out = []
+    if "線香は" in body and want not in body:
+        out.append("帳場さんの帳が言う線香の数が、実装（%d本）と違う。「%s」になっているはず" % (inc, want))
+    return out
+
+
 if __name__ == "__main__":
     d, bad = parse(), []
+    bad += numbers(d)
     for s in d:
         body = "".join(s["lines"])
         for w in NG:

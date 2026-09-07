@@ -85,6 +85,7 @@ python3 tools/sweep_report.py /tmp/s.json
 | 指せる語句の値と重なり | `tools/check_asks.py` |
 | 夜の順番（先出しの参照・未読の章のものを思い出していないか） | `tools/check_order.py` |
 | ふりがなの読み違い・数え方 | `tools/check_ruby.py` |
+| 本文が言う数と実装の数の食い違い | `tools/check_facts.py` |
 
 第1〜6章も `scenario/step1_ch{1..6}_band1.md` と `step2_ch{1..6}_bands.md` が正典で、
 `tools/build_ch.py` が `game.html` の `var CH` を作ります。**`game.html` の本文を
