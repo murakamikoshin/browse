@@ -66,8 +66,13 @@ for (const idx of AMOUNTS) {
           out.prev = s.line;
           if (!out.reread && s.line && s.line.length > 25 && !/^[「（]/.test(s.line) && !SNAGTX.has(s.line)) {
             out.said = out.said || {};
-            if (out.said[s.line]) { if (!out.dup) { out.dup = s.line; W('同じ行が二度流れた: ' + s.line.slice(0, 22)); } }
-            else out.said[s.line] = 1;
+            out.seq = out.seq || []; out.seq.push(s.line);
+            if (out.said[s.line]) { if (!out.dup) { out.dup = s.line;
+              const i0 = out.said[s.line] - 1, i1 = out.seq.length - 1;
+              W('同じ行が二度流れた: ' + s.line.slice(0, 22)
+                + ' ／ 一度目の前後 ' + out.seq.slice(Math.max(0,i0-1), i0+2).map(x=>x.slice(0,14)).join('｜')
+                + ' ／ 二度目の前 ' + out.seq.slice(Math.max(0,i1-3), i1).map(x=>x.slice(0,14)).join('｜')); } }
+            else out.said[s.line] = out.seq.length;
           }
         }
         if (s.hamidashi > 0) { out.over = Math.max(out.over || 0, s.hamidashi);
