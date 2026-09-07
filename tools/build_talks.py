@@ -86,6 +86,21 @@ def check(talks, incense):
             for w in NG:
                 if w in s:
                     bad.append("%s に封の語が入っている: %s" % (t["k"], w))
+    # 帯で足した一言が、そのあとの地の文と同じことを言っていると、
+    # 同じ行を二度読まされる。書いているときは気づきにくいので機械で見る。
+    for t in talks:
+        ls = t["lines"]
+        for i, d in (t.get("ov") or {}).items():
+            i = int(i)
+            for b, v in d.items():
+                k = 0
+                while k < len(ls[i]) and k < len(v) and ls[i][k] == v[k]: k += 1
+                tail = v[k:].strip("。、 ")
+                if len(tail) < 6: continue
+                for j in range(i + 1, len(ls)):
+                    if tail in ls[j]:
+                        bad.append("%s 帯%s が足した「%s」は、あとの L%03d と同じことを言っている"
+                                   % (t["k"], b, tail[:20], j + 1))
     if len(talks) <= incense:
         bad.append("行動 %d 本に対し線香 %d 本。全部できてしまい夜が選択にならない" % (len(talks), incense))
     # 帯の段は夜の中でも上がる。ある帯だけ痩せていると、その額の段が
