@@ -483,7 +483,10 @@ const beat = async (idx, steps) => {
   return await page.evaluate(([idx, steps]) => {
   const D = window.__dev; D.fast(true); D.begin(idx); D.flush(400);
   const out = [];
-  for (const [pl, inc] of steps) { const s = D.beat(pl, inc);
+  for (const [pl, inc] of steps) { let s = D.beat(pl, inc);
+    /* 呼ばれたら断る。**断ったあとに続きが焚かれること**も、ここで見ている。
+       呼びかけは行き先を一つ置くだけなので、断ってもその夜は何も減らない。 */
+    if (s.nav.some(b => b.t === 'いまは、ここにいる')) { D.nav('いまは、ここにいる'); D.flush(400); s = D.state(); }
     out.push({ pl, inc, beats: s.beats, nav: s.nav.map(b => b.t), line: s.line }); }
   return { out, log: D.lines(400) };
   }, [idx, steps]);
@@ -509,17 +512,17 @@ const beat = async (idx, steps) => {
 }
 {
   /* 取り消せない手。四つあって、どれも三択で、どれも正しくない */
-  const r = await beat(20, [['cha', 7]]);
-  await to('帳場の奥で線香七本なら、木箱をどうするか訊かれる', async () =>
+  const r = await beat(20, [['cha', 10]]);
+  await to('帳場の奥で線香十本なら、木箱をどうするか訊かれる', async () =>
     r.out[0].nav.filter(t => !/^(閉じる|やめる)$/.test(t)).length === 3);
-  const r2 = await beat(20, [['butsu', 12], ['butsu', 5]]);
-  await to('美波のあと、仏間で線香五本なら、布をどうするか訊かれる', async () =>
+  const r2 = await beat(20, [['butsu', 12], ['butsu', 7]]);
+  await to('美波のあと、仏間で線香七本なら、布をどうするか訊かれる', async () =>
     r2.out[1].nav.filter(t => !/^(閉じる|やめる)$/.test(t)).length === 3);
-  const r3 = await beat(20, [['minato', 10]]);
-  await to('港で線香十本なら、船の中のものをどうするか訊かれる', async () =>
+  const r3 = await beat(20, [['minato', 12]]);
+  await to('港で線香十二本なら、船の中のものをどうするか訊かれる', async () =>
     r3.out[0].nav.filter(t => !/^(閉じる|やめる)$/.test(t)).length === 3);
-  const r4 = await beat(20, [['ishi', 12]]);
-  await to('玄関の外で線香十二本なら、返事をどうするか訊かれる', async () =>
+  const r4 = await beat(20, [['ishi', 14]]);
+  await to('玄関の外で線香十四本なら、返事をどうするか訊かれる', async () =>
     r4.out[0].nav.filter(t => !/^(閉じる|やめる)$/.test(t)).length === 3);
   const all = [r, r2, r3, r4];
   await to('四つの手は、どれも札に評価語が無い', async () =>
@@ -532,6 +535,28 @@ const beat = async (idx, steps) => {
   const got = r.out[r.out.length - 1].beats.sasoi || [];
   await to('歩かないままだと、通っていない場所が呼ぶ', async () =>
     ['minato', 'cha', 'ishi'].every(k => got.includes(k)));
+  /* 呼ぶだけでは動かない（実測）。**行き先を一つ置く。命じない。**
+     断れること、断っても場所が変わらないことを、ここで見る。 */
+  await page.goto(URL);                         // S は begin では戻らない
+  const q = await page.evaluate(() => {
+    const D = window.__dev; D.fast(true); D.begin(20); D.flush(400);
+    D.beat('genkan', 11);                       // 港が呼ぶ（線香11本以下）
+    const nav = D.state().nav.map(b => b.t);
+    const before = D.state().place;
+    D.nav('いまは、ここにいる'); D.flush(400);
+    return { nav, before, after: D.state().place };
+  });
+  await to('呼ばれたら、行くか断るかを選べる', async () =>
+    q.nav.some(t => /へ行く$/.test(t)) && q.nav.includes('いまは、ここにいる'));
+  await to('断っても、場所は変わらない', async () => q.before === 'genkan' && q.after === 'genkan');
+  await page.goto(URL);
+  const w = await page.evaluate(() => {
+    const D = window.__dev; D.fast(true); D.begin(20); D.flush(400);
+    D.beat('genkan', 11);
+    D.nav('港へ行く'); D.flush(800);
+    return D.state().place;
+  });
+  await to('行くほうを選べば、その場所に着く', async () => w === 'minato');
 }
 {
   const r = await beat(0, [['genkan', 9], ['cha', 3]]);

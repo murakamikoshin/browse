@@ -34,6 +34,22 @@ for r in R:
     tot+=r["fresh"]
     if tot>=d["seen"]*0.95:
         print("\n**%d周目で、全体の95%%を読み終えている**" % r["run"]); break
+# 取り消せない手が、放っておいて焚かれるか。焚かれない場面は、無いのと同じ
+th=d.get("teHit") or {}
+if th:
+    n=len(R)
+    print("\n取り消せない手（周に何度出たか）")
+    for k,v in sorted(th.items(), key=lambda x:-x[1]):
+        print("  %-6s %3d／%d周　%4.0f%%" % (k, v, n, 100*v/max(1,n)))
+    got=[r.get("te",0) for r in R]
+    print("  一周の平均 %.2f場面／四場面中　一つも出ない周 %d" %
+          (sum(got)/max(1,len(got)), sum(1 for x in got if x==0)))
+bh=d.get("beatHit") or {}
+if bh:
+    n=len(R)
+    print("\n夜のほうから動く場面（周に何度出たか）")
+    for k,v in sorted(bh.items(), key=lambda x:-x[1]):
+        print("  %-14s %3d／%d周　%4.0f%%" % (k, v, n, 100*v/max(1,n)))
 w=[r for r in R if r["warn"]]
 if w:
     print("\n止まった例:")

@@ -26,6 +26,9 @@ await p.goto('file:///home/user/browse/game.html');
 
 const seenAll = new Set();          // 通しで覚えた行（人がずっと遊んでいる想定）
 const talkAll = new Set(), edAll = new Set(), shAll = new Set(), kaAll = new Set();
+/* 取り消せない手が、放っておいて本当に焚かれるか。焚く条件（場所と線香）を
+   自分で書いた以上、机上では通っていて当たり前になる。周ごとに何度出たかを数える。 */
+const teHit = {}, beatHit = {};
 const rows = [];
 let dead = 0, dup = 0, crash = 0;
 
@@ -80,6 +83,8 @@ for (let run = 0; run < N; run++) {
       if (guard >= 6000) warn.push('六千手で終わらなかった');
       const st = D.state();
       return { idx, lines, warn, dups, ed: st.ed,
+               te: (st.beats && st.beats.te) || [],
+               beats: st.beats || {},
                talk: JSON.parse(localStorage.getItem('choba.talk') || '[]'),
                yomi: JSON.parse(localStorage.getItem('choba.yomi') || '{"sh":[],"ka":[]}') };
     }, [SEED0 + run * 7919]);
@@ -93,10 +98,16 @@ for (let run = 0; run < N; run++) {
   (r.yomi.ka || []).forEach(x => kaAll.add(x));
   if (r.warn.length) dead++;
   dup += r.dups;
+  (r.te || []).forEach(k => { teHit[k] = (teHit[k] || 0) + 1; });
+  { const B = r.beats || {}, bump = k => { beatHit[k] = (beatHit[k] || 0) + 1; };
+    if (B.mina) bump('美波'); if (B.call) bump('美波の呼び声');
+    if (B.nagi) bump('凪さん'); if (B.press) bump('帳場さんの圧');
+    (B.sasoi || []).forEach(k => bump('呼ばれた:' + k)); }
   rows.push({ run: run + 1, idx: r.idx, lines: r.lines.length, fresh, ed: r.ed,
+              te: (r.te || []).length,
               warn: r.warn.slice(0, 1) });
 }
 console.log(JSON.stringify({ N, rows, dead, dup, crash,
   seen: seenAll.size, talks: talkAll.size, eds: edAll.size,
-  sh: shAll.size, ka: kaAll.size, errs: errs.slice(0, 3) }));
+  sh: shAll.size, ka: kaAll.size, teHit, beatHit, errs: errs.slice(0, 3) }));
 await b.close();
