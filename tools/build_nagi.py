@@ -46,14 +46,29 @@ def parse():
     return blocks
 
 
-def voiced(who, lines, src=None):
+NAMED = re.compile(r'^([^\s「]{1,8})(「.+)$')
+MIX = []                      # voiced() が見つけた名札の不備。main で bad に混ぜる
+
+
+def voiced(who, lines, src=None, head=""):
     """「」で始まる行にだけ名札を付ける。地の文には付けない。
+    行頭に `汐里「…」` のように名前を書けば、その行だけ話者を変えられる。
+    **一つの塊で行き来のある場面**（凪さんと汐里が交互に喋る所）は、
+    [誰] 一つでは片方の台詞にもう片方の名札が出る。実際そうなっていた。
     src を付けた行は、引っかかりが拾える（snagCatch が src+id で見ている）。"""
-    out = []
+    out, named, bare = [], 0, 0
     for i, l in enumerate(lines):
-        r = {"t": l, "who": who} if l.startswith("「") else {"t": l}
+        w = who
+        m = NAMED.match(l)
+        if m: w, l, named = m.group(1), m.group(2), named + 1
+        elif l.startswith("「"): bare += 1
+        r = {"t": l, "who": w} if l.startswith("「") else {"t": l}
         if src: r["src"] = src; r["id"] = "L%03d" % (i + 1)
         out.append(r)
+    # 半分だけ名前を書くと、書き忘れた行に別人の名札が出る。全部か、一つも無いか
+    if named and bare:
+        MIX.append("%s に、名前を書いた台詞と書いていない台詞が混ざっている"
+                   "（%d行／%d行）。片方に別人の名札が出る" % (head or "?", named, bare))
     return out
 
 
@@ -95,12 +110,14 @@ if __name__ == "__main__":
     out = {
         "at": AT,
         "enter": {p: {"alone": B["入り・" + p]["alone"],
-                      "lines": voiced(B["入り・" + p]["who"], B["入り・" + p]["lines"])}
+                      "lines": voiced(B["入り・" + p]["who"], B["入り・" + p]["lines"],
+                                      head="入り・" + p)}
                   for p in PLACES},
-        "body": voiced(B["本文"]["who"], B["本文"]["lines"], "凪"),
-        "paid": voiced(B["包んだ人"]["who"], B["包んだ人"]["lines"]),
-        "close": voiced(None, B["締め"]["lines"]),
+        "body": voiced(B["本文"]["who"], B["本文"]["lines"], "凪", head="本文"),
+        "paid": voiced(B["包んだ人"]["who"], B["包んだ人"]["lines"], head="包んだ人"),
+        "close": voiced(None, B["締め"]["lines"], head="締め"),
     }
+    bad += MIX
 
     for b in bad: print("NG  " + b)
     n = sum(len(v["lines"]) for v in B.values())
