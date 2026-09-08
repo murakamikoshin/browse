@@ -1945,7 +1945,12 @@ function snagCatch(it){
 function snagCount(){ return Object.keys(S.snag).length; }
 
 /* 段に届いたら一度だけ。歩くときと、夜が明ける前に見る */
+/* 取り消せない手の途中では、並べ直しを挟まない。
+   相手が筆を持って待っているあいだに、頭の中で十三個を並べ始めると、
+   場面が切れる。手を選び終わってから焚く。 */
+var HANDOPEN=false;
 function snagDue(){
+  if(HANDOPEN) return null;
   var n=snagCount(), got=null;
   SNAGT.forEach(function(t){ if(n>=t.n && !S.snagT[t.n]) got=t; });
   if(!got) return null;
@@ -2350,10 +2355,12 @@ function teText(P,id){
 function teQ(P){ return P.order.map(function(id){ return teText(P,id); }); }
 function te(e, after){
   S.tePick = S.tePick || {}; S.tePick[e.name]="";
+  HANDOPEN=true;
   say(teQ(e.enter), function(){
     menu([["どうする", e.hands.map(function(h){
       return [h.label, function(){
         S.tePick[e.name]=h.label;
+        HANDOPEN=false;
         $("nav").replaceChildren();
         say(teQ(h).concat(teQ(e.close)), after);
       }];
@@ -2385,10 +2392,12 @@ function minaText(P,id){
 function minaQ(P){ return P.order.map(function(id){ return minaText(P,id); }); }
 function mina(after){
   S.mina=true;
+  HANDOPEN=true;
   say(minaQ(MINA.enter), function(){
     menu([["どうする", MINA.hands.map(function(h){
       return [h.label, function(){
         S.minaPick=h.label;
+        HANDOPEN=false;
         $("nav").replaceChildren();
         say(minaQ(h).concat(minaQ(MINA.close)), after);
       }];
