@@ -486,7 +486,8 @@ const beat = async (idx, steps) => {
   for (const [pl, inc] of steps) { let s = D.beat(pl, inc);
     /* 呼ばれたら断る。**断ったあとに続きが焚かれること**も、ここで見ている。
        呼びかけは行き先を一つ置くだけなので、断ってもその夜は何も減らない。 */
-    if (s.nav.some(b => b.t === 'いまは、ここにいる')) { D.nav('いまは、ここにいる'); D.flush(400); s = D.state(); }
+    for (let k = 0; k < 6 && s.nav.some(b => b.t === 'いまは、ここにいる'); k++) {
+      D.nav('いまは、ここにいる'); D.flush(400); s = D.state(); }
     out.push({ pl, inc, beats: s.beats, nav: s.nav.map(b => b.t), line: s.line }); }
   return { out, log: D.lines(400) };
   }, [idx, steps]);
@@ -571,6 +572,49 @@ const beat = async (idx, steps) => {
     return D.state().place;
   });
   await to('行くほうを選べば、その場所に着く', async () => w === 'minato');
+  /* 章の途中で立ち止まって話せる段。前はここだけ素の一覧を出していて、
+     港で四十二本並び、頁が動き、選んだ手も控えられていなかった。 */
+  await page.goto(URL);
+  await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
+  await page.goto(URL);
+  const m2 = await page.evaluate(() => {
+    const D = window.__dev; D.fast(true); D.begin(20); D.flush(400);
+    D.nav('ほかの場所へ'); D.nav('仏間'); D.flush(900);
+    D.nav('ほかの場所へ'); D.nav('港');
+    const labs = () => [...document.querySelectorAll('#nav button')].map(b => b.textContent);
+    for (let i = 0; i < 900; i++) {
+      const n = labs();
+      if (n.includes('読み進める')) {
+        const talks = n.filter(t => t !== '読み進める');
+        D.nav(talks[0]); D.flush(400);
+        return { n: talks.length, mem: JSON.parse(localStorage.getItem('choba.talk') || '[]').length };
+      }
+      if (D.state().chapcard) { D.flush(3); continue; }
+      if (n.length) { D.nav(n[0]); continue; }   // 手を動かすところ。どちらでも先へ進む
+      D.step();
+    }
+    return { n: -2, mem: -2 };
+  });
+  await to('章の途中で立ち止まる段も、並ぶのは八本まで', async () => m2.n > 0 && m2.n <= 8);
+  await to('章の途中で話した手も、見た夜の手に控える', async () => m2.mem >= 1);
+  /* 一度に八本しか並べない以上、**窓が動かなければ、残りは一生出てこない。**
+     更けてから出るほう（late）をずらし忘れていて、窓の半分がいつも同じ四本だった。
+     見た朝の数を変えて、並ぶ顔ぶれが入れ替わることを見る。 */
+  const lab = await page.evaluate(() => {
+    const o = {}; for (const t of window.__dev.TALKS) o[t.label] = !!t.late; return o; });
+  const early = new Set(), lateN = new Set(); let rounds = 0;
+  for (const n of [0, 3, 7, 11, 19]) {
+    await seed(n);
+    const r5 = await beat(20, [['genkan', 6]]);      // 更けてから出る手が並ぶ線香
+    const got = r5.out[0].nav.filter(t => t in lab);
+    got.forEach(t => (lab[t] ? lateN : early).add(t));
+    if (got.length) rounds++;
+  }
+  /* 玄関は夜の初めから在る手が四本しかないので、そこは毎回同じ四本でいい。
+     動かなければならないのは**更けてから出るほう**。ここが止まっていて、
+     late の大きい四本だけが何周しても並び続け、残りは一生出てこなかった。 */
+  await to('見た朝の数を変えても、五回とも手が並ぶ', async () => rounds === 5 && early.size >= 4);
+  await to('見た朝の数が変われば、更けてから出る手の顔ぶれが変わる', async () => lateN.size > 8);
 }
 {
   const r = await beat(0, [['genkan', 9], ['cha', 3]]);

@@ -1708,14 +1708,21 @@ function nextLine(){
     return;
   }
   if(it.brk){                                   // 場面の途中。ここにいる相手と話せる
-    var av=S.incense>0 ? TALK.filter(function(x){ return x.place===it.brk && !S.talked[x.k]; }) : [];
+    /* ここも drawNav と同じ絞り込みを通す。前は素の TALK を全部並べていたので、
+       港の途中で四十二本が一度に出て頁が動き、まだ読んでいない章の手も混じり、
+       選んだ手が「見た夜の手」に控えられていなかった。 */
+    /* 章の途中の段は、その夜すでに使った手の数だけ窓をずらす。
+       八本に絞ったとき、ここが drawNav と同じ八本になると、百周で読める行が
+       二割減った（2,758 → 2,164 行。`tools/sweep.mjs`）。ずらせば戻る。
+       乱数は使わない——同じ額・同じ歩き方なら、同じ夜になる。 */
+    var av=talkWindow(hereTalks(it.brk), Object.keys(S.talked).length).list;
     if(!av.length){ nextLine(); return; }
     $("win").classList.remove("on");
     var back=Q.list, bi=Q.i, bend=Q.end;        // 読みかけを覚えておいて、話し終えたら戻る
                                                 // 締め（Q.end）も一緒に。say が上書きするため
     menu([["話す\n線香を一本", av.map(function(x){
       return [x.label, function(){
-        S.talked[x.k]=true;
+        S.talked[x.k]=true; talkSeen(x.k);
         say(talkLines(x).concat([ashLine()]), function(){
           burnMid();                          // 尽きても、この場面は読み終える
           Q.list=back; Q.i=bi; Q.end=bend; $("nav").replaceChildren(); nextLine();
@@ -2456,6 +2463,43 @@ function nagi(after){
   say(q, after);
 }
 
+/* その場に並べる夜の行動を、一箇所で決める。
+   drawNav と、章の途中の「話す」段の両方がここを通る。片方だけ直すと、
+   章の途中だけ四十二本並んだり、覚えた手が控えられなかったりする（実際そうなっていた）。 */
+function talkOpen(t){
+  /* need はその章を読むまで出さない。late は夜が更けるまで出さない。 */
+  return (!t.need || S.readCh[t.need]) && (!t.late || S.incense<=t.late);
+}
+function hereTalks(place){
+  return S.incense>0 ? TALK.filter(function(t){
+    return t.place===place && !S.talked[t.k] && talkOpen(t); }) : [];
+}
+/* **一度に並べるのは八本まで。** 二百十一本あるので、出せるだけ出すと頁が動く
+   （どの画面も一枚に収める）。使えば次が出てくるので、選べる総数は変わらない。
+   **ただし原稿の順に八本だけ出すと、後ろのほうは一生出てこない。**
+   夜の初めから在るものを四本、更けてから出たものを四本、混ぜて並べる。
+   更けたほうは、**いま開いたばかりのものを先に**（late が大きい順）。
+   夜の初めから在るものは、**見た朝の数だけ窓をずらす**（同じ人の二周目は別の四本から
+   始まる）。乱数は使わない——同じ額・同じ歩き方なら、同じ夜になるようにしておく。 */
+function talkWindow(list, shift){
+  var HEREMAX=8, hidden=Math.max(0, list.length-HEREMAX);
+  if(!hidden) return { list:list, hidden:0 };
+  var e0=list.filter(function(t){ return !t.late; });
+  var rot=(edList().length + (shift||0)) % Math.max(1, e0.length);
+  if(rot) e0=e0.slice(rot).concat(e0.slice(0,rot));
+  /* 更けてから出たほうも、同じだけずらす。ずらさずに late の大きい順で四本だけ
+     出していたら、そこはいつも同じ四本になっていた（窓の半分が動いていなかった）。 */
+  var l0=list.filter(function(t){ return t.late; })
+            .sort(function(a,b){ return b.late-a.late; });
+  var lrot=(edList().length + (shift||0)) % Math.max(1, l0.length);
+  if(lrot) l0=l0.slice(lrot).concat(l0.slice(0,lrot));
+  var half=HEREMAX/2;
+  var ne=Math.min(e0.length, Math.max(half, HEREMAX-l0.length));
+  var nl=Math.min(l0.length, HEREMAX-ne);
+  var ix={}; e0.slice(0,ne).concat(l0.slice(0,nl)).forEach(function(t){ ix[t.k]=1; });
+  return { list:list.filter(function(t){ return ix[t.k]; }), hidden:hidden };  // 原稿の順に戻す
+}
+
 function drawNav(){
   if(S.done){ $("nav").replaceChildren(); return; }
   /* 焚くのは menu を組む前。組んでから被せると、札が二重に出る。
@@ -2484,38 +2528,9 @@ function drawNav(){
     })]);
   }
   /* 章を読むまで出さない手がある。玄関に五つ並べると、そこで夜の半分が終わって、
-     港も机も石段も見ないまま朝になる。二つを仏間のあとに回した。 */
-  /* need はその章を読むまで出さない。late は夜が更けるまで出さない。
-     七十本を一度に並べると頁が動く（どの画面も一枚に収める）ので、
-     半分は線香が減ってから出す。夜が進むと、目につくものが変わる。 */
-  var open1=function(t){
-    return (!t.need || S.readCh[t.need]) && (!t.late || S.incense<=t.late);
-  };
-  var here=S.incense>0 ? TALK.filter(function(t){ return t.place===S.place && !S.talked[t.k] && open1(t); }) : [];
-  /* **一度に並べるのは八本まで。** 百本あるので、出せるだけ出すと頁が動く
-     （どの画面も一枚に収める）。使えば次が出てくるので、選べる総数は変わらない。
-     **ただし原稿の順に八本だけ出すと、後ろのほうは一生出てこない。**
-     夜の初めから在るものを四本、更けてから出たものを四本、混ぜて並べる。
-     更けたほうは、**いま開いたばかりのものを先に**（late が大きい順）。
-     こうすると、夜が進むたびに札の顔ぶれが変わる。 */
-  var HEREMAX=8, hidden=Math.max(0, here.length-HEREMAX);
-  if(hidden){
-    var e0=here.filter(function(t){ return !t.late; });
-    /* **夜の初めから在るものを原稿の順に四本出すと、何周しても最初の四本が同じになる。**
-       見た朝の数だけ窓をずらす。減らすのではなく、ずらすだけなので、
-       夜が進めば隠れていたほうも出てくる。同じ人の二周目は、別の四本から始まる。
-       乱数は使わない（同じ額・同じ歩き方なら、同じ夜になるようにしておく）。 */
-    var rot=edList().length % Math.max(1, e0.length);
-    if(rot) e0=e0.slice(rot).concat(e0.slice(0,rot));
-    var l0=here.filter(function(t){ return t.late; })
-              .sort(function(a,b){ return b.late-a.late; });
-    var half=HEREMAX/2;
-    var ne=Math.min(e0.length, Math.max(half, HEREMAX-l0.length));
-    var nl=Math.min(l0.length, HEREMAX-ne);
-    var pick=e0.slice(0,ne).concat(l0.slice(0,nl));
-    var ix={}; pick.forEach(function(t){ ix[t.k]=1; });
-    here=here.filter(function(t){ return ix[t.k]; });   // 原稿の順に戻して並べる
-  }
+     港も机も石段も見ないまま朝になる。二つを仏間のあとに回した。
+     絞り込みと窓は talkOpen / hereTalks / talkWindow にまとめてある。 */
+  var w0=talkWindow(hereTalks(S.place)), here=w0.list, hidden=w0.hidden;
   var mk1=function(t){
     return [t.label, function(){
       S.talked[t.k]=true; talkSeen(t.k);
@@ -2552,8 +2567,8 @@ function drawNav(){
   }
   /* ここでできることが無くなったのに、ほかの場所には残っている、という形が
      いちばん詰まる。何が残っているかは言わない。尽きたことだけ言う。 */
-  var hereN=TALK.filter(function(t){ return t.place===S.place && !S.talked[t.k] && open1(t); }).length;
-  var away=TALK.filter(function(t){ return t.place!==S.place && !S.talked[t.k] && open1(t)
+  var hereN=hereTalks(S.place).length;
+  var away=TALK.filter(function(t){ return t.place!==S.place && !S.talked[t.k] && talkOpen(t)
       && (function(p){ return !p || !p.need || S.readCh[p.need]; })(
            PLACES.filter(function(x){ return x.k===t.place; })[0]); }).length;
   /* 隠した分があることは、その場所で一度だけ言う。何が隠れているかは言わない。
@@ -3499,6 +3514,9 @@ window.__dev = {
              done:{ mina:!!S.mina, call:!!S.minaCall, nagi:!!S.nagied, press:!!S.pressed,
                     sasoi:Object.keys(S.sasoi||{}), te:Object.keys(S.tePick||{}) } };
   },
+
+  /* 夜の行動の札と、更けてから出るものかどうか。窓が動いているかを通し試験が見る */
+  TALKS: TALK.map(function(t){ return { k:t.k, place:t.place, label:t.label, late:t.late||0 }; }),
 
   /* いま窓に出ている、指せる語句 */
   asks: function(){
