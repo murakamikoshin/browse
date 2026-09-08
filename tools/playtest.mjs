@@ -509,6 +509,20 @@ const beat = async (idx, steps) => {
 {
   const r = await beat(20, [['genkan', 10]]);
   await to('仏間へ戻らないままだと、一度だけ音で呼ぶ', async () => r.out[0].beats.call);
+  /* 呼び声も、呼びかけと同じで、置くのは行き先一つ。命じない */
+  await page.goto(URL);
+  const c = await page.evaluate(() => {
+    const D = window.__dev; D.fast(true); D.begin(20); D.flush(400);
+    D.nav('ほかの場所へ'); D.nav('仏間'); D.flush(900);        // 兄の顔を見てから
+    D.nav('ほかの場所へ'); D.nav('玄関・帳場'); D.flush(400);
+    D.beat('genkan', 10);
+    const nav = D.state().nav.map(b => b.t);
+    D.nav('仏間へ戻る'); D.flush(400);
+    return { nav, place: D.state().place };
+  });
+  await to('呼び声のあと、仏間へ戻るか、ここにいるかを選べる', async () =>
+    c.nav.includes('仏間へ戻る') && c.nav.includes('いまは、ここにいる'));
+  await to('戻るほうを選べば、仏間に着く', async () => c.place === 'butsu');
 }
 {
   /* 取り消せない手。四つあって、どれも三択で、どれも正しくない */

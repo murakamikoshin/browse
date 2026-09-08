@@ -2463,7 +2463,11 @@ function drawNav(){
      二つが続けて来ないようにする */
   if(minaDue()){ $("nav").replaceChildren(); mina(drawNav); return; }
   if(minaCall()){ S.minaCall=true; $("nav").replaceChildren();
-    say(minaQ(MINA.call[S.place]).map(function(x){ return { t:x.t, cls:"aside" }; }), drawNav);
+    say(minaQ(MINA.call[S.place]).map(function(x){ return { t:x.t, cls:"aside" }; }),
+      /* 呼び声だけでは戻らない（`tools/sweep.mjs` の実測）。呼びかけと同じ形にして、
+         戻る先を一つ置く。**命じない。**断っても線香は減らず、あとから歩ける。 */
+      function(){ menu([["", [[(S.readCh["2"]?"仏間へ戻る":"仏間へ行く"), function(){ enter("butsu"); }],
+                              ["いまは、ここにいる", drawNav]], "sub"]]); });
     return; }
   var td=teDue();
   if(td){ $("nav").replaceChildren(); te(td, drawNav); return; }
