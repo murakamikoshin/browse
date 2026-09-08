@@ -163,6 +163,20 @@ if (want('art')) {
   if (np < 5)   ng(`夜の半ばの場面が入っていない（本文 ${np}行）`);
   if (nn < 5)   ng(`凪さんが探しに来る場面が入っていない（本文 ${nn}行）`);
   {
+    /* 取り消せない手。夜の手の形を割る場面なので、無くなったら気づけるようにする */
+    const T2 = grab('TE');
+    const nt2 = Array.isArray(T2) ? T2.length : -1;
+    if (nt2 < 2) ng(`取り消せない手が足りない（${nt2}場面）`);
+    else {
+      for (const e of T2) {
+        if (!e.hands || e.hands.length !== 3) ng(`${e.name} の手が三つない（${(e.hands||[]).length}）`);
+        for (const o of [P, N].concat([])) if (o && o.at === e.at)
+          ng(`${e.name}（線香${e.at}）が、ほかの場面と同じ線香で起きる`);
+      }
+      const at2 = T2.map(e => e.at);
+      if (new Set(at2).size !== at2.length) ng('取り消せない手が同じ線香で二つ起きる');
+      console.log(`取り消せない手　${T2.map(e => `${e.name}(${e.place}/線香${e.at})`).join('／')}`);
+    }
     const S2 = grab('SASOI');
     const ns = Array.isArray(S2) ? S2.length : -1;
     if (ns < 3) ng(`まだ通っていない場所からの呼びかけが足りない（${ns}箇所）`);

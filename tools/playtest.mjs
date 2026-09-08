@@ -490,7 +490,7 @@ const beat = async (idx, steps) => {
 };
 
 {
-  const r = await beat(20, [['butsu', 12], ['genkan', 9], ['cha', 3]]);
+  const r = await beat(20, [['butsu', 12], ['genkan', 9], ['cha', 4]]);
   const [m, n, p2] = r.out;
   await to('仏間で線香十二本なら、美波が起きてくる', async () => m.beats.mina && m.nav.length >= 3);
   await to('美波の手は三つあり、どれも札に評価語が無い', async () =>
@@ -506,6 +506,15 @@ const beat = async (idx, steps) => {
 {
   const r = await beat(20, [['genkan', 10]]);
   await to('仏間へ戻らないままだと、一度だけ音で呼ぶ', async () => r.out[0].beats.call);
+}
+{
+  /* 取り消せない手。三つあって、どれも正しくない */
+  const r = await beat(20, [['cha', 7]]);
+  await to('帳場の奥で線香七本なら、木箱をどうするか訊かれる', async () =>
+    r.out[0].nav.filter(t => !/^(閉じる|やめる)$/.test(t)).length === 3);
+  const r2 = await beat(20, [['butsu', 12], ['butsu', 5]]);
+  await to('美波のあと、仏間で線香五本なら、布をどうするか訊かれる', async () =>
+    r2.out[1].nav.filter(t => !/^(閉じる|やめる)$/.test(t)).length === 3);
 }
 {
   /* 玄関から動かないままでも、まだ通っていない場所が向こうから呼ぶ */

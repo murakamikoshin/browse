@@ -52,12 +52,18 @@ if __name__ == "__main__":
     # 夜の半ばに、夜のほうから動く場面。出どころ「凪」で指せる
     mn = re.search(r"\nvar NAGI=(\{.*?\});\n", html, re.S)
     NAGI = json.loads(mn.group(1)) if mn else {"body": []}
+    # 取り消せない手。出どころ「手<名>」で指せる
+    mt = re.search(r"\nvar TE=(\[.*?\]);\n", html, re.S)
+    TE = dict(("手" + e["name"], e) for e in (json.loads(mt.group(1)) if mt else []))
 
     bad = []
     for s in snags:
         if s["src"] in CH:
             if s["id"] not in CH[s["src"]]["order"]:
                 bad.append((s["k"], "章%s に %s が無い" % (s["src"], s["id"])))
+        elif s["src"] in TE:
+            if s["id"] not in TE[s["src"]]["enter"]["order"]:
+                bad.append((s["k"], "%s に %s が無い" % (s["src"], s["id"])))
         elif s["src"] == "凪":
             n = int(s["id"][1:])
             if n < 1 or n > len(NAGI.get("body") or []):
