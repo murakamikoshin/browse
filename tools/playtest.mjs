@@ -508,6 +508,14 @@ const beat = async (idx, steps) => {
   await to('仏間へ戻らないままだと、一度だけ音で呼ぶ', async () => r.out[0].beats.call);
 }
 {
+  /* 玄関から動かないままでも、まだ通っていない場所が向こうから呼ぶ */
+  /* 机は必ず仏間のあとなので、仏間を一度通してから玄関で更けさせる */
+  const r = await beat(20, [['butsu', 14], ['genkan', 11], ['genkan', 8], ['genkan', 6]]);
+  const got = r.out[r.out.length - 1].beats.sasoi || [];
+  await to('歩かないままだと、通っていない場所が呼ぶ', async () =>
+    ['minato', 'cha', 'ishi'].every(k => got.includes(k)));
+}
+{
   const r = await beat(0, [['genkan', 9], ['cha', 3]]);
   const t0 = r.log.join('');
   /* 章4の引きにも「お持ちの分」は出る（額は言っていない）。ここで見るのは

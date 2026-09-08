@@ -162,6 +162,20 @@ if (want('art')) {
   if (nh !== 3) ng(`美波の場面が入っていない（手 ${nh}）`);
   if (np < 5)   ng(`夜の半ばの場面が入っていない（本文 ${np}行）`);
   if (nn < 5)   ng(`凪さんが探しに来る場面が入っていない（本文 ${nn}行）`);
+  {
+    const S2 = grab('SASOI');
+    const ns = Array.isArray(S2) ? S2.length : -1;
+    if (ns < 3) ng(`まだ通っていない場所からの呼びかけが足りない（${ns}箇所）`);
+    else {
+      const at = S2.map(s => s.at).sort((a, b) => a - b);
+      for (let i = 1; i < at.length; i++)
+        if (at[i] - at[i - 1] < 2) ng(`呼びかけが線香${at[i-1]}本と${at[i]}本で続けて来る`);
+      const pl = new Set(S2.map(s => s.place));
+      for (const k of ['minato', 'cha', 'ishi'])
+        if (!pl.has(k)) ng(`${k} からの呼びかけが無い（歩かないと章が読まれない場所）`);
+      console.log(`呼ぶ　${S2.map(s => `${s.place}(線香${s.at})`).join('／')}`);
+    }
+  }
   if (nt < 30)  ng(`夜の行動が少ない（${nt}本）`);
   if (ny < 7)   ng(`額の読みの「夜に見る一行」が足りない（${ny}）`);
   /* 封が指している引っかかりの鍵が、実在すること。

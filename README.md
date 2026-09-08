@@ -85,6 +85,7 @@
 | `scenario/step6_talks.md` | 夜の行動211本 |
 | `scenario/step7_acts.md` | 手を動かすところ22箇所（二択。選ばなかったほうを選ぶと短い場面が入って、同じ選択肢に戻る） |
 | `scenario/step8_hooks.md` | 章の終わりの引き6箇所（一度目だけ出る） |
+| `scenario/step15_sasoi.md` | まだ通っていない場所が一度だけ呼ぶ一行（港11／帳場の奥8／玄関の外6） |
 | `scenario/step14_nagi.md` | 夜の半ば、凪さんが探しに来る一場面（線香9本で一度だけ／港へは来ない） |
 | `scenario/step9_choba.md` | 帳場さんの帳。八節。見た結末が 5/15/30/40/50/65/75/85 に届くごとに一節開く |
 | `scenario/step10_snags.md` | 引っかかり。夜に見たものを、あとで並べ直す場面。二十二か所、段は 5 / 11 / 16 |
@@ -114,6 +115,7 @@
 | `tools/build_ruby.py` | ふりがなの辞書を作る。`--report` で読みの割れを出す |
 | `tools/build_audio.py` | `audio/` の音声を data URI で焼き込む |
 | `tools/build_font.py` | クラフト明朝を作品が使う字だけに絞って焼き込む。`--check` で不足字、`--ruby` でふりがな側の書体 |
+| `tools/build_sasoi.py` | 呼びかけを流し込む。呼ぶ場所・線香の重なり・「行け」と言っていないかを見る |
 | `tools/build_nagi.py` | 凪さんが探しに来る場面を流し込む。封の語と、帳場さんの圧との前後を見る |
 | `tools/build_choba.py` | 帳場さんの帳を流し込む。封と購入の語を機械で弾く |
 | `tools/build_credits.py` | スタッフロールを流し込む。金の語が混ざっていたら落とす |
