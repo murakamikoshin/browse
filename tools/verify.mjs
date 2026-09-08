@@ -166,7 +166,7 @@ if (want('art')) {
     /* 取り消せない手。夜の手の形を割る場面なので、無くなったら気づけるようにする */
     const T2 = grab('TE');
     const nt2 = Array.isArray(T2) ? T2.length : -1;
-    if (nt2 < 2) ng(`取り消せない手が足りない（${nt2}場面）`);
+    if (nt2 < 4) ng(`取り消せない手が足りない（${nt2}場面）`);
     else {
       for (const e of T2) {
         if (!e.hands || e.hands.length !== 3) ng(`${e.name} の手が三つない（${(e.hands||[]).length}）`);
