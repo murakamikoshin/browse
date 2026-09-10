@@ -622,6 +622,30 @@ const beat = async (idx, steps) => {
   const said = r => r.log.some(t => t.indexOf('お聞きになりたいこと') >= 0);
   await to('一度も指していない人には、読み返せることを一度だけ言う', async () => said(q0));
   await to('一度でも指した人には、その行を言わない', async () => q1.asked && !said(q1));
+  /* ¥0 の鞄には袋が入っていない。手を動かすところの札だけ差し替えて本文を残すと、
+     「電車の中で書いた表書き」の次の行が「袋は、ない」になる（実際そうなっていた）。 */
+  const bag = async (idx) => {
+    await page.goto(URL);
+    return await page.evaluate((idx) => {
+      const D = window.__dev; D.fast(true); D.begin(idx, true);
+      for (let i = 0; i < 900; i++) {
+        const n = [...document.querySelectorAll('#nav button')].map(x => x.textContent);
+        if (n.length) {
+          if (n.length !== 2) break;              // 章1を抜けた
+          D.nav(n[1]);                            // やめる側を通す
+          continue;
+        }
+        if (D.state().chapcard) { D.flush(1); continue; }
+        try { D.step(); } catch (e) { break; }
+      }
+      return D.lines(400).filter(t => /表書き|袋|鞄/.test(t));
+    }, idx);
+  };
+  const z0 = await bag(0), z1 = await bag(20);
+  await to('¥0 の鞄には、表書きの話が出ない', async () =>
+    z0.length > 0 && !z0.some(t => t.indexOf('表書き') >= 0) && z0.some(t => t.indexOf('袋も、封筒もない') >= 0));
+  await to('包んだ人には、表書きの話が出る', async () =>
+    z1.some(t => t.indexOf('表書き') >= 0));
   await to('章の途中で話した手も、見た夜の手に控える', async () => m2.mem >= 1);
   /* 一度に八本しか並べない以上、**窓が動かなければ、残りは一生出てこない。**
      更けてから出るほう（late）をずらし忘れていて、窓の半分がいつも同じ四本だった。

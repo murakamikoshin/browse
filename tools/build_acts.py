@@ -39,12 +39,12 @@ def hooks():
 
 def parse():
     t = io.open("scenario/step7_acts.md", encoding="utf-8").read()
-    out = {}
+    out, z = {}, {}
     for blk in t.split("\n## ")[1:]:
         head, body = blk.split("\n", 1)
-        m = re.match(r'^(\d)\s+(L\d+)\s*$', head.strip())
+        m = re.match(r'^(\d)\s+(L\d+)(\s+¥0)?\s*$', head.strip())
         if not m: raise SystemExit("見出しの形が違う: ## " + head.strip())
-        ch, lid = m.group(1), m.group(2)
+        ch, lid, zero = m.group(1), m.group(2), bool(m.group(3))
         go = alt = None; lines = []
         for l in body.split("\n"):
             l = l.rstrip()
@@ -57,11 +57,13 @@ def parse():
             if m4: lines.append(m4.group(2).strip())
         if not go or not alt: raise SystemExit("%s %s に選択肢が足りない" % (ch, lid))
         if len(lines) < 2: raise SystemExit("%s %s の場面が短い" % (ch, lid))
-        out.setdefault(ch, {})[lid] = {"go": go, "alt": alt, "lines": lines}
-    return out
+        # ¥0 は物が違う（鞄に袋が入っていない）。そこだけ差し替える塊を持てる
+        d = z if zero else out
+        d.setdefault(ch, {})[lid] = {"go": go, "alt": alt, "lines": lines}
+    return out, z
 
 if __name__ == "__main__":
-    d, bad = parse(), []
+    (d, z), bad = parse(), []
     seen = {}
     for ch in d:
         for lid, a in d[ch].items():
@@ -72,14 +74,27 @@ if __name__ == "__main__":
                 seen[a[k]] = ch + lid
             n = sum(len(x) for x in a["lines"])
             if n > 220: bad.append("%s %s の場面が長い（%d字）。短い間にする" % (ch, lid, n))
+    # ¥0 の差し替えは、差し替える先が無ければ意味がない
+    for ch in z:
+        for lid, a in z[ch].items():
+            if lid not in d.get(ch, {}):
+                bad.append("%s %s ¥0 の差し替え先が無い" % (ch, lid))
+            for k in ("go", "alt"):
+                if len(a[k]) > 16:
+                    bad.append("%s %s ¥0 %s が長い（%d字）" % (ch, lid, a[k], len(a[k])))
+            if sum(len(x) for x in a["lines"]) > 220:
+                bad.append("%s %s ¥0 の場面が長い" % (ch, lid))
     for b in bad: print("NG  " + b)
     n = sum(len(v) for v in d.values())
     print("\n手を動かすところ %d箇所（%d行）" % (n, sum(len(a["lines"]) for v in d.values() for a in v.values())))
-    for ch in sorted(d): print("   第%s章 %d" % (ch, len(d[ch])))
+    for ch in sorted(d):
+        print("   第%s章 %d%s" % (ch, len(d[ch]),
+              ("　¥0 差し替え %d" % len(z[ch])) if ch in z else ""))
     print("不備 %d 件" % len(bad))
     if bad: sys.exit(1)
     h = hooks()
     blob = ("var ACTS=" + json.dumps(d, ensure_ascii=False, separators=(",", ":")) + ";\n"
+            + "var ACTS0=" + json.dumps(z, ensure_ascii=False, separators=(",", ":")) + ";\n"
             + "var HOOKS=" + json.dumps(h, ensure_ascii=False, separators=(",", ":")) + ";")
     g = io.open("game.html", encoding="utf-8").read()
     a, b = g.index("/* 手を動かすところ ここから */"), g.index("/* 手を動かすところ ここまで */")
