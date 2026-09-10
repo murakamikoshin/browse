@@ -675,6 +675,43 @@ const beat = async (idx, steps) => {
     t0.indexOf('相応に、と昨夜') < 0 && t0.indexOf('寄ったのね') < 0);
 }
 
+/* 途中でやめても続きから戻れる、と説明の二枚目に書いてある。書いてあることは、
+   機械で見ておく。夜の続きだけでなく、**線香・読んだ章・控え**まで戻ること。 */
+{
+  console.log('\n  中断と再開');
+  await page.goto(URL);
+  await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
+  await page.goto(URL);
+  const before = await page.evaluate(() => {
+    const D = window.__dev; D.fast(true); D.begin(20, true);
+    const run = () => { for (let i = 0; i < 900; i++) {
+      const n = [...document.querySelectorAll('#nav button')].map(x => x.textContent);
+      if (n.length) { if (n.includes('ほかの場所へ')) return; D.nav(n[0]); continue; }
+      if (D.state().chapcard) { D.flush(1); continue; }
+      try { D.step(); } catch (e) { return; } } };
+    run();
+    D.nav('ほかの場所へ'); D.nav('仏間'); D.flush(1500); run();
+    const n = [...document.querySelectorAll('#nav button')].map(x => x.textContent);
+    D.nav(n[0]); D.flush(600);                     // 線香を一本使う
+    const s = D.state();
+    return { place: s.place, incense: s.incense, read: s.read, idx: s.idx, band: s.band };
+  });
+  await page.reload();
+  await to('閉じたあと、題の画面に「つづきから」が出る', async () => {
+    const t = await page.locator('#tgo').textContent();
+    return await page.locator('#tgo').isVisible() && /仏間/.test(t) && /十五/.test(t); });
+  await page.click('#tgo');
+  const after = await page.evaluate(() => {
+    const s = window.__dev.state();
+    return { place: s.place, incense: s.incense, read: s.read, idx: s.idx, band: s.band,
+             nav: s.nav.length }; });
+  await to('続きから戻ると、場所も線香も読んだ章も同じ', async () =>
+    after.place === before.place && after.incense === before.incense &&
+    after.idx === before.idx && after.band === before.band &&
+    after.read.join() === before.read.join());
+  await to('戻ったところから、すぐ選べる', async () => after.nav > 0);
+}
+
 /* 画面の並び。題 → 説明三枚 → 支払い。どの画面も一枚に収まって、頁が動かない */
 console.log('\n  画面の並び');
 const noScroll = () => page.evaluate(() =>
