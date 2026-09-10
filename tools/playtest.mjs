@@ -675,6 +675,39 @@ const beat = async (idx, steps) => {
     t0.indexOf('相応に、と昨夜') < 0 && t0.indexOf('寄ったのね') < 0);
 }
 
+/* 語注。破線の引いてある語を押すと意味が出る。**押しても行は送らない**
+   （送ってしまうと、読みたくて押した人が一行飛ばされる）。 */
+{
+  console.log('\n  語注');
+  await page.goto(URL);
+  const gl = await page.evaluate(() => {
+    const D = window.__dev; D.fast(true); D.begin(20, true);
+    for (let i = 0; i < 900; i++) {
+      const g = document.querySelector('#wt .gl');
+      if (g) {
+        const before = D.state().line;
+        g.click();
+        const box = document.getElementById('glbox');
+        const r = { word: g.textContent, open: box.classList.contains('on'),
+                    body: box.textContent, moved: D.state().line !== before };
+        document.getElementById('wt').click();          // 外を押すと閉じる
+        r.closed = !document.getElementById('glbox').classList.contains('on');
+        r.movedOnClose = D.state().line !== before;
+        return r;
+      }
+      if (D.state().chapcard) { D.flush(1); continue; }
+      const n = [...document.querySelectorAll('#nav button')].map(x => x.textContent);
+      if (n.length) { if (n.includes('ほかの場所へ')) break; D.nav(n[0]); continue; }
+      try { D.step(); } catch (e) { break; }
+    }
+    return null;
+  });
+  await to('破線の語を押すと、意味が出る', async () =>
+    !!gl && gl.open && gl.body.length > 4);
+  await to('語注を押しても、行は送られない', async () => !!gl && !gl.moved);
+  await to('外を押すと閉じる', async () => !!gl && gl.closed && !gl.movedOnClose);
+}
+
 /* 二周目のための止まり方。**早送りは、まだ読んでいない行で止まる。**
    これが効いていないと、二周目は一万字を目で追いながら書き換わった行を探すことになる。
    一周目を帯3で通してから、帯5で早送りをかけて、書き換わった行で止まるかを見る。 */
