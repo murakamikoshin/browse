@@ -47,7 +47,9 @@ for (let run = 0; run < N; run++) {
         .map(b => b.textContent);
       D.fast(true);
       const idx = Math.floor(rnd() * 38);
-      D.begin(idx);
+      /* 送らずに始める。送ると章1の手を動かすところ（五箇所）を素通りして、
+         そこだけ一度も測られない。 */
+      D.begin(idx, true);
       const talks = [], said = {}; let dups = 0, last = '', guard = 0, stuck = 0;
       while (guard++ < 6000) {
         const st = D.state();

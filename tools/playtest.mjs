@@ -38,7 +38,7 @@ for (const idx of AMOUNTS) {
       const SNAGTX = new Set(D.texts().snag);   // 最後の段で並べ直す行は、二度出るのが正しい
       const W = (m) => { if (out.warn.length < 6) out.warn.push(m); };
       D.fast(true);
-      D.begin(idx);
+      D.begin(idx, true);            // 送ると章1の手を動かすところを素通りする
       const paid = D.state().paid;
 
       for (let n = 0; n < 4000; n++) {
