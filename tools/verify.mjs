@@ -159,6 +159,22 @@ if (want('art')) {
      書いてある。書体を一つ読みに行くだけで、その一行が嘘になる。 */
   const ext = (src.match(/https?:\/\/[^"')\s]+/g) || []).filter(u => !/^https?:\/\/(www\.)?w3\.org/.test(u));
   if (ext.length) ng(`外へ取りに行っている（${ext.length}件）: ${ext[0]}`);
+  /* 表に出る頁は game.html だけではない。**index.html は既定で開かれる戸口**で、
+     ここが外へ取りに行くと privacy.md の一行が嘘になる。旧試作は proto/ にあり、
+     根に置かれた .html だけを見る（`fs` は上で読み込んである）。 */
+  {
+    const root = fs.readdirSync(ROOT).filter(f => f.endsWith('.html'));
+    for (const f of root) {
+      const t = fs.readFileSync(path.join(ROOT, f), 'utf8');
+      const e2 = (t.match(/https?:\/\/[^"')\s]+/g) || [])
+        .filter(u => !/^https?:\/\/(www\.)?w3\.org/.test(u));
+      if (e2.length) ng(`${f} が外へ取りに行っている（${e2.length}件）: ${e2[0]}`);
+    }
+    if (!root.includes('index.html')) ng('index.html が無い。既定で開かれる頁');
+    else if (!/game\.html/.test(fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8')))
+      ng('index.html が game.html を指していない');
+    console.log(`根の頁　${root.join('／')}`);
+  }
   if (nh !== 3) ng(`美波の場面が入っていない（手 ${nh}）`);
   if (np < 5)   ng(`夜の半ばの場面が入っていない（本文 ${np}行）`);
   if (nn < 5)   ng(`凪さんが探しに来る場面が入っていない（本文 ${nn}行）`);
