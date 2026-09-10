@@ -596,6 +596,32 @@ const beat = async (idx, steps) => {
     return { n: -2, mem: -2 };
   });
   await to('章の途中で立ち止まる段も、並ぶのは八本まで', async () => m2.n > 0 && m2.n <= 8);
+  /* 指せる語句の半分は、机で教わる前に通り過ぎている（章1・2・3と章4の前半）。
+     読み返せることは机でも一度言うが、長い話の中の一行なので、たいてい流れる。
+     夜の半ばに一度だけ拾い直す。**一度でも指した人には言わない。** */
+  const reread = async (pointFirst) => {
+    await page.goto(URL);
+    return await page.evaluate((pointFirst) => {
+      const D = window.__dev; D.fast(true); D.begin(20); D.flush(400);
+      const walk = () => { for (let i = 0; i < 60; i++) {
+        const b = [...document.querySelectorAll('#nav button')].map(x => x.textContent);
+        if (!b.length) { D.step(); continue; }
+        if (b.includes('ほかの場所へ')) return; D.nav(b[0]); D.flush(600); } };
+      D.nav('ほかの場所へ'); D.nav('仏間'); D.flush(1200); walk();
+      D.nav('ほかの場所へ'); D.nav('帳場の奥'); D.flush(2000); walk();
+      if (pointFirst) { D.nav('もう一度読む'); D.point('kippu'); D.flush(600);
+        const n = [...document.querySelectorAll('#nav button')].map(x => x.textContent);
+        if (n.includes('やめておく')) { D.nav('やめておく'); D.flush(600); } }
+      let st = D.beat('genkan', 4);
+      for (let k = 0; k < 8 && st.nav.some(b => b.t === 'いまは、ここにいる'); k++) {
+        D.nav('いまは、ここにいる'); D.flush(600); st = D.state(); }
+      return { log: D.lines(60), asked: st.asked };
+    }, pointFirst);
+  };
+  const q0 = await reread(false), q1 = await reread(true);
+  const said = r => r.log.some(t => t.indexOf('お聞きになりたいこと') >= 0);
+  await to('一度も指していない人には、読み返せることを一度だけ言う', async () => said(q0));
+  await to('一度でも指した人には、その行を言わない', async () => q1.asked && !said(q1));
   await to('章の途中で話した手も、見た夜の手に控える', async () => m2.mem >= 1);
   /* 一度に八本しか並べない以上、**窓が動かなければ、残りは一生出てこない。**
      更けてから出るほう（late）をずらし忘れていて、窓の半分がいつも同じ四本だった。

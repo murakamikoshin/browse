@@ -46,7 +46,8 @@ def voiced(who, lines):
 
 if __name__ == "__main__":
     B, bad = parse(), []
-    need = ["入り・" + p for p in PLACES] + ["本文", "包んだ人", "机をまだ通っていない人", "締め"]
+    need = ["入り・" + p for p in PLACES] + ["本文", "包んだ人", "机をまだ通っていない人",
+                                            "教わったが、まだ何も指していない人", "締め"]
     for k in need:
         if k not in B: bad.append("`## %s` が無い" % k)
     if bad:
@@ -77,6 +78,10 @@ if __name__ == "__main__":
         "body": voiced(B["本文"]["who"], B["本文"]["lines"]),
         "paid": voiced(B["包んだ人"]["who"], B["包んだ人"]["lines"]),
         "teach": voiced(B["机をまだ通っていない人"]["who"], B["机をまだ通っていない人"]["lines"]),
+        # 机で教わったのに一度も指していない人へ。指せる語句の半分は、教わる前に
+        # 通り過ぎている（章1・2・3と、章4の前半）。読み返せることを、ここで一度だけ言う
+        "none": voiced(B["教わったが、まだ何も指していない人"]["who"],
+                       B["教わったが、まだ何も指していない人"]["lines"]),
         "close": voiced(None, B["締め"]["lines"]),
     }
 
@@ -87,7 +92,8 @@ if __name__ == "__main__":
         e = B["入り・" + p]
         print("   入り %-7s %d行%s　話者 %s" % (p, len(e["lines"]),
               "（単独）" if e["alone"] else "", e["who"] or "——"))
-    for k in ["本文", "包んだ人", "机をまだ通っていない人", "締め"]:
+    for k in ["本文", "包んだ人", "机をまだ通っていない人",
+              "教わったが、まだ何も指していない人", "締め"]:
         print("   %-14s %d行" % (k, len(B[k]["lines"])))
     print("不備 %d 件" % len(bad))
     if bad: sys.exit(1)
