@@ -675,6 +675,50 @@ const beat = async (idx, steps) => {
     t0.indexOf('相応に、と昨夜') < 0 && t0.indexOf('寄ったのね') < 0);
 }
 
+/* 二周目のための止まり方。**早送りは、まだ読んでいない行で止まる。**
+   これが効いていないと、二周目は一万字を目で追いながら書き換わった行を探すことになる。
+   一周目を帯3で通してから、帯5で早送りをかけて、書き換わった行で止まるかを見る。 */
+{
+  console.log('\n  二周目の早送り');
+  await page.goto(URL);
+  await page.evaluate(() => {
+    /* localStorage を消すだけでは既読は戻らない。SEEN は読み込み時に一度だけ作られ、
+       頁を離れるときに書き戻すので、消した直後の goto でまた保存される。 */
+    try { localStorage.clear(); } catch (e) {}
+    window.__dev.forget();
+  });
+  await page.evaluate(() => {
+    const D = window.__dev; D.fast(true); D.begin(20, true);
+    for (let i = 0; i < 900; i++) {
+      const n = [...document.querySelectorAll('#nav button')].map(x => x.textContent);
+      if (n.length) { if (n.includes('ほかの場所へ')) return; D.nav(n[0]); continue; }
+      if (D.state().chapcard) { D.flush(1); continue; }
+      try { D.step(); } catch (e) { return; } } });
+  await page.goto(URL);
+  const sk = await page.evaluate(() => {
+    const D = window.__dev; D.fast(true); D.begin(37, true);   // 帯5。書き換わった行が未読
+    document.getElementById('bskip').click();                  // 早送りを入れる
+    const on = () => document.getElementById('bskip').classList.contains('on');
+    const stops = [];
+    for (let i = 0; i < 900; i++) {
+      if (D.state().chapcard) { D.flush(1); continue; }
+      if (i === 0 && !on()) { document.getElementById('bskip').click(); }
+      const n = [...document.querySelectorAll('#nav button')].map(x => x.textContent);
+      if (n.length) { if (n.includes('ほかの場所へ')) break; D.nav(n[0]); continue; }
+      if (!on()) {
+        const t = document.getElementById('toast');
+        if (t && t.classList.contains('on')) stops.push(t.textContent);
+        document.getElementById('bskip').click(); continue;    // また入れる
+      }
+      try { D.step(); } catch (e) { break; } }
+    return stops;
+  });
+  const unread = sk.filter(t => /まだ読んでいない行/.test(t));
+  await to('早送りは、まだ読んでいない行で止まる', async () => unread.length >= 2);
+  await to('止まったときは、止まった理由を言う', async () =>
+    sk.length > 0 && sk.every(t => t.length > 0));
+}
+
 /* 途中でやめても続きから戻れる、と説明の二枚目に書いてある。書いてあることは、
    機械で見ておく。夜の続きだけでなく、**線香・読んだ章・控え**まで戻ること。 */
 {

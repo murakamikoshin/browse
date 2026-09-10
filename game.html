@@ -3602,6 +3602,11 @@ window.__dev = {
   auto: function(v){ setAuto(v); }, skip: function(v){ setSkip(v); },
   step: function(){ if(Q.tid) revealAll(); else if(Q.hold) tap(null); else nextLine(); },
   seen: function(){ return SEEN.size; },
+  /* 既読を忘れる。localStorage を消しただけでは戻らない——SEEN は読み込み時に
+     一度だけ作られ、頁を離れるとき（pagehide）に書き戻すので、消した直後の
+     goto でまた保存される。二周目の試験にはこの口が要る。 */
+  forget: function(){ SEEN.clear();
+    try{ localStorage.removeItem("choba.seen"); }catch(e){} return SEEN.size; },
   /* 仮の絵の当たりを見るため。本番では __dev ごと外す（docs/RELEASE.md） */
   ph: function(k){ return phUrl(k); },
   bg: function(k){ setArt(k); },
