@@ -64,7 +64,7 @@ scenario/step9_choba.md を直す  →  python3 tools/build_choba.py  →  game.
 | 語注 | `tools/build_gloss.py` |
 | 音の付く行 | `tools/build_marks.py` |
 | 題のロゴ | `tools/build_logo.py` |
-| 書体 | `tools/build_font.py`（`--check` で不足字） |
+| 書体 | `tools/build_font.py`（`--check` で焼き込んだ字が本文と合っているか。古ければ落ちる） |
 | 手がかり（帳のヒント） | `tools/build_hints.py` |
 | 引っかかり | `tools/build_snags.py` |
 | スタッフロール | `tools/build_credits.py` |

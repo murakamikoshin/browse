@@ -8,7 +8,7 @@ artifact では外部のフォントを読めない（CSPで fonts.gstatic.com �
   python3 tools/build_font.py --check    無い文字を並べるだけ
   python3 tools/build_font.py --ruby     ふりがなにも使う（既定は使わない）
 """
-import io, os, re, sys, glob, base64
+import hashlib, io, os, re, sys, glob, base64
 from fontTools import subset
 from fontTools.ttLib import TTFont
 from fontTools.pens.boundsPen import BoundsPen
@@ -65,9 +65,27 @@ if __name__ == "__main__":
     if blank:
         print("\n**中身が空の字 %d字**（焼き込むと空白になるので、この書体からは外す）" % len(blank))
         print("   " + " ".join(sorted(blank)))
-    if "--check" in sys.argv: sys.exit(0)
-
     use = "".join(sorted((want & have) - blank))
+    # woff2 は同じ字を渡しても毎回ちがう塊になる。焼き直すたびに game.html の
+    # 七百キロの一行が変わって、本当の直しがその中に埋もれる。**入力は字の集合**
+    # なので、集合の指紋を一緒に焼き込んで、変わっていなければ何もしない。
+    key = hashlib.sha1(use.encode("utf-8")).hexdigest()[:12]
+    g0 = io.open("game.html", encoding="utf-8").read()
+    a0, z0 = g0.index("<!-- 書体 ここから -->"), g0.index("<!-- 書体 ここまで -->")
+    m0 = re.search(r"<!-- 字 ([0-9a-f]{12}) -->", g0[a0:z0])
+    fresh = bool(m0 and m0.group(1) == key)
+    if "--check" in sys.argv:
+        # 焼き込んである字と、いま本文が使う字が合っているか。合っていないと、
+        # あとから足した字だけ端末の書体で出る（そこだけ形が変わる）
+        if fresh:
+            print("\n焼き込んだ字は本文と合っています（%d字／%s）" % (len(use), key))
+            sys.exit(0)
+        print("\nNG  焼き込んだ字が古い（いま %d字／%s）。"
+              "python3 tools/build_font.py で焼き直すこと" % (len(use), key))
+        sys.exit(1)
+    if fresh and "--force" not in sys.argv:
+        print("\n使う字は変わっていません（%d字／%s）。焼き直しません" % (len(use), key))
+        sys.exit(0)
     out = "/tmp/subset.woff2"
     subset.main([p, "--text=" + use, "--flavor=woff2", "--layout-features=*",
                  "--no-hinting", "--desubroutinize", "--output-file=" + out])
@@ -86,5 +104,6 @@ if __name__ == "__main__":
     if "--ruby" not in sys.argv:
         body += 'rt{ font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif; }\n'
     io.open("game.html", "w", encoding="utf-8").write(
-        g[:a] + "<!-- 書体 ここから -->\n<style>" + face + body + "</style>\n" + g[z:])
+        g[:a] + "<!-- 書体 ここから -->\n<!-- 字 " + key + " -->\n<style>"
+        + face + body + "</style>\n" + g[z:])
     print("game.html を更新")

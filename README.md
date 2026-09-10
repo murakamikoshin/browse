@@ -115,7 +115,7 @@
 | `tools/build_speakers.py` | 話者表を流し込む |
 | `tools/build_ruby.py` | ふりがなの辞書を作る。`--report` で読みの割れを出す |
 | `tools/build_audio.py` | `audio/` の音声を data URI で焼き込む |
-| `tools/build_font.py` | クラフト明朝を作品が使う字だけに絞って焼き込む。`--check` で不足字、`--ruby` でふりがな側の書体 |
+| `tools/build_font.py` | クラフト明朝を作品が使う字だけに絞って焼き込む。字の集合が変わっていなければ焼き直さない（woff2 は毎回ちがう塊になるため）。`--check` は焼き込んだ字が本文と合っているかを見て、古ければ 1 で落ちる。`--force` で焼き直し、`--ruby` でふりがな側の書体 |
 | `tools/build_te.py` | 取り消せない手を流し込む。手の数・札の評価語・線香の重なりを見る |
 | `tools/build_sasoi.py` | 呼びかけを流し込む。呼ぶ場所・線香の重なり・「行け」と言っていないかを見る |
 | `tools/build_nagi.py` | 凪さんが探しに来る場面を流し込む。封の語と、帳場さんの圧との前後を見る |
