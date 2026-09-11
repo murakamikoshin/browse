@@ -688,6 +688,44 @@ const beat = async (idx, steps) => {
     t0.indexOf('相応に、と昨夜') < 0 && t0.indexOf('寄ったのね') < 0);
 }
 
+/* 指せる語句の教え。**一度だけ光るのを、机の上と机の外で一つずつ持つ。**
+   机の上で指すとその場で訊かれ、机の外で指すと控えになって机まで持ち帰る手順になる。
+   教えることが二つあるので光も二つ。光が一つだったときは必ず机で消費されていて、
+   四十周の自動と手で二周、机の外で指したことが一度も無かった。 */
+{
+  console.log('\n  指せる語句の教え');
+  await page.goto(URL);
+  const hh = await page.evaluate(() => {
+    const D = window.__dev; D.fast(true); D.begin(27, true);
+    const lit = [];
+    const walk = () => { for (let i = 0; i < 900; i++) {
+      const h = document.querySelector('#wt .ask.hint');
+      if (h) { const k = D.state().place + '/' + h.textContent;
+        if (!lit.some(x => x.k === k)) lit.push({ k, place: D.state().place }); }
+      const n = [...document.querySelectorAll('#nav button')].map(x => x.textContent);
+      if (n.length) { if (n.includes('ほかの場所へ')) return; D.nav(n[0]); continue; }
+      if (D.state().chapcard) { D.flush(1); continue; }
+      try { D.step(); } catch (e) { return; } } };
+    walk();
+    for (const d of ['仏間', '帳場の奥', '港']) { D.nav('ほかの場所へ'); D.nav(d); D.flush(1); walk(); }
+    // 机の外で指すと控えになる
+    let noted = 0;
+    D.nav('もう一度読む');
+    for (let i = 0; i < 600; i++) {
+      const a = D.asks().filter(x => !x.used)[0];
+      if (a) { D.point(a.k); D.flush(300); noted = D.state().noted.length; break; }
+      const n = [...document.querySelectorAll('#nav button')].map(x => x.textContent);
+      if (n.length) break;
+      try { D.step(); } catch (e) { break; } }
+    return { lit, noted };
+  });
+  const desk = hh.lit.filter(x => x.place === 'cha');
+  const away = hh.lit.filter(x => x.place !== 'cha');
+  await to('机の上で、一度だけ光る', async () => desk.length === 1);
+  await to('机の外でも、一度だけ光る', async () => away.length === 1);
+  await to('机の外で指すと、控えになる', async () => hh.noted >= 1);
+}
+
 /* 語注。破線の引いてある語を押すと意味が出る。**押しても行は送らない**
    （送ってしまうと、読みたくて押した人が一行飛ばされる）。 */
 {

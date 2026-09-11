@@ -985,6 +985,8 @@ var S = { idx:0, paid:0, band:0, spent:0, incense:INCENSE, place:"genkan", noted
           seenChap:{}, navSeen:0, altDone:{}, readCh:{}, warned:false, warn:false,
           snag:{}, snagT:{}, snagShown:{}, nagied:false, minaCall:false, hasuSaid:false, sasoi:{}, tePick:{},
           asked:false,
+          /* 指せる語句の教え。机の上と机の外で一つずつ、一度だけ光らせる */
+          askHint:false, askAway:false,
           ended:false, logMk:true };
 
 var $=function(i){ return document.getElementById(i); };
@@ -1570,7 +1572,21 @@ function markAsks(src,id,text){
     if(A.line!==id || A.ch!==src) return;
     if(out.indexOf(A.phrase)<0) return;
     var cls="ask"+(S.bought[k]?" used":"");
-    if(!S.bought[k] && !S.askHint){ S.askHint=true; cls+=" hint"; }
+    /* **一度だけ光らせる教えを、机の上と机の外で一つずつ持つ。**
+       指せる語句は九つ。机の上に三つ、机の外に六つある。
+       机の上で指すとその場で訊かれ、机の外で指すと「控え」になって、
+       机まで持ち帰る手順になる。**教えることが二つあるので、光も二つ要る。**
+       光が一つだけだったときは、`S.opened` が机に入った時に立つせいで、
+       必ず机の「1,000,000。」で消費されていた（港を先に回っても机が最初になる）。
+       四十周の自動と手で二周、机の外で指したことは一度もなかった。
+       どちらも一度きりで、印は残さない（SPEC 3.5 A の二度目の改訂）。 */
+    if(!S.bought[k]){
+      var deskHint = (S.place==="cha");
+      if(deskHint ? !S.askHint : !S.askAway){
+        if(deskHint) S.askHint=true; else S.askAway=true;
+        cls+=" hint";
+      }
+    }
     out=out.replace(A.phrase,'<span class="'+cls+'" data-k="'+k+'">'+A.phrase+'</span>');
   });
   return out;
