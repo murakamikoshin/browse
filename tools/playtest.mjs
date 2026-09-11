@@ -63,7 +63,17 @@ for (const idx of AMOUNTS) {
         const q = s.line && s.line.charAt(0) === '「';
         /* 原稿の差し込み（[額] [不足] など）が置き換わらずに出ていないか。
            一度これで、読み上げの一行がそのまま「[額]」と出ていた */
-        if (/\[(額|不足|持参|内引|残|次封)\]/.test(s.line || '')) W('差し込みが残っている: ' + s.line.slice(0, 24));
+        /* 本文の言い回しを見るところは、**ふりがなを外した s.bare** を使う。
+           s.line は窓の textContent なのでルビの字が混じる（「お持もちの分ぶん」）。
+           一度これで、¥0 の検査が素通りしていた。 */
+        if (/\[(額|不足|持参|内引|残|次封)\]/.test(s.bare || '')) W('差し込みが残っている: ' + s.bare.slice(0, 24));
+        /* **包まなかった人の額を、値踏みして返さない**（SPEC 5）。
+           夜の半ばの場面と凪さんの場面では元から止めてあったが、
+           章4の終わりの引きだけ素通りしていて、¥0 の人が
+           「お持ちの分は、承知しております」「相応に、いたしますので」と言われていた。
+           一箇所ずつ塞ぐのをやめて、夜のあいだ一行ずつ見る。 */
+        if (paid === 0 && /お持ちの分|相応に、いたし|お包みいただいた|ご用意の分/.test(s.bare || ''))
+          W('¥0 に持参の話が出た: ' + s.bare.slice(0, 20));
         if (q && !s.who && !s.done) W('台詞に名札が無い: ' + s.line.slice(0, 14));
         if (!q && s.who) W('地の文に名札が出ている: ' + s.line.slice(0, 14));
         out.bare += s.kanjiBare; out.lines++;
@@ -72,17 +82,20 @@ for (const idx of AMOUNTS) {
            **窓に出たままの行は数えない。**行が入れ替わった瞬間だけ見る。
            短い相槌は本当に何度も出るので、長い行だけ。
            「もう一度読む」を選んだあとは、二度出るのが正しいので見ない。 */
-        if (s.line !== out.prev) {
-          out.prev = s.line;
-          if (!out.reread && s.line && s.line.length > 25 && !/^[「（]/.test(s.line) && !SNAGTX.has(s.line)) {
+        /* 並べ直しの行（SNAGTX）は二度出るのが正しい。その照合も**ふりがな無し**で。
+           s.line で比べていたのでこの除外はずっと当たっていなかった（並べ直しの行が
+           どれも短くて、下の25字の網に掛からなかったので表に出ていなかっただけ）。 */
+        if (s.bare !== out.prev) {
+          out.prev = s.bare;
+          if (!out.reread && s.bare && s.bare.length > 25 && !/^[「（]/.test(s.bare) && !SNAGTX.has(s.bare)) {
             out.said = out.said || {};
-            out.seq = out.seq || []; out.seq.push(s.line);
-            if (out.said[s.line]) { if (!out.dup) { out.dup = s.line;
-              const i0 = out.said[s.line] - 1, i1 = out.seq.length - 1;
-              W('同じ行が二度流れた: ' + s.line.slice(0, 22)
+            out.seq = out.seq || []; out.seq.push(s.bare);
+            if (out.said[s.bare]) { if (!out.dup) { out.dup = s.bare;
+              const i0 = out.said[s.bare] - 1, i1 = out.seq.length - 1;
+              W('同じ行が二度流れた: ' + s.bare.slice(0, 22)
                 + ' ／ 一度目の前後 ' + out.seq.slice(Math.max(0,i0-1), i0+2).map(x=>x.slice(0,14)).join('｜')
                 + ' ／ 二度目の前 ' + out.seq.slice(Math.max(0,i1-3), i1).map(x=>x.slice(0,14)).join('｜')); } }
-            else out.said[s.line] = out.seq.length;
+            else out.said[s.bare] = out.seq.length;
           }
         }
         if (s.hamidashi > 0) { out.over = Math.max(out.over || 0, s.hamidashi);

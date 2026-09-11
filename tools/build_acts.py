@@ -13,12 +13,13 @@ def hooks():
     try:
         t = io.open("scenario/step8_hooks.md", encoding="utf-8").read()
     except FileNotFoundError:
-        return {}
-    out = {}
+        return {}, {}
+    out, z = {}, {}
     for blk in t.split("\n## ")[1:]:
         head, body = blk.split("\n", 1)
-        m = re.match(r'^(\d)\s+終わりに\s*$', head.strip())
+        m = re.match(r'^(\d)\s+終わりに(\s+¥0)?\s*$', head.strip())
         if not m: raise SystemExit("見出しの形が違う: ## " + head.strip())
+        zero = bool(m.group(2))
         rows = []
         for l in body.split("\n"):
             l = l.rstrip()
@@ -34,8 +35,8 @@ def hooks():
             if se: r["se"] = "kage"
             rows.append(r)
         if not rows: raise SystemExit("%s の引きが空" % m.group(1))
-        out[m.group(1)] = rows
-    return out
+        (z if zero else out)[m.group(1)] = rows
+    return out, z
 
 def parse():
     t = io.open("scenario/step7_acts.md", encoding="utf-8").read()
@@ -92,13 +93,20 @@ if __name__ == "__main__":
               ("　¥0 差し替え %d" % len(z[ch])) if ch in z else ""))
     print("不備 %d 件" % len(bad))
     if bad: sys.exit(1)
-    h = hooks()
+    h, hz = hooks()
+    for ch in hz:
+        if ch not in h: bad.append("%s 終わりに ¥0 の差し替え先が無い" % ch)
+    if bad:
+        for x in bad: print("NG  " + x)
+        sys.exit(1)
     blob = ("var ACTS=" + json.dumps(d, ensure_ascii=False, separators=(",", ":")) + ";\n"
             + "var ACTS0=" + json.dumps(z, ensure_ascii=False, separators=(",", ":")) + ";\n"
-            + "var HOOKS=" + json.dumps(h, ensure_ascii=False, separators=(",", ":")) + ";")
+            + "var HOOKS=" + json.dumps(h, ensure_ascii=False, separators=(",", ":")) + ";\n"
+            + "var HOOKS0=" + json.dumps(hz, ensure_ascii=False, separators=(",", ":")) + ";")
     g = io.open("game.html", encoding="utf-8").read()
     a, b = g.index("/* 手を動かすところ ここから */"), g.index("/* 手を動かすところ ここまで */")
     io.open("game.html", "w", encoding="utf-8").write(
         g[:a] + "/* 手を動かすところ ここから */\n" + blob + "\n" + g[b:])
-    print("章の終わりの引き %d箇所（%d行）" % (len(h), sum(len(v) for v in h.values())))
+    print("章の終わりの引き %d箇所（%d行）%s" % (len(h), sum(len(v) for v in h.values()),
+          ("　¥0 差し替え %s章" % "・".join(sorted(hz))) if hz else ""))
     print("game.html を更新")
