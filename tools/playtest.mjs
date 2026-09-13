@@ -688,6 +688,45 @@ const beat = async (idx, steps) => {
     t0.indexOf('相応に、と昨夜') < 0 && t0.indexOf('寄ったのね') < 0);
 }
 
+/* 指す先の当たり。字の高さは携帯で 19px しかなく、目安の24pxにも指の幅にも足りない。
+   外した一押しはそのまま送りになって、その語は読み返すまで二度と出てこない。
+   行間は42pxあって上下が空いているので、見た目を変えずに当たりだけ広げてある。 */
+{
+  console.log('\n  指す先の当たり');
+  const tapAt = async (dy) => {
+    await page.goto(URL);
+    const box = await page.evaluate(() => {
+      const D = window.__dev; D.fast(true); D.begin(27, true);
+      const walk = () => { for (let i = 0; i < 900; i++) {
+        const n = [...document.querySelectorAll('#nav button')].map(x => x.textContent);
+        if (n.length) { if (n.includes('ほかの場所へ')) return; D.nav(n[0]); continue; }
+        if (D.state().chapcard) { D.flush(1); continue; }
+        try { D.step(); } catch (e) { return; } } };
+      walk(); D.nav('ほかの場所へ'); D.nav('仏間'); D.flush(1500); walk();
+      D.nav('ほかの場所へ'); D.nav('帳場の奥');
+      for (let i = 0; i < 600; i++) {
+        const a = document.querySelector('#wt .ask');
+        if (a) { const r = a.getBoundingClientRect();
+          return { x: r.left + r.width / 2, y: r.top + r.height / 2, h: Math.round(r.height) }; }
+        const n = [...document.querySelectorAll('#nav button')].map(x => x.textContent);
+        if (n.length) { D.nav(n[0]); continue; }
+        if (D.state().chapcard) { D.flush(1); continue; }
+        try { D.step(); } catch (e) { break; } }
+      return null;
+    });
+    if (!box) return { box: null };
+    await page.waitForTimeout(900);                 // 章の札の消え際を待つ
+    await page.mouse.click(box.x, box.y + dy);
+    await page.waitForTimeout(600);
+    const line = await page.evaluate(() => window.__dev.state().bare);
+    return { box, pointed: /端金です/.test(line) };
+  };
+  const t0 = await tapAt(0), t12 = await tapAt(12), t30 = await tapAt(30);
+  await to('字の上を押せば、指せる', async () => !!t0.box && t0.pointed);
+  await to('少し外した一押しも、指したことになる', async () => t12.pointed);
+  await to('一行ぶん離れたら、それは送りになる', async () => !t30.pointed);
+}
+
 /* 指せる語句の教え。**一度だけ光るのを、机の上と机の外で一つずつ持つ。**
    机の上で指すとその場で訊かれ、机の外で指すと控えになって机まで持ち帰る手順になる。
    教えることが二つあるので光も二つ。光が一つだったときは必ず机で消費されていて、

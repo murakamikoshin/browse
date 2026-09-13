@@ -1919,6 +1919,8 @@ function tap(e){
   if(g){ glShow(g); return; }                       // 語注は送らない
   glHide();
   var a=(e&&e.target&&e.target.closest)?e.target.closest(".ask"):null;
+  if(a && a.classList.contains("used")) a=null;
+  if(!a && !Q.tid) a=askNear(e);                    // 字を少し外した一押しも拾う
   if(a && !Q.tid && !a.classList.contains("used")){ point(a); return; }
   if(Q.tid){ revealAll(); return; }
   /* 手が出ているあいだ（畳んであるものも含む）は、窓を押しても送らない。
@@ -1940,6 +1942,26 @@ document.addEventListener("keydown",function(e){
   if(e.key==="Escape"){ if($("nav").firstChild && !S.done) foldNav(); return; }
   if(e.key===" "||e.key==="Enter"){ e.preventDefault(); tap(null); }
 });
+
+/* 指す先は、一行ぶんの字の高さしかない。携帯で測ると **114×19px** で、
+   目安の24pxにも指の幅にも足りなかった。外した一押しはそのまま送りになって、
+   その語は読み返すまで二度と出てこない。**行間は42pxあって上下が空いている**ので、
+   見た目は一切変えずに、当たりだけ上下へ十一px広げる。
+   （padding で広げると `.ask.hint` の光まで帯になるので、当たり判定だけで足す。） */
+function askNear(e){
+  if(!e || typeof e.clientY!=="number") return null;
+  var best=null, bd=12, all=$("wt").querySelectorAll(".ask:not(.used)");
+  for(var i=0;i<all.length;i++){
+    var rs=all[i].getClientRects();                 // 行をまたぐ語もあるので矩形は複数
+    for(var j=0;j<rs.length;j++){
+      var r=rs[j];
+      if(e.clientX<r.left || e.clientX>r.right) continue;
+      var d = e.clientY<r.top ? r.top-e.clientY : (e.clientY>r.bottom ? e.clientY-r.bottom : 0);
+      if(d<bd){ bd=d; best=all[i]; }
+    }
+  }
+  return best;
+}
 
 /* 指す。その場では買えない。帳場さんは玄関の机から動かない。 */
 function point(el){
