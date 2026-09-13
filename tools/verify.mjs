@@ -208,6 +208,38 @@ if (want('art')) {
   }
   if (nt < 30)  ng(`夜の行動が少ない（${nt}本）`);
   if (ny < 7)   ng(`額の読みの「夜に見る一行」が足りない（${ny}）`);
+  /* **引っかかりの出どころが、実在する行を指していること。**
+     `src`+`id` が一字でもずれると、その引っかかりは誰にも拾われない。
+     しかも**拾われないことに誰も気づけない**（並べ直しに出てこないだけ）。
+     `build_snags.py` も同じことを見ているが、あちらは原稿を見る。
+     ここは**焼き上がった game.html を見る**（流し込み忘れと手直しを拾う）。 */
+  {
+    const sn = grab('SNAG'), tk = grab('TALK');
+    const ci = src.indexOf('var CH = {');
+    const ch = (function(){ try {
+      const j = src.indexOf('\nvar ', ci + 10);
+      return JSON.parse(src.slice(ci + 9, src.lastIndexOf(';', j)));
+    } catch (e) { return null; } })();
+    if (sn && tk) {
+      const byK = {}; tk.forEach(t => byK[t.k] = t);
+      const miss = [];
+      for (const x of sn) {
+        if (/^t\d+$/.test(x.src)) {
+          const t = byK[x.src];
+          if (!t) { miss.push(`${x.k}: 行動 ${x.src} が無い`); continue; }
+          const n = parseInt(x.id.slice(1), 10);
+          if (!(n >= 1 && n <= t.lines.length))
+            miss.push(`${x.k}: ${x.src} に ${x.id} が無い（全${t.lines.length}行）`);
+        } else if (ch && ch[x.src]) {
+          if (ch[x.src].order.indexOf(x.id) < 0)
+            miss.push(`${x.k}: 第${x.src}章に ${x.id} が無い`);
+        }
+      }
+      if (miss.length) ng(`引っかかりの出どころが無い: ${miss.join('／')}`);
+      else console.log(`引っかかりの出どころ　${sn.length} 本とも実在する行`);
+    }
+  }
+
   /* 封が指している引っかかりの鍵が、実在すること。
      打ち間違えると、その一行は誰にも出ない（出ないことに気づけない）。 */
   {
