@@ -775,10 +775,12 @@ rt{ font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif; }
       </div></div>
       <div id="nav"></div>
     </div>
+    <!-- 検証用の欄 ここから（tools/build_release.py が丸ごと落とす） -->
     <div class="dev" id="dev" hidden>
       <label><input type="checkbox" id="mk"> 検証用：指せる語句を光らせる</label>
       <button type="button" id="again">最初から</button>
     </div>
+    <!-- 検証用の欄 ここまで -->
   </section>
 
 </div>
@@ -1472,7 +1474,7 @@ function resume(){
   S=d.s;
   auStart();
   scene("game");
-  $("hud").hidden=false; $("dev").hidden=false;
+  $("hud").hidden=false; (function(){ var d=$("dev"); if(d) d.hidden=false; })();
   drawSticks();
   var P=PLACES.filter(function(p){ return p.k===S.place; })[0] || PLACES[0];
   $("place").textContent=P.name;
@@ -1488,7 +1490,7 @@ function start(){
   auStart();
   scene("game");
   $("hud").hidden=false;
-  $("dev").hidden=false;
+  (function(){ var d=$("dev"); if(d) d.hidden=false; })();
   drawSticks();
   prologue(function(){ enter("genkan"); });
 }
@@ -3532,9 +3534,12 @@ function setArt(k){
 }
 addEventListener("resize",placeFace);
 
+/* 検証用の口 ここから（tools/build_release.py が丸ごと落とす） */
 /* ---------- 検証モード ----------
    本編には出ない。制作側が中の状態を見て、任意の局面に飛ぶための口。
-   決済を入れる前に、38額 × 開封 × 購入の組をここから機械で舐める。 */
+   決済を入れる前に、38額 × 開封 × 購入の組をここから機械で舐める。
+   **客に出す前に外す**（`docs/RELEASE.md`）。外すのは
+   `python3 tools/build_release.py` で、`release/game.html` に書き出す。 */
 window.__dev = {
   STEPS: STEPS,
   ASKS: Object.keys(ASKS),
@@ -3724,6 +3729,7 @@ window.__t = function(idx,buys){ return window.__dev.jump(idx,buys); };
 
 $("mk").addEventListener("change",function(){ $("game").classList.toggle("reveal",this.checked); });
 $("again").addEventListener("click",function(){ location.reload(); });
+/* 検証用の口 ここまで */
 
 drawPay();
 drawToLink();

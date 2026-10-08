@@ -208,6 +208,27 @@ if (want('art')) {
   }
   if (nt < 30)  ng(`夜の行動が少ない（${nt}本）`);
   if (ny < 7)   ng(`額の読みの「夜に見る一行」が足りない（${ny}）`);
+  /* **客に出す一枚が、いつでも書き出せること。**`docs/RELEASE.md` の
+     「客側から消すもの」のうち二つ（`window.__dev` と検証用の欄）は印で囲んであり、
+     `tools/build_release.py` が丸ごと落とす。**印が動くと静かに落とせなくなる**ので、
+     印があることと、落とした跡に口が残らないことを、ここで見る。 */
+  {
+    const marks = ['<!-- 検証用の欄 ここから', '<!-- 検証用の欄 ここまで -->',
+                   '/* 検証用の口 ここから', '/* 検証用の口 ここまで */'];
+    const miss = marks.filter(m => src.indexOf(m) < 0);
+    if (miss.length) ng(`客に出す一枚の印が無い: ${miss.join('／')}`);
+    else {
+      let t = src;
+      for (const [a, z] of [[marks[0], marks[1]], [marks[2], marks[3]]]) {
+        const i = t.indexOf(a), j = t.indexOf(z);
+        if (i >= 0 && j > i) t = t.slice(0, i) + t.slice(j + z.length);
+      }
+      const left = ['window.__dev', 'window.__t', 'id="mk"', 'id="again"'].filter(w => t.indexOf(w) >= 0);
+      if (left.length) ng(`検証用の口が落ちきらない: ${left.join('／')}`);
+      else console.log(`客に出す一枚　落とせる（-${Math.round((src.length - t.length) / 1024)} KB）`);
+    }
+  }
+
   /* **引っかかりの出どころが、実在する行を指していること。**
      `src`+`id` が一字でもずれると、その引っかかりは誰にも拾われない。
      しかも**拾われないことに誰も気づけない**（並べ直しに出てこないだけ）。
