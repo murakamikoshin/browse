@@ -688,6 +688,45 @@ const beat = async (idx, steps) => {
     t0.indexOf('相応に、と昨夜') < 0 && t0.indexOf('寄ったのね') < 0);
 }
 
+/* 音は全部その場で合成している。**Web Audio が無い端末と、断られた端末**でも
+   読めること。合成が落ちると本文まで止まるので、そこを切り離して見る。 */
+{
+  console.log('\n  音が使えない端末');
+  const noAudio = async (mode) => {
+    const ctx2 = await browser.newContext();
+    const p2 = await ctx2.newPage();
+    const errs = [];
+    p2.on('pageerror', e => errs.push(String(e)));
+    if (mode) await p2.addInitScript((m) => {
+      if (m === 'gone') { delete window.AudioContext; delete window.webkitAudioContext; }
+      else { window.AudioContext = function () { throw new Error('blocked'); };
+             window.webkitAudioContext = window.AudioContext; }
+    }, mode);
+    await p2.goto(URL);
+    let read = false;
+    try {
+      read = await p2.evaluate(() => {
+        const D = window.__dev; D.fast(true); D.begin(27, true);
+        for (let i = 0; i < 400; i++) {
+          const st = D.state();
+          if (st.done) break;
+          if (st.chapcard) { D.flush(1); continue; }
+          const n = [...document.querySelectorAll('#nav button')].filter(x => !x.disabled).map(x => x.textContent);
+          if (n.length) { D.nav(n[0]); continue; }
+          try { D.step(); } catch (e) { return false; }
+        }
+        return D.state().bare.length > 8;
+      });
+    } catch (e) { read = false; }
+    await ctx2.close();
+    return { read, errs };
+  };
+  const a1 = await noAudio(null), a2 = await noAudio('gone'), a3 = await noAudio('throw');
+  await to('音が鳴る端末で読める', async () => a1.read && !a1.errs.length);
+  await to('Web Audio が無い端末でも読める', async () => a2.read && !a2.errs.length);
+  await to('音を断られた端末でも読める', async () => a3.read && !a3.errs.length);
+}
+
 /* **指せる語句は、押す以外に指す道が無い。**キーボードだけの人と、狙って押せない人には、
    夜の中心の仕掛け（指して、机まで持ち帰る）が丸ごと届かない。設定「指せる語句」を
    入れた人だけ、薄い下線と P で指せるようにした。**既定では何も起きない**
