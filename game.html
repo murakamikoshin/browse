@@ -684,6 +684,7 @@ rt{ font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif; }
   <div class="set-r"><span>ふりがな</span><button type="button" id="setruby">あり</button></div>
   <div class="set-r"><span>音</span><button type="button" id="setau">あり</button></div>
   <div class="set-r"><span>早送り</span><button type="button" id="setskip">未読で止まる</button></div>
+  <div class="set-r"><span>指せる語句</span><button type="button" id="setask">読んで見つける</button></div>
   <div class="set-r"><span>文字の大きさ</span><span class="set-3">
     <button type="button" class="setz" data-z="0.88">小</button>
     <button type="button" class="setz" data-z="1">中</button>
@@ -1873,6 +1874,19 @@ addEventListener("pagehide",function(){
   try{ localStorage.setItem("choba.seen",JSON.stringify(Array.from(SEEN))); }catch(e){}
 });
 
+/* **指せる語句を、押さずに指せるようにするか。**
+   既定は「読んで見つける」——印を付けないのが作品の線（SPEC 3.5 A）。
+   ただし**指す操作は押す以外に無い**ので、キーボードだけの人と、
+   狙って押せない人には、夜の中心の仕掛けが丸ごと届かない。
+   入れると、指せる語句に薄い下線が付き、P で「いまの行の指せる語」を指せる。
+   自分で見つける楽しみは減る。だから既定では切ってある。 */
+var ASKAID=(function(){ try{ return localStorage.getItem("choba.askaid")==="1"; }catch(e){ return false; } })();
+function setAskAid(v){
+  ASKAID=!!v;
+  try{ localStorage.setItem("choba.askaid", v?"1":"0"); }catch(e){}
+  $("game").classList.toggle("reveal", ASKAID);
+}
+
 var AUTO=false, SKIP=false, autoT=null;
 var SKIPNEW=(function(){ try{ return localStorage.getItem("choba.skipnew")!=="0"; }catch(e){ return true; } })();
 function setSkipNew(v){
@@ -1940,6 +1954,13 @@ document.addEventListener("keydown",function(e){
   if(!$("game").classList.contains("on")) return;
   if($("logbox").classList.contains("on")){ if(e.key==="Escape") closeLog(); return; }
   if(e.key==="Escape"){ if($("nav").firstChild && !S.done) foldNav(); return; }
+  /* **キーボードだけで指せるようにする。**押す以外の道が無いと、
+     夜の中心の仕掛け（指して、机まで持ち帰る）がキーボードの人に丸ごと届かない。
+     設定「指せる語句」を入れた人だけ。既定では何も起きない（印も付けない）。 */
+  if(ASKAID && (e.key==="p"||e.key==="P")){
+    var k=$("wt").querySelector(".ask:not(.used)");
+    if(k && !Q.tid){ e.preventDefault(); point(k); return; }
+  }
   if(e.key===" "||e.key==="Enter"){ e.preventDefault(); tap(null); }
 });
 
@@ -3059,6 +3080,8 @@ function drawSet(){
   $("setau").classList.toggle("off", !AU.on);
   $("setskip").textContent = SKIPNEW ? "未読で止まる" : "止まらない";
   $("setskip").classList.toggle("off", !SKIPNEW);
+  $("setask").textContent = ASKAID ? "印をつける（P で指す）" : "読んで見つける";
+  $("setask").classList.toggle("off", !ASKAID);
 }
 /* 題の画面。一度でも朝まで行った人にだけ、残りを数で出す。
    どの額で何が出るかは書かない（SPEC 6）。いくつ見ていないか、だけ。 */
@@ -3081,6 +3104,10 @@ $("setruby").addEventListener("click",function(){
 $("setau").addEventListener("click",function(){
   AU.on=!AU.on; auStart(); auDraw(); drawSet();
 });
+$("setask").addEventListener("click",function(){
+  setAskAid(!ASKAID); drawSet(); auSE("eran");
+});
+setAskAid(ASKAID);            // 前の周で入れた人には、読み込んだ時点から印を出す
 $("setskip").addEventListener("click",function(){
   setSkipNew(!SKIPNEW); drawSet(); auSE("eran");
 });

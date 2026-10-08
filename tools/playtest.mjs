@@ -688,6 +688,53 @@ const beat = async (idx, steps) => {
     t0.indexOf('相応に、と昨夜') < 0 && t0.indexOf('寄ったのね') < 0);
 }
 
+/* **指せる語句は、押す以外に指す道が無い。**キーボードだけの人と、狙って押せない人には、
+   夜の中心の仕掛け（指して、机まで持ち帰る）が丸ごと届かない。設定「指せる語句」を
+   入れた人だけ、薄い下線と P で指せるようにした。**既定では何も起きない**
+   （印を付けないのが作品の線。SPEC 3.5 A）。 */
+{
+  console.log('\n  指せる語句を、キーで指す');
+  const probe = async (aid) => {
+    await page.goto(URL);
+    await page.evaluate((a) => { try { localStorage.setItem('choba.askaid', a ? '1' : '0'); } catch (e) {} }, aid);
+    await page.goto(URL);
+    const r = await page.evaluate(() => {
+      const D = window.__dev; D.fast(true); D.begin(27, true);
+      const walk = () => { for (let i = 0; i < 900; i++) {
+        const n = [...document.querySelectorAll('#nav button')].map(x => x.textContent);
+        if (n.length) { if (n.includes('ほかの場所へ')) return; D.nav(n[0]); continue; }
+        if (D.state().chapcard) { D.flush(1); continue; }
+        try { D.step(); } catch (e) { return; } } };
+      walk(); D.nav('ほかの場所へ'); D.nav('仏間'); D.flush(1500); walk();
+      D.nav('ほかの場所へ'); D.nav('帳場の奥');
+      for (let i = 0; i < 600; i++) {
+        if (document.querySelector('#wt .ask')) break;
+        const n = [...document.querySelectorAll('#nav button')].map(x => x.textContent);
+        if (n.length) { D.nav(n[0]); continue; }
+        if (D.state().chapcard) { D.flush(1); continue; }
+        try { D.step(); } catch (e) { break; } }
+      const el = document.querySelector('#wt .ask');
+      const sh = el ? getComputedStyle(el).boxShadow : 'none';
+      return { has: !!el, mark: sh !== 'none' && sh !== '', line: D.state().bare };
+    });
+    await page.waitForTimeout(900);
+    await page.keyboard.press('p');
+    await page.waitForTimeout(600);
+    const line = await page.evaluate(() => window.__dev.state().bare);
+    return { ...r, pointed: /端金です/.test(line), moved: line !== r.line };
+  };
+  const off = await probe(false), on = await probe(true);
+  await to('既定では、指せる語句に印が付かない', async () => off.has && !off.mark);
+  await to('既定では、P を押しても何も起きない', async () => !off.pointed && !off.moved);
+  await to('設定を入れると、薄い印が付く', async () => on.has && on.mark);
+  await to('設定を入れると、P で指せる', async () => on.pointed);
+  // 設定は残る
+  await page.goto(URL);
+  await to('設定は次に開いても残る', async () =>
+    await page.evaluate(() => document.getElementById('game').classList.contains('reveal')));
+  await page.evaluate(() => { try { localStorage.setItem('choba.askaid', '0'); } catch (e) {} });
+}
+
 /* 指す先の当たり。字の高さは携帯で 19px しかなく、目安の24pxにも指の幅にも足りない。
    外した一押しはそのまま送りになって、その語は読み返すまで二度と出てこない。
    行間は42pxあって上下が空いているので、見た目を変えずに当たりだけ広げてある。 */
